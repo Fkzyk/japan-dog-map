@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>東京ドッグマップ | ドッグラン・ドッグカフェ</title>
+  <title>東京ドッグマップ</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -21,20 +21,22 @@
     #filter-bar {
       position: fixed; top: 48px; left: 0; right: 0; z-index: 1000;
       background: white; border-bottom: 1px solid #eee;
-      display: flex; gap: 8px; padding: 8px 12px;
+      display: flex; gap: 6px; padding: 8px 12px;
       overflow-x: auto;
     }
     .filter-btn {
-      padding: 6px 14px; border-radius: 20px; border: 1.5px solid #ccc;
-      background: white; font-size: 13px; cursor: pointer; white-space: nowrap;
-      transition: all 0.2s;
+      padding: 5px 12px; border-radius: 20px; border: 1.5px solid #ccc;
+      background: white; font-size: 12px; cursor: pointer; white-space: nowrap;
+      transition: all 0.2s; color: #555;
     }
-    .filter-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
-    .filter-btn.dogrun.active { background: #27ae60; border-color: #27ae60; }
-    .filter-btn.dogcafe.active { background: #c0392b; border-color: #c0392b; }
+    .filter-btn.active { color: white; border-color: transparent; }
+    #btn-all.active    { background: #333; }
+    #btn-dogrun.active    { background: #27ae60; }
+    #btn-dogcafe.active   { background: #e74c3c; }
+    #btn-dogfriendly.active { background: #2980b9; }
+    #btn-vet.active       { background: #8e44ad; }
     #map-container {
-      position: fixed;
-      top: 96px; left: 0; right: 0; bottom: 0;
+      position: fixed; top: 96px; left: 0; right: 0; bottom: 0;
     }
     #map { width: 100%; height: 100%; }
     #loading {
@@ -49,7 +51,7 @@
       cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     #list-panel {
-      position: fixed; top: 96px; right: 0; bottom: 0; width: 320px;
+      position: fixed; top: 96px; right: 0; bottom: 0; width: 300px;
       background: white; z-index: 1500; overflow-y: auto;
       box-shadow: -4px 0 16px rgba(0,0,0,0.1);
       transform: translateX(100%); transition: transform 0.3s;
@@ -62,19 +64,20 @@
     }
     #list-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
     .list-item {
-      padding: 12px 16px; border-bottom: 1px solid #f0f0f0;
+      padding: 10px 14px; border-bottom: 1px solid #f0f0f0;
       cursor: pointer; transition: background 0.15s;
     }
     .list-item:hover { background: #f8f8f8; }
     .list-item-name { font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 3px; }
     .list-item-addr { font-size: 11px; color: #888; margin-bottom: 3px; }
-    .list-item-meta { font-size: 11px; color: #555; display: flex; gap: 8px; align-items: center; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
-    .badge-dogrun { background: #e8f5e9; color: #27ae60; }
-    .badge-dogcafe { background: #fdecea; color: #c0392b; }
+    .list-item-meta { font-size: 11px; color: #555; display: flex; gap: 6px; align-items: center; }
+    .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; color: white; }
+    .badge-dogrun     { background: #27ae60; }
+    .badge-dogcafe    { background: #e74c3c; }
+    .badge-dogfriendly { background: #2980b9; }
+    .badge-vet        { background: #8e44ad; }
     @media (max-width: 600px) { #list-panel { width: 100%; } }
   </style>
-  <!-- Maps APIをheadで先に読み込む（asyncなし） -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&language=ja"></script>
 </head>
 <body>
@@ -84,9 +87,11 @@
     <span id="count-display">読み込み中...</span>
   </div>
   <div id="filter-bar">
-    <button class="filter-btn active" id="btn-all" onclick="setFilter('all',this)">すべて</button>
-    <button class="filter-btn dogrun" id="btn-dogrun" onclick="setFilter('dogrun',this)">ドッグラン</button>
-    <button class="filter-btn dogcafe" id="btn-dogcafe" onclick="setFilter('dogcafe',this)">ドッグカフェ</button>
+    <button class="filter-btn active" id="btn-all"          onclick="setFilter('all',this)">すべて</button>
+    <button class="filter-btn"        id="btn-dogrun"       onclick="setFilter('dogrun',this)">ドッグラン</button>
+    <button class="filter-btn"        id="btn-dogcafe"      onclick="setFilter('dogcafe',this)">ドッグカフェ</button>
+    <button class="filter-btn"        id="btn-dogfriendly"  onclick="setFilter('dogfriendly',this)">ドッグフレンドリー</button>
+    <button class="filter-btn"        id="btn-vet"          onclick="setFilter('vet',this)">動物病院</button>
   </div>
   <div id="loading">地図を読み込み中...</div>
   <div id="map-container">
@@ -104,6 +109,10 @@
   <script>
     var map, infoWindow, markers = [], PLACES_DATA = [], currentFilter = 'all', listOpen = false;
 
+    var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ドッグカフェ', dogfriendly:'ドッグフレンドリー', vet:'動物病院' };
+    var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', dogfriendly:'#2980b9', vet:'#8e44ad' };
+    var CAT_BADGE  = { dogrun:'badge-dogrun', dogcafe:'badge-dogcafe', dogfriendly:'badge-dogfriendly', vet:'badge-vet' };
+
     window.addEventListener('load', function() {
       map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 35.6762, lng: 139.6503 },
@@ -120,20 +129,30 @@
       xhr.onload = function() {
         if (xhr.status === 200) {
           PLACES_DATA = JSON.parse(xhr.responseText);
-          var total = PLACES_DATA.length;
-          var dogrun = PLACES_DATA.filter(function(p){ return p.category === 'dogrun'; }).length;
-          var dogcafe = PLACES_DATA.filter(function(p){ return p.category === 'dogcafe'; }).length;
-          document.getElementById('btn-all').textContent = 'すべて（' + total + '件）';
-          document.getElementById('btn-dogrun').textContent = 'ドッグラン（' + dogrun + '件）';
-          document.getElementById('btn-dogcafe').textContent = 'ドッグカフェ（' + dogcafe + '件）';
-          document.getElementById('count-display').textContent = total + '件';
+          updateFilterLabels();
           renderMarkers();
           renderList();
           document.getElementById('loading').style.display = 'none';
+        } else {
+          document.getElementById('loading').textContent = 'データ読み込みエラー';
         }
+      };
+      xhr.onerror = function() {
+        document.getElementById('loading').textContent = 'データ読み込みエラー';
       };
       xhr.send();
     });
+
+    function updateFilterLabels() {
+      var counts = { all: PLACES_DATA.length, dogrun:0, dogcafe:0, dogfriendly:0, vet:0 };
+      PLACES_DATA.forEach(function(p) { if (counts[p.category] !== undefined) counts[p.category]++; });
+      document.getElementById('btn-all').textContent         = 'すべて（' + counts.all + '件）';
+      document.getElementById('btn-dogrun').textContent      = 'ドッグラン（' + counts.dogrun + '件）';
+      document.getElementById('btn-dogcafe').textContent     = 'ドッグカフェ（' + counts.dogcafe + '件）';
+      document.getElementById('btn-dogfriendly').textContent = 'ドッグフレンドリー（' + counts.dogfriendly + '件）';
+      document.getElementById('btn-vet').textContent         = '動物病院（' + counts.vet + '件）';
+      document.getElementById('count-display').textContent   = counts.all + '件';
+    }
 
     function getFiltered() {
       if (currentFilter === 'all') return PLACES_DATA;
@@ -153,8 +172,8 @@
       markers = [];
       var filtered = getFiltered();
       document.getElementById('count-display').textContent = filtered.length + '件';
-      filtered.forEach(function(place) {
-        var color = place.category === 'dogrun' ? '#27ae60' : '#c0392b';
+      filtered.forEach(function(place, i) {
+        var color = CAT_COLORS[place.category] || '#999';
         var marker = new google.maps.Marker({
           position: { lat: place.lat, lng: place.lng },
           map: map,
@@ -176,26 +195,17 @@
     }
 
     function showInfo(place, marker) {
-      var badge = place.category === 'dogrun'
-        ? '<span class="badge badge-dogrun">ドッグラン</span>'
-        : '<span class="badge badge-dogcafe">ドッグカフェ</span>';
-      var rating = place.rating ? '★ ' + place.rating + ' (' + place.reviews + '件)' : '評価なし';
-      var hours = place.hours && place.hours.length > 0
-        ? '<div style="margin-top:6px;font-size:11px;color:#555;">' + place.hours.slice(0,3).map(function(h){ return esc(h); }).join('<br>') + '</div>'
-        : '';
-      var website = place.website
-        ? '<div style="margin-top:6px;"><a href="' + esc(place.website) + '" target="_blank" style="color:#1a73e8;font-size:12px;">公式サイト</a></div>'
-        : '';
-      var phone = place.phone
-        ? '<div style="font-size:12px;color:#555;margin-top:4px;">📞 ' + esc(place.phone) + '</div>'
-        : '';
+      var label = CAT_LABELS[place.category] || '';
+      var color = CAT_COLORS[place.category] || '#999';
+      var rating = place.rating ? '★ ' + place.rating + (place.user_ratings_total ? ' (' + place.user_ratings_total + '件)' : '') : '';
       infoWindow.setContent(
-        '<div style="max-width:260px;padding:4px;">' +
-        badge +
-        '<div style="font-weight:700;font-size:14px;margin:6px 0 4px;">' + esc(place.name) + '</div>' +
-        '<div style="font-size:12px;color:#666;">' + esc(place.address) + '</div>' +
-        '<div style="font-size:12px;color:#f39c12;margin-top:4px;">' + rating + '</div>' +
-        phone + hours + website + '</div>'
+        '<div style="max-width:240px;padding:4px;font-family:-apple-system,sans-serif">' +
+        '<span style="background:' + color + ';color:white;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600">' + label + '</span>' +
+        '<div style="font-weight:700;font-size:14px;margin:6px 0 4px">' + esc(place.name) + '</div>' +
+        '<div style="font-size:12px;color:#666;margin-bottom:4px">' + esc(place.address || '') + '</div>' +
+        (rating ? '<div style="font-size:12px;color:#f39c12;margin-bottom:6px">' + rating + '</div>' : '') +
+        '<a href="https://www.google.com/maps/place/?q=place_id:' + esc(place.place_id) + '" target="_blank" style="font-size:12px;color:#1a73e8">Google Mapsで確認</a>' +
+        '</div>'
       );
       infoWindow.open(map, marker);
     }
@@ -203,14 +213,13 @@
     function renderList() {
       var filtered = getFiltered();
       document.getElementById('list-title').textContent = 'スポット一覧（' + filtered.length + '件）';
-      document.getElementById('list-body').innerHTML = filtered.slice(0, 200).map(function(p, i) {
+      document.getElementById('list-body').innerHTML = filtered.slice(0, 300).map(function(p, i) {
         return '<div class="list-item" onclick="focusPlace(' + i + ')">' +
           '<div class="list-item-name">' + esc(p.name) + '</div>' +
-          '<div class="list-item-addr">' + esc(p.address) + '</div>' +
+          '<div class="list-item-addr">' + esc(p.address || '') + '</div>' +
           '<div class="list-item-meta">' +
-          (p.rating ? '★ ' + p.rating + '&nbsp;' : '') +
-          '<span class="badge ' + (p.category === 'dogrun' ? 'badge-dogrun' : 'badge-dogcafe') + '">' +
-          (p.category === 'dogrun' ? 'ドッグラン' : 'ドッグカフェ') + '</span>' +
+          '<span class="badge ' + (CAT_BADGE[p.category] || '') + '">' + (CAT_LABELS[p.category] || '') + '</span>' +
+          (p.rating ? '<span>★ ' + p.rating + '</span>' : '') +
           '</div></div>';
       }).join('');
     }
