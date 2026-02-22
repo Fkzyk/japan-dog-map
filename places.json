@@ -802,50 +802,6 @@
     "category": "dogrun"
   },
   {
-    "place_id": "ChIJb507592NGGARSqcyXmZQgBM",
-    "name": "いぬカフェRio 池袋店",
-    "address": "日本、〒170-0013 東京都豊島区東池袋１丁目１２−１１ Ogsビル B1階 旧 朝日会館ビル",
-    "lat": 35.7295013,
-    "lng": 139.7145738,
-    "rating": 4.6,
-    "user_ratings_total": 594,
-    "website": "https://rio-corp.jp/shops/",
-    "phone": "03-6709-0775",
-    "opening_hours": [
-      "月曜日: 11時00分～20時00分",
-      "火曜日: 11時00分～20時00分",
-      "水曜日: 11時00分～20時00分",
-      "木曜日: 11時00分～20時00分",
-      "金曜日: 11時00分～20時00分",
-      "土曜日: 11時00分～20時00分",
-      "日曜日: 11時00分～20時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJpUpLkT2NGGAR7BY-rc01Bgg",
-    "name": "いぬカフェRio 新宿店",
-    "address": "日本、〒160-0021 東京都新宿区歌舞伎町１丁目１５−７",
-    "lat": 35.6942374,
-    "lng": 139.7018279,
-    "rating": 4.6,
-    "user_ratings_total": 1236,
-    "website": "https://rio-corp.jp/shops/shinjyuku/",
-    "phone": "03-6233-9270",
-    "opening_hours": [
-      "月曜日: 11時00分～20時00分",
-      "火曜日: 11時00分～20時00分",
-      "水曜日: 11時00分～20時00分",
-      "木曜日: 11時00分～20時00分",
-      "金曜日: 11時00分～20時00分",
-      "土曜日: 11時00分～20時00分",
-      "日曜日: 11時00分～20時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
     "place_id": "ChIJO8uxs9yRGGARX8t73U5J37I",
     "name": "会員制貸切型室内ドッグランNIKO",
     "address": "日本、〒121-0822 東京都足立区西竹の塚２丁目１３−１５ アルファースタジオ 3F",
@@ -910,50 +866,6 @@
     ],
     "business_status": "OPERATIONAL",
     "category": "dogrun"
-  },
-  {
-    "place_id": "ChIJfTLp8bONGGARcL3I93UsFRQ",
-    "name": "サモエドカフェ『超！サモエド』原宿店",
-    "address": "日本、〒150-0001 東京都渋谷区神宮前１丁目１６−２ 竹下館高松ビル 2F",
-    "lat": 35.671305,
-    "lng": 139.7039709,
-    "rating": 4.9,
-    "user_ratings_total": 2959,
-    "website": "https://cho-samoyed.jp/harajuku",
-    "phone": "",
-    "opening_hours": [
-      "月曜日: 10時00分～19時00分",
-      "火曜日: 10時00分～19時00分",
-      "水曜日: 10時00分～19時00分",
-      "木曜日: 10時00分～19時00分",
-      "金曜日: 10時00分～19時00分",
-      "土曜日: 10時00分～19時00分",
-      "日曜日: 10時00分～19時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJg54DGcqNGGARAle5cwl9OZw",
-    "name": "いぬカフェRIO 原宿竹下通り店",
-    "address": "日本、〒150-0001 東京都渋谷区神宮前１丁目１６−１ 2F",
-    "lat": 35.6713299,
-    "lng": 139.7038054,
-    "rating": 4.4,
-    "user_ratings_total": 1273,
-    "website": "http://www.rio-corp.jp/",
-    "phone": "03-6447-1582",
-    "opening_hours": [
-      "月曜日: 11時00分～20時00分",
-      "火曜日: 11時00分～20時00分",
-      "水曜日: 11時00分～20時00分",
-      "木曜日: 11時00分～20時00分",
-      "金曜日: 11時00分～20時00分",
-      "土曜日: 11時00分～20時00分",
-      "日曜日: 11時00分～20時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
   },
   {
     "place_id": "ChIJ7xwSYcuJGGARoXgGLL8eSN0",
@@ -1190,160 +1102,6 @@
     "category": "dogrun"
   },
   {
-    "place_id": "ChIJ_3zm0X2NGGARd3jLNTcLxVM",
-    "name": "サモエドカフェmoffu 原宿店",
-    "address": "日本、〒150-0001 東京都渋谷区神宮前３丁目２１−２１ 地下1F",
-    "lat": 35.6707268,
-    "lng": 139.7074793,
-    "rating": 4.9,
-    "user_ratings_total": 8304,
-    "website": "https://samoyedmoffu.com/",
-    "phone": "03-6804-5632",
-    "opening_hours": [
-      "月曜日: 11時00分～20時00分",
-      "火曜日: 11時00分～20時00分",
-      "水曜日: 11時00分～20時00分",
-      "木曜日: 11時00分～20時00分",
-      "金曜日: 11時00分～20時00分",
-      "土曜日: 10時00分～20時00分",
-      "日曜日: 10時00分～20時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJwc5YXzuNGGARL-TvuvWEXDQ",
-    "name": "FUFU サモエドカフェ池袋東口店",
-    "address": "西池サンケイビル 303号室, １丁目-２２-5 東池袋 豊島区 東京都 170-0013 日本",
-    "lat": 35.7295487,
-    "lng": 139.7154364,
-    "rating": 4.8,
-    "user_ratings_total": 2206,
-    "website": "https://fufusamoyedcafe.com/",
-    "phone": "03-5962-0362",
-    "opening_hours": [
-      "月曜日: 11時00分～20時00分",
-      "火曜日: 11時00分～20時00分",
-      "水曜日: 11時00分～20時00分",
-      "木曜日: 11時00分～20時00分",
-      "金曜日: 11時00分～20時00分",
-      "土曜日: 10時00分～20時00分",
-      "日曜日: 10時00分～20時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJjX2JWgr1GGARsgt79dmYTjw",
-    "name": "HUSKY CAFE TOKYO",
-    "address": "日本、〒108-0072 東京都港区白金３丁目１１−８ レーベル１F B1",
-    "lat": 35.6453309,
-    "lng": 139.7302962,
-    "rating": 4.8,
-    "user_ratings_total": 2777,
-    "website": "https://huskycafetokyo.com/",
-    "phone": "",
-    "opening_hours": [
-      "月曜日: 11時00分～20時00分",
-      "火曜日: 11時00分～20時00分",
-      "水曜日: 11時00分～20時00分",
-      "木曜日: 11時00分～20時00分",
-      "金曜日: 11時00分～20時00分",
-      "土曜日: 11時00分～20時00分",
-      "日曜日: 11時00分～20時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJcVInFFzzGGARRqNHe_zOjdg",
-    "name": "いぬカフェRio 下北沢店",
-    "address": "日本、〒155-0031 東京都世田谷区北沢２丁目１５−１６ 3F",
-    "lat": 35.65959550000001,
-    "lng": 139.667262,
-    "rating": 4.5,
-    "user_ratings_total": 823,
-    "website": "http://www.rio-corp.jp/",
-    "phone": "03-6805-2747",
-    "opening_hours": [
-      "月曜日: 11時00分～20時00分",
-      "火曜日: 11時00分～20時00分",
-      "水曜日: 11時00分～20時00分",
-      "木曜日: 11時00分～20時00分",
-      "金曜日: 11時00分～20時00分",
-      "土曜日: 11時00分～20時00分",
-      "日曜日: 11時00分～20時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJ0-vqjH2LGGAR334h-WVUsBk",
-    "name": "サモエドカフェ アル 芝浦店",
-    "address": "日本、〒108-0023 東京都港区芝浦３丁目１２−１８ バウパレス4F",
-    "lat": 35.6428078,
-    "lng": 139.7492566,
-    "rating": 4.9,
-    "user_ratings_total": 1996,
-    "website": "https://samoyed.jp/shibaura",
-    "phone": "",
-    "opening_hours": [
-      "月曜日: 10時00分～20時00分",
-      "火曜日: 10時00分～20時00分",
-      "水曜日: 10時00分～20時00分",
-      "木曜日: 10時00分～20時00分",
-      "金曜日: 10時00分～20時00分",
-      "土曜日: 10時00分～19時00分",
-      "日曜日: 10時00分～19時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJfy0-Gx-NGGARU1gag8spGw8",
-    "name": "サモエドカフェmoffu 竹下通り店",
-    "address": "日本、〒150-0001 東京都渋谷区神宮前１丁目６−９ Om169ビル 2F",
-    "lat": 35.6708911,
-    "lng": 139.7056525,
-    "rating": 4.9,
-    "user_ratings_total": 6479,
-    "website": "https://samoyedmoffu.com/",
-    "phone": "",
-    "opening_hours": [
-      "月曜日: 12時00分～19時00分",
-      "火曜日: 12時00分～19時00分",
-      "水曜日: 12時00分～19時00分",
-      "木曜日: 12時00分～19時00分",
-      "金曜日: 12時00分～19時00分",
-      "土曜日: 12時00分～20時00分",
-      "日曜日: 12時00分～20時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJE4haZkKNGGARIzHcPdmkEzY",
-    "name": "原宿乃豆柴カフェ",
-    "address": "日本、〒150-0001 東京都渋谷区神宮前１丁目６−１０ ３F",
-    "lat": 35.67094670000001,
-    "lng": 139.7055971,
-    "rating": 3.6,
-    "user_ratings_total": 955,
-    "website": "https://owls-cats-forest.com/",
-    "phone": "",
-    "opening_hours": [
-      "月曜日: 11時00分～18時00分",
-      "火曜日: 11時00分～18時00分",
-      "水曜日: 11時00分～18時00分",
-      "木曜日: 11時00分～18時00分",
-      "金曜日: 11時00分～18時00分",
-      "土曜日: 11時00分～18時40分",
-      "日曜日: 11時00分～18時40分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogfriendly"
-  },
-  {
     "place_id": "ChIJJ_V5dTSLGGAR6bi5TWbAjOU",
     "name": "BLUE TERRACE 恵比寿店 シーシャ&ドッグカフェバー",
     "address": "日本、〒150-0021 東京都渋谷区恵比寿西１丁目２５−１ １階",
@@ -1366,28 +1124,6 @@
     "category": "dogcafe"
   },
   {
-    "place_id": "ChIJjdpR7syPGGARQryg28Fa9i0",
-    "name": "大型犬カフェ NOOCAFE BIGDOGS",
-    "address": "日本、〒113-0033 東京都文京区本郷１丁目２５−８ 水道橋Skビル 3F",
-    "lat": 35.7054255,
-    "lng": 139.7559875,
-    "rating": 4.8,
-    "user_ratings_total": 191,
-    "website": "https://www.noocafe.jp/",
-    "phone": "",
-    "opening_hours": [
-      "月曜日: 定休日",
-      "火曜日: 11時00分～20時00分",
-      "水曜日: 11時00分～20時00分",
-      "木曜日: 11時00分～20時00分",
-      "金曜日: 11時00分～20時00分",
-      "土曜日: 10時00分～19時00分",
-      "日曜日: 10時00分～19時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
     "place_id": "ChIJb4fjEROLGGARRfbF-BNpcAI",
     "name": "BLINK Cafe Pet friendly (ブリンクカフェ ペットフレンドリー)",
     "address": "日本、〒106-0046 東京都港区元麻布３丁目１−６",
@@ -1405,28 +1141,6 @@
       "金曜日: 9時00分～17時30分",
       "土曜日: 定休日",
       "日曜日: 定休日"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogfriendly"
-  },
-  {
-    "place_id": "ChIJmcGDD1z1GGAR7CGgtH1UAUQ",
-    "name": "サモエドカフェ アル 駒沢公園店",
-    "address": "日本、〒154-0012 東京都世田谷区駒沢４丁目１８−２０ 駒沢公園通り1F",
-    "lat": 35.6303205,
-    "lng": 139.6564018,
-    "rating": 4.9,
-    "user_ratings_total": 2609,
-    "website": "https://samoyed.jp/komazawa",
-    "phone": "",
-    "opening_hours": [
-      "月曜日: 10時00分～14時00分, 15時00分～20時00分",
-      "火曜日: 10時00分～14時00分, 15時00分～20時00分",
-      "水曜日: 10時00分～14時00分, 15時00分～20時00分",
-      "木曜日: 10時00分～14時00分, 15時00分～20時00分",
-      "金曜日: 10時00分～14時00分, 15時00分～20時00分",
-      "土曜日: 10時00分～14時00分, 15時00分～20時00分",
-      "日曜日: 10時00分～14時00分, 15時00分～20時00分"
     ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
@@ -1454,6 +1168,28 @@
     "category": "dogcafe"
   },
   {
+    "place_id": "ChIJ7baKYaaLGGAR73nsm7WrMa8",
+    "name": "Paws Bar 中目黒",
+    "address": "日本、〒153-0051 東京都目黒区上目黒１丁目７−４",
+    "lat": 35.6455581,
+    "lng": 139.700082,
+    "rating": 4.7,
+    "user_ratings_total": 32,
+    "website": "https://instagram.com/pawsbar.nakameguro",
+    "phone": "050-1326-5436",
+    "opening_hours": [
+      "月曜日: 12時00分～20時00分",
+      "火曜日: 12時00分～20時00分",
+      "水曜日: 12時00分～20時00分",
+      "木曜日: 12時00分～20時00分",
+      "金曜日: 12時00分～20時00分",
+      "土曜日: 12時00分～20時00分",
+      "日曜日: 12時00分～20時00分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
+  },
+  {
     "place_id": "ChIJSTmkwBaNGGAR00aSHUILKlE",
     "name": "Dog cafe MOANA 白山店",
     "address": "日本、〒113-0001 東京都文京区白山１丁目３３−２５",
@@ -1476,45 +1212,23 @@
     "category": "dogcafe"
   },
   {
-    "place_id": "ChIJwwEgNpfvGGARf5vPnMzls_c",
-    "name": "いぬカフェRio 吉祥寺店",
-    "address": "日本、〒180-0004 東京都武蔵野市吉祥寺本町１丁目１４−３ 地下１階",
-    "lat": 35.7046567,
-    "lng": 139.5804501,
-    "rating": 4.6,
-    "user_ratings_total": 840,
-    "website": "https://rio-corp.jp/shops/kichijoji/",
-    "phone": "0422-27-5910",
+    "place_id": "ChIJ6Qwb7n3yGGARBF7fjAPDqLg",
+    "name": "cafe garage Dogberry（ドッグベリー） 高円寺",
+    "address": "日本、〒166-0002 東京都杉並区高円寺北３丁目２４−６ フォーラム高円寺",
+    "lat": 35.7072315,
+    "lng": 139.6496427,
+    "rating": 3.9,
+    "user_ratings_total": 206,
+    "website": "https://gj4f900.gorp.jp/",
+    "phone": "050-5487-2335",
     "opening_hours": [
-      "月曜日: 11時00分～20時00分",
-      "火曜日: 11時00分～20時00分",
-      "水曜日: 11時00分～20時00分",
-      "木曜日: 11時00分～20時00分",
-      "金曜日: 11時00分～20時00分",
-      "土曜日: 11時00分～20時00分",
-      "日曜日: 11時00分～20時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJ4Xc5N3iHGGARww-eG-L4u5g",
-    "name": "大型犬カフェ ほっとひと犬",
-    "address": "日本、〒132-0011 東京都江戸川区瑞江４丁目４２−９",
-    "lat": 35.6919874,
-    "lng": 139.8952173,
-    "rating": 4.9,
-    "user_ratings_total": 492,
-    "website": "https://www.hottooneone.com/",
-    "phone": "03-6638-7499",
-    "opening_hours": [
-      "月曜日: 11時00分～13時00分",
-      "火曜日: 11時00分～14時00分, 15時00分～18時00分",
-      "水曜日: 11時00分～14時00分, 15時00分～18時00分",
-      "木曜日: 11時00分～14時00分, 15時00分～18時00分",
-      "金曜日: 11時00分～14時00分, 15時00分～18時00分",
-      "土曜日: 10時30分～14時30分, 15時00分～18時00分",
-      "日曜日: 10時30分～14時30分, 15時00分～18時00分"
+      "月曜日: 11時30分～1時00分",
+      "火曜日: 11時30分～1時00分",
+      "水曜日: 11時30分～1時00分",
+      "木曜日: 11時30分～1時00分",
+      "金曜日: 11時30分～1時00分",
+      "土曜日: 11時30分～1時00分",
+      "日曜日: 11時30分～1時00分"
     ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
@@ -1537,72 +1251,6 @@
       "金曜日: 定休日",
       "土曜日: 11時30分～16時00分",
       "日曜日: 11時30分～15時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogfriendly"
-  },
-  {
-    "place_id": "ChIJT14lf_KNGGAR1whbv7pft1Y",
-    "name": "いぬカフェRio 秋葉原店",
-    "address": "日本、〒101-0021 東京都千代田区外神田４丁目４−２ HULIC&New AKIHABARA 3F",
-    "lat": 35.7011372,
-    "lng": 139.7718024,
-    "rating": 4.8,
-    "user_ratings_total": 819,
-    "website": "https://rio-corp.jp/?utm_source=map",
-    "phone": "03-3525-7160",
-    "opening_hours": [
-      "月曜日: 11時00分～20時00分",
-      "火曜日: 11時00分～20時00分",
-      "水曜日: 11時00分～20時00分",
-      "木曜日: 11時00分～20時00分",
-      "金曜日: 11時00分～20時00分",
-      "土曜日: 11時00分～20時00分",
-      "日曜日: 11時00分～20時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJ-zG_BIuPGGAR_1FeA1Y7D2M",
-    "name": "いぬカフェRio浅草店",
-    "address": "日本、〒111-0032 東京都台東区浅草１丁目２１−８ シャローグラス B1F",
-    "lat": 35.7119567,
-    "lng": 139.7951161,
-    "rating": 4.5,
-    "user_ratings_total": 722,
-    "website": "https://rio-corp.jp/",
-    "phone": "03-5246-4707",
-    "opening_hours": [
-      "月曜日: 11時00分～20時00分",
-      "火曜日: 11時00分～20時00分",
-      "水曜日: 11時00分～20時00分",
-      "木曜日: 11時00分～20時00分",
-      "金曜日: 11時00分～20時00分",
-      "土曜日: 11時00分～20時00分",
-      "日曜日: 11時00分～20時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJVSEtYlPDGGAR-vUUJr52DzY",
-    "name": "いぬカフェRio 富士見店",
-    "address": "日本、〒354-8560 埼玉県富士見市山室１丁目１３１３ ららぽーと富士見 2階",
-    "lat": 35.8611441,
-    "lng": 139.5479262,
-    "rating": 4.7,
-    "user_ratings_total": 553,
-    "website": "https://rio-corp.jp/",
-    "phone": "049-293-5412",
-    "opening_hours": [
-      "月曜日: 10時00分～20時00分",
-      "火曜日: 10時00分～20時00分",
-      "水曜日: 10時00分～20時00分",
-      "木曜日: 10時00分～20時00分",
-      "金曜日: 10時00分～20時00分",
-      "土曜日: 10時00分～20時00分",
-      "日曜日: 10時00分～20時00分"
     ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
@@ -1649,7 +1297,7 @@
       "日曜日: 11時00分～18時00分"
     ],
     "business_status": "OPERATIONAL",
-    "category": "dogfriendly"
+    "category": "dogcafe"
   },
   {
     "place_id": "ChIJowiQTwCJGGARE46XsOzZwYE",
@@ -1862,28 +1510,6 @@
     "category": "dogrun"
   },
   {
-    "place_id": "ChIJqfZcJHuOGGARxrmMOA07Uho",
-    "name": "ドッグサロン＆ドッグカフェ アンジン",
-    "address": "日本、〒116-0002 東京都荒川区荒川２丁目４−１２",
-    "lat": 35.735663,
-    "lng": 139.782236,
-    "rating": 4.3,
-    "user_ratings_total": 10,
-    "website": "http://anjing.web.fc2.com/",
-    "phone": "03-3806-3779",
-    "opening_hours": [
-      "月曜日: 10時00分～18時30分",
-      "火曜日: 定休日",
-      "水曜日: 10時00分～18時30分",
-      "木曜日: 10時00分～18時30分",
-      "金曜日: 10時00分～18時30分",
-      "土曜日: 10時00分～18時30分",
-      "日曜日: 10時00分～18時30分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
     "place_id": "ChIJ2QX1rzWJGGARymd8KEzFhR8",
     "name": "ドッグカフェApricot",
     "address": "日本、〒136-0074 東京都江東区東砂７丁目１−２８",
@@ -1950,6 +1576,28 @@
     "category": "dogrun"
   },
   {
+    "place_id": "ChIJY8VUgkiVGGARIDpGwdTPkrs",
+    "name": "Dog days Cafe",
+    "address": "日本、〒332-0021 埼玉県川口市西川口２丁目１１−１０",
+    "lat": 35.8131443,
+    "lng": 139.7001398,
+    "rating": 4.8,
+    "user_ratings_total": 9,
+    "website": "",
+    "phone": "070-8991-4839",
+    "opening_hours": [
+      "月曜日: 11時00分～18時00分",
+      "火曜日: 11時00分～18時00分",
+      "水曜日: 定休日",
+      "木曜日: 定休日",
+      "金曜日: 11時00分～18時00分",
+      "土曜日: 11時00分～18時00分",
+      "日曜日: 11時00分～18時00分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
+  },
+  {
     "place_id": "ChIJu8nJ2s-DGGAREzZIkE_JQjA",
     "name": "K9cosmic (ケーナインコズミック) ドッグラン",
     "address": "日本、〒277-0033 千葉県柏市増尾１１５６−７",
@@ -1970,6 +1618,28 @@
     ],
     "business_status": "OPERATIONAL",
     "category": "dogrun"
+  },
+  {
+    "place_id": "ChIJoSXsgWqPGGAR3XCnGDjbdvY",
+    "name": "DOG DEPT + CAFE 浅草 隅田川テラス店",
+    "address": "日本、〒111-0043 東京都台東区駒形２丁目１−３０ 1F",
+    "lat": 35.7083011,
+    "lng": 139.7963312,
+    "rating": 3.8,
+    "user_ratings_total": 211,
+    "website": "https://www.dogdept.com/cafe/asakusa.html",
+    "phone": "03-5828-3936",
+    "opening_hours": [
+      "月曜日: 12時00分～16時00分, 17時00分～21時00分",
+      "火曜日: 定休日",
+      "水曜日: 12時00分～16時00分, 17時00分～21時00分",
+      "木曜日: 12時00分～16時00分, 17時00分～21時00分",
+      "金曜日: 12時00分～16時00分, 17時00分～21時00分",
+      "土曜日: 11時00分～21時00分",
+      "日曜日: 11時00分～20時00分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
   },
   {
     "place_id": "ChIJAxGtRlGBGGARN_qVbeSqDmY",
@@ -2126,45 +1796,23 @@
     "category": "dogcafe"
   },
   {
-    "place_id": "ChIJFRPMeqKPGGARUw0LwJKDSNo",
-    "name": "浅草の豆柴カフェ",
-    "address": "日本、〒111-0032 東京都台東区浅草１丁目２９−３",
-    "lat": 35.71206919999999,
-    "lng": 139.7951343,
-    "rating": 3.5,
-    "user_ratings_total": 940,
-    "website": "http://owls-cats-forest.com/free/mameshiba-asakusa",
-    "phone": "03-3845-2256",
-    "opening_hours": [
-      "月曜日: 11時00分～18時00分",
-      "火曜日: 11時00分～18時00分",
-      "水曜日: 11時00分～18時00分",
-      "木曜日: 11時00分～18時00分",
-      "金曜日: 11時00分～18時00分",
-      "土曜日: 11時00分～18時40分",
-      "日曜日: 11時00分～18時40分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogfriendly"
-  },
-  {
-    "place_id": "ChIJ0_gGd2uPGGAR_5k2XBWnuig",
-    "name": "サモエドカフェ アル 浅草店",
-    "address": "日本、〒111-0032 東京都台東区浅草２丁目６−１１ 平和ストアビル 4階",
-    "lat": 35.7144203,
-    "lng": 139.7936161,
-    "rating": 4.9,
-    "user_ratings_total": 2642,
-    "website": "https://samoyed.jp/asakusa",
+    "place_id": "ChIJL48mIyqPGGARRAhb-wj_XIM",
+    "name": "Pooches’Bakery",
+    "address": "日本、〒110-0015 東京都台東区東上野３丁目１５−１３ 大成商会 2階",
+    "lat": 35.710708,
+    "lng": 139.7785815,
+    "rating": 5,
+    "user_ratings_total": 1,
+    "website": "",
     "phone": "",
     "opening_hours": [
-      "月曜日: 10時00分～20時00分",
-      "火曜日: 10時00分～20時00分",
-      "水曜日: 10時00分～20時00分",
-      "木曜日: 10時00分～20時00分",
-      "金曜日: 10時00分～20時00分",
-      "土曜日: 10時00分～20時00分",
-      "日曜日: 10時00分～20時00分"
+      "月曜日: 13時00分～17時00分",
+      "火曜日: 13時00分～17時00分",
+      "水曜日: 定休日",
+      "木曜日: 定休日",
+      "金曜日: 定休日",
+      "土曜日: 11時00分～17時00分",
+      "日曜日: 11時00分～17時00分"
     ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
@@ -2187,28 +1835,6 @@
       "金曜日: 11時00分～22時00分",
       "土曜日: 11時00分～22時00分",
       "日曜日: 11時00分～22時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJuaUZOViDGGARfVfkmPFe_Q8",
-    "name": "しろいぬカフェ",
-    "address": "日本、〒270-2213 千葉県松戸市五香３丁目7−１",
-    "lat": 35.796591,
-    "lng": 139.9755963,
-    "rating": 4.2,
-    "user_ratings_total": 241,
-    "website": "https://shiroinu-cafe.com/",
-    "phone": "047-710-9980",
-    "opening_hours": [
-      "月曜日: 10時00分～18時00分",
-      "火曜日: 10時00分～18時00分",
-      "水曜日: 10時00分～18時00分",
-      "木曜日: 10時00分～18時00分",
-      "金曜日: 10時00分～18時00分",
-      "土曜日: 10時00分～19時00分",
-      "日曜日: 10時00分～19時00分"
     ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
@@ -2253,6 +1879,28 @@
       "金曜日: 24 時間営業",
       "土曜日: 24 時間営業",
       "日曜日: 24 時間営業"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
+  },
+  {
+    "place_id": "ChIJXbYNlMOLGGARH_DYXw_f8j4",
+    "name": "cafeわんこのしっぽ",
+    "address": "日本、〒143-0027 東京都大田区中馬込２丁目２３−７ 2F",
+    "lat": 35.5943404,
+    "lng": 139.7111035,
+    "rating": null,
+    "user_ratings_total": null,
+    "website": "https://wankonoshippp.com/",
+    "phone": "03-5728-9328",
+    "opening_hours": [
+      "月曜日: 11時00分～19時00分",
+      "火曜日: 定休日",
+      "水曜日: 11時00分～19時00分",
+      "木曜日: 11時00分～19時00分",
+      "金曜日: 11時00分～19時00分",
+      "土曜日: 11時00分～19時00分",
+      "日曜日: 11時00分～19時00分"
     ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
@@ -2316,28 +1964,6 @@
     "category": "dogrun"
   },
   {
-    "place_id": "ChIJ3ct7I_rtGGAR5ifpCrAHcRk",
-    "name": "サモエドカフェ アル 上板橋店",
-    "address": "日本、〒174-0071 東京都板橋区常盤台４丁目３１−４ 上板橋駅前ビル 2階",
-    "lat": 35.7642935,
-    "lng": 139.6770601,
-    "rating": 4.9,
-    "user_ratings_total": 1424,
-    "website": "https://samoyed.jp/kamiitabashi",
-    "phone": "",
-    "opening_hours": [
-      "月曜日: 10時00分～19時00分",
-      "火曜日: 10時00分～19時00分",
-      "水曜日: 10時00分～19時00分",
-      "木曜日: 10時00分～19時00分",
-      "金曜日: 10時00分～19時00分",
-      "土曜日: 10時00分～19時00分",
-      "日曜日: 10時00分～19時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
     "place_id": "ChIJb4QTpveHGGARYw6KY-wDFcY",
     "name": "BARCA Dog Cafe & Community",
     "address": "日本、〒134-0083 東京都江戸川区中葛西７丁目１７−１９",
@@ -2355,6 +1981,28 @@
       "金曜日: 11時30分～17時00分",
       "土曜日: 11時30分～19時30分",
       "日曜日: 11時30分～19時30分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
+  },
+  {
+    "place_id": "ChIJZ-Pw9Q6EGGAR8T1wW4kVBbg",
+    "name": "CAFE & DOG GARDEN BUBU’s PAW",
+    "address": "日本、〒270-2223 千葉県松戸市秋山２５９−５",
+    "lat": 35.7635067,
+    "lng": 139.9291371,
+    "rating": 3.5,
+    "user_ratings_total": 44,
+    "website": "http://www.dogschool.co.jp/",
+    "phone": "047-392-4113",
+    "opening_hours": [
+      "月曜日: 定休日",
+      "火曜日: 10時00分～18時00分",
+      "水曜日: 定休日",
+      "木曜日: 10時00分～18時00分",
+      "金曜日: 10時00分～18時00分",
+      "土曜日: 10時00分～18時00分",
+      "日曜日: 10時00分～18時00分"
     ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
@@ -2682,6 +2330,28 @@
     "category": "dogrun"
   },
   {
+    "place_id": "ChIJacUqmnOPGGARIRffAKbaw2c",
+    "name": "BARK BAKE & ROAST",
+    "address": "日本、〒111-0051 東京都台東区蔵前３丁目１３−４",
+    "lat": 35.7046517,
+    "lng": 139.7920668,
+    "rating": 3.9,
+    "user_ratings_total": 168,
+    "website": "https://www.instagram.com/bark_kuramae",
+    "phone": "03-5809-2332",
+    "opening_hours": [
+      "月曜日: 8時00分～19時00分",
+      "火曜日: 8時00分～19時00分",
+      "水曜日: 8時00分～19時00分",
+      "木曜日: 8時00分～17時00分",
+      "金曜日: 8時00分～19時00分",
+      "土曜日: 8時00分～19時00分",
+      "日曜日: 8時00分～19時00分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
+  },
+  {
     "place_id": "ChIJzTOAS3WFGGARc8neQIy9M8U",
     "name": "ドッグカフェ&グッズ プラスわん",
     "address": "日本、〒341-0037 埼玉県三郷市高州２丁目２４２",
@@ -2692,6 +2362,28 @@
     "website": "",
     "phone": "",
     "opening_hours": [],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
+  },
+  {
+    "place_id": "ChIJ1-JYhKCFGGARiw5q56Oj-sg",
+    "name": "dog & flower cafe R",
+    "address": "日本、〒270-0023 千葉県松戸市八ケ崎３丁目1−１３",
+    "lat": 35.8164112,
+    "lng": 139.9365236,
+    "rating": 4.9,
+    "user_ratings_total": 7,
+    "website": "https://www.instagram.com/d.f.c.rrr?igsh=MWxvcTdmNGE1Z3dldA==",
+    "phone": "090-4354-0208",
+    "opening_hours": [
+      "月曜日: 10時00分～17時00分",
+      "火曜日: 10時00分～17時00分",
+      "水曜日: 定休日",
+      "木曜日: 定休日",
+      "金曜日: 10時00分～17時00分",
+      "土曜日: 10時00分～17時00分",
+      "日曜日: 11時00分～17時00分"
+    ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
   },
@@ -2716,28 +2408,6 @@
     ],
     "business_status": "OPERATIONAL",
     "category": "dogrun"
-  },
-  {
-    "place_id": "ChIJ8dJI_gCTGGAR8j6CMOE9t4I",
-    "name": "わんことわ",
-    "address": "日本、〒121-0836 東京都足立区入谷１丁目９−１８ ポインテアルト2 1階",
-    "lat": 35.8023687,
-    "lng": 139.7699108,
-    "rating": 4.5,
-    "user_ratings_total": 22,
-    "website": "https://wankoto-wa.com/",
-    "phone": "03-6824-4153",
-    "opening_hours": [
-      "月曜日: 8時00分～21時00分",
-      "火曜日: 8時00分～21時00分",
-      "水曜日: 8時00分～21時00分",
-      "木曜日: 8時00分～21時00分",
-      "金曜日: 8時00分～21時00分",
-      "土曜日: 8時00分～21時00分",
-      "日曜日: 8時00分～21時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogfriendly"
   },
   {
     "place_id": "ChIJ8eIYdgC_GGARR_dB_8lp2m4",
@@ -2776,6 +2446,20 @@
     "category": "dogrun"
   },
   {
+    "place_id": "ChIJDWZJkn2TGGARkS8JhD_UVAE",
+    "name": "Cafe With Dog N&R",
+    "address": "日本、〒332-0032 埼玉県川口市中青木２丁目１−１８",
+    "lat": 35.808928,
+    "lng": 139.7174995,
+    "rating": 5,
+    "user_ratings_total": 1,
+    "website": "https://www.instagram.com/laperlagluedekawadeko",
+    "phone": "048-259-2597",
+    "opening_hours": [],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
+  },
+  {
     "place_id": "ChIJ4bINEGPAGGARyXZsKolbgP8",
     "name": "Dog Cafe ミー",
     "address": "日本、〒337-0025 埼玉県さいたま市見沼区山１３４−２ ペットホテル 愛犬美容室 ミー",
@@ -2793,6 +2477,28 @@
       "金曜日: 8時00分～14時00分",
       "土曜日: 8時00分～14時00分",
       "日曜日: 8時00分～14時00分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
+  },
+  {
+    "place_id": "ChIJh9XukRCXGGARF1qB9_qo2hc",
+    "name": "DOG DEPT CAFE レイクタウンアウトレット店",
+    "address": "日本、〒343-0828 埼玉県越谷市レイクタウン４丁目１−１",
+    "lat": 35.8793779,
+    "lng": 139.8240391,
+    "rating": 3.6,
+    "user_ratings_total": 32,
+    "website": "https://www.dogdept.com/cafe/laketown.html",
+    "phone": "048-987-5411",
+    "opening_hours": [
+      "月曜日: 10時00分～20時00分",
+      "火曜日: 10時00分～20時00分",
+      "水曜日: 10時00分～20時00分",
+      "木曜日: 10時00分～20時00分",
+      "金曜日: 10時00分～20時00分",
+      "土曜日: 10時00分～20時00分",
+      "日曜日: 10時00分～20時00分"
     ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
@@ -2897,7 +2603,51 @@
       "日曜日: 9時00分～17時00分"
     ],
     "business_status": "OPERATIONAL",
-    "category": "dogfriendly"
+    "category": "dogcafe"
+  },
+  {
+    "place_id": "ChIJK302_kCLGGARwGRGw9e3Kic",
+    "name": "カフェぬくもりのいぬ",
+    "address": "日本、〒153-0052 東京都目黒区祐天寺１丁目１６−４ 石寅ビル 101",
+    "lat": 35.6376989,
+    "lng": 139.6966317,
+    "rating": 5,
+    "user_ratings_total": 12,
+    "website": "http://nukuinu.com/",
+    "phone": "090-3864-0603",
+    "opening_hours": [
+      "月曜日: 定休日",
+      "火曜日: 8時30分～15時30分",
+      "水曜日: 8時30分～15時30分",
+      "木曜日: 8時30分～15時30分",
+      "金曜日: 8時30分～15時30分",
+      "土曜日: 11時00分～15時30分",
+      "日曜日: 11時00分～15時30分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
+  },
+  {
+    "place_id": "ChIJc0IGt2f0GGARJC1Ifi06UAU",
+    "name": "Cafe Crumpets",
+    "address": "日本、〒158-0091 東京都世田谷区中町５丁目３１−８",
+    "lat": 35.6195307,
+    "lng": 139.6414712,
+    "rating": 4.1,
+    "user_ratings_total": 57,
+    "website": "https://www.cafecrumpets.com/",
+    "phone": "03-3705-5444",
+    "opening_hours": [
+      "月曜日: 11時30分～18時00分",
+      "火曜日: 定休日",
+      "水曜日: 定休日",
+      "木曜日: 11時30分～18時00分",
+      "金曜日: 11時30分～18時00分",
+      "土曜日: 11時30分～18時00分",
+      "日曜日: 11時30分～18時00分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
   },
   {
     "place_id": "ChIJRfrb1iDwGGARCyh9-vquSQQ",
@@ -3022,23 +2772,23 @@
     "category": "dogrun"
   },
   {
-    "place_id": "ChIJe27oSHD3GGARpCjPaxm3KOo",
-    "name": "kimama83 犬カフェ ｢きまま｣",
-    "address": "日本、〒216-0035 神奈川県川崎市宮前区馬絹３丁目１６−１５",
-    "lat": 35.577763,
-    "lng": 139.5945738,
+    "place_id": "ChIJl6P9EsjxGGARXRZ6v930eN8",
+    "name": "カフェ Petit Parc（プティ パルク）仙川",
+    "address": "日本、〒182-0002 東京都調布市仙川町１丁目7−１",
+    "lat": 35.6608045,
+    "lng": 139.5832558,
     "rating": 4.3,
-    "user_ratings_total": 22,
-    "website": "https://www.instagram.com/inucafe_kimama83/",
-    "phone": "044-789-8474",
+    "user_ratings_total": 82,
+    "website": "https://www.instagram.com/petit.parc/",
+    "phone": "03-4362-5584",
     "opening_hours": [
-      "月曜日: 11時00分～17時00分",
-      "火曜日: 11時00分～17時00分",
-      "水曜日: 定休日",
-      "木曜日: 11時00分～17時00分",
-      "金曜日: 11時00分～17時00分",
-      "土曜日: 定休日",
-      "日曜日: 11時00分～17時00分"
+      "月曜日: 定休日",
+      "火曜日: 11時00分～20時00分",
+      "水曜日: 11時00分～20時00分",
+      "木曜日: 11時00分～20時00分",
+      "金曜日: 11時00分～20時00分",
+      "土曜日: 10時00分～20時00分",
+      "日曜日: 10時00分～20時00分"
     ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
@@ -3056,6 +2806,28 @@
     "opening_hours": [],
     "business_status": "OPERATIONAL",
     "category": "dogrun"
+  },
+  {
+    "place_id": "ChIJO3Onl6WNGGARB5d3yqXTcmY",
+    "name": "Shisha cafe Smoky Dogs（スモーキードックス）",
+    "address": "日本、〒160-0021 東京都新宿区歌舞伎町２丁目３３−１ 第6トーアビル 5F",
+    "lat": 35.6971648,
+    "lng": 139.702927,
+    "rating": 4.8,
+    "user_ratings_total": 120,
+    "website": "https://www.smokydogs.jp/",
+    "phone": "03-6233-9238",
+    "opening_hours": [
+      "月曜日: 17時00分～5時00分",
+      "火曜日: 17時00分～5時00分",
+      "水曜日: 17時00分～5時00分",
+      "木曜日: 17時00分～5時00分",
+      "金曜日: 17時00分～5時00分",
+      "土曜日: 17時00分～5時00分",
+      "日曜日: 17時00分～5時00分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
   },
   {
     "place_id": "ChIJDdbXjrWSGGARiOKcGMC99UI",
@@ -3136,6 +2908,50 @@
     ],
     "business_status": "OPERATIONAL",
     "category": "dogrun"
+  },
+  {
+    "place_id": "ChIJgbp1pED9GGARNShSR59AIvc",
+    "name": "Akahai Dog-run and Cafe",
+    "address": "日本、〒194-0201 東京都町田市上小山田町１９９７−１",
+    "lat": 35.60439,
+    "lng": 139.3905631,
+    "rating": 4.5,
+    "user_ratings_total": 80,
+    "website": "https://akahai-dogrun-and-cafe.com/",
+    "phone": "050-3644-2045",
+    "opening_hours": [
+      "月曜日: 定休日",
+      "火曜日: 9時00分～19時00分",
+      "水曜日: 9時00分～19時00分",
+      "木曜日: 9時00分～19時00分",
+      "金曜日: 9時00分～19時00分",
+      "土曜日: 9時00分～19時00分",
+      "日曜日: 9時00分～19時00分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
+  },
+  {
+    "place_id": "ChIJ48kPd2mNGGARpBXIIb-QdeI",
+    "name": "Bar valier 犬がいるBar",
+    "address": "日本、〒171-0021 東京都豊島区西池袋３丁目３０−１１ 1F",
+    "lat": 35.7309888,
+    "lng": 139.706702,
+    "rating": 4.9,
+    "user_ratings_total": 66,
+    "website": "https://twitter.com/cafebar_valier",
+    "phone": "03-6914-1667",
+    "opening_hours": [
+      "月曜日: 18時30分～1時00分",
+      "火曜日: 18時30分～1時00分",
+      "水曜日: 18時30分～1時00分",
+      "木曜日: 18時30分～1時00分",
+      "金曜日: 18時30分～2時00分",
+      "土曜日: 18時30分～2時00分",
+      "日曜日: 18時30分～1時00分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
   },
   {
     "place_id": "ChIJzTknGDfrGGAR5lkeLGlELMA",
@@ -3240,72 +3056,6 @@
     "category": "dogcafe"
   },
   {
-    "place_id": "ChIJO_t44s9hGGARfk7lZiPTbI4",
-    "name": "HOTDOG CAFESTAND STATION東京 （ホットドッグカフェスタンド ステーション東京）",
-    "address": "日本、〒101 東京都品川区南大井２丁目１１−４ ライオンズマンション大森 第３A棟 JP 140-0013",
-    "lat": 35.58979679999999,
-    "lng": 139.7362652,
-    "rating": 4.6,
-    "user_ratings_total": 42,
-    "website": "https://hdgcafestand.com/",
-    "phone": "03-6404-9584",
-    "opening_hours": [
-      "月曜日: 定休日",
-      "火曜日: 11時30分～20時00分",
-      "水曜日: 11時30分～20時00分",
-      "木曜日: 11時30分～20時00分",
-      "金曜日: 11時30分～20時00分",
-      "土曜日: 11時30分～20時00分",
-      "日曜日: 11時30分～20時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJnSwr2dZhGGARpRmMBfLo56c",
-    "name": "ペット可！ママの手作りハンバーグ は.や.ち.ゃ.ん.ち（看板猫バサラちゃんち）",
-    "address": "日本、〒146-0083 東京都大田区千鳥２丁目３６−１",
-    "lat": 35.5685981,
-    "lng": 139.6928683,
-    "rating": 4.4,
-    "user_ratings_total": 54,
-    "website": "https://mickeyk117.wixsite.com/hayachan",
-    "phone": "03-6715-0101",
-    "opening_hours": [
-      "月曜日: 定休日",
-      "火曜日: 12時00分～15時00分, 17時30分～22時00分",
-      "水曜日: 12時00分～15時00分, 17時30分～22時00分",
-      "木曜日: 12時00分～15時00分, 17時30分～22時00分",
-      "金曜日: 12時00分～15時00分, 17時30分～22時00分",
-      "土曜日: 12時00分～15時00分, 17時30分～22時00分",
-      "日曜日: 12時00分～15時00分, 17時30分～22時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogfriendly"
-  },
-  {
-    "place_id": "ChIJmx2q9htFGGARxfsvQp4FSy0",
-    "name": "いぬカフェRio 鎌倉小町通り店",
-    "address": "日本、〒248-0006 神奈川県鎌倉市小町２丁目１０−１ 松喜屋小町ビル 1階",
-    "lat": 35.320144,
-    "lng": 139.5518628,
-    "rating": 4.6,
-    "user_ratings_total": 557,
-    "website": "https://rio-corp.jp/shops/kamakura/",
-    "phone": "0467-40-3490",
-    "opening_hours": [
-      "月曜日: 10時00分～19時00分",
-      "火曜日: 10時00分～19時00分",
-      "水曜日: 10時00分～19時00分",
-      "木曜日: 10時00分～19時00分",
-      "金曜日: 10時00分～19時00分",
-      "土曜日: 10時00分～19時00分",
-      "日曜日: 10時00分～19時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
     "place_id": "ChIJr965Ip7hGGARC3k-3SXNgDs",
     "name": "昭和記念公園ドッグラン",
     "address": "日本、〒190-0014 東京都立川市緑町３１７３",
@@ -3400,23 +3150,23 @@
     "category": "dogrun"
   },
   {
-    "place_id": "ChIJDRRIz3vmGGARZyoKcKKkjiI",
-    "name": "DogCafe & Hotel Green Wood",
-    "address": "日本、〒187-0004 東京都小平市天神町１丁目１７−１７",
-    "lat": 35.728552,
-    "lng": 139.4944388,
-    "rating": 3.8,
-    "user_ratings_total": 37,
-    "website": "http://mimi-greenwood.com/",
-    "phone": "042-347-1269",
+    "place_id": "ChIJGTO3CRrZGGAR-pAsrLDzSlM",
+    "name": "Cafe & Resto Cherry with Dog",
+    "address": "日本、〒350-1304 埼玉県狭山市狭山台４丁目３５−２１",
+    "lat": 35.850672,
+    "lng": 139.4347108,
+    "rating": 4,
+    "user_ratings_total": 44,
+    "website": "https://cafe-cherry.com/",
+    "phone": "04-2937-7163",
     "opening_hours": [
-      "月曜日: 10時00分～17時00分",
-      "火曜日: 10時00分～17時00分",
-      "水曜日: 10時00分～17時00分",
-      "木曜日: 定休日",
-      "金曜日: 定休日",
-      "土曜日: 10時00分～17時00分",
-      "日曜日: 10時00分～17時00分"
+      "月曜日: 定休日",
+      "火曜日: 11時00分～17時00分",
+      "水曜日: 11時00分～17時00分",
+      "木曜日: 11時00分～17時00分",
+      "金曜日: 11時00分～17時00分",
+      "土曜日: 11時00分～17時00分",
+      "日曜日: 11時00分～17時00分"
     ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
@@ -3466,6 +3216,28 @@
     "category": "vet"
   },
   {
+    "place_id": "ChIJrZEKXh2NGGARd9_cAiwv3p0",
+    "name": "Gluten free Bakery Where is a dog?",
+    "address": "日本、〒180-0004 東京都武蔵野市吉祥寺本町２丁目２４−９ SUNO Ecru 103",
+    "lat": 35.7039337,
+    "lng": 139.5749289,
+    "rating": 4.7,
+    "user_ratings_total": 261,
+    "website": "http://www.whereisadog.net/",
+    "phone": "0422-27-2812",
+    "opening_hours": [
+      "月曜日: 11時00分～18時00分",
+      "火曜日: 定休日",
+      "水曜日: 11時00分～18時00分",
+      "木曜日: 11時00分～18時00分",
+      "金曜日: 11時00分～18時00分",
+      "土曜日: 11時00分～18時00分",
+      "日曜日: 11時00分～18時00分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
+  },
+  {
     "place_id": "ChIJ7Ry_jj7fGGARiC5TnEyi75A",
     "name": "dog cafe 笑夢 emu",
     "address": "日本、〒358-0013 埼玉県入間市上藤沢８６９",
@@ -3505,28 +3277,6 @@
       "金曜日: 11時00分～16時30分, 18時00分～22時00分",
       "土曜日: 10時00分～22時00分",
       "日曜日: 10時00分～17時30分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
-    "place_id": "ChIJjVee2qrhGGAR0MwbEo4TUSw",
-    "name": "保護犬カフェ立川店",
-    "address": "日本、〒190-0013 東京都立川市富士見町２丁目１２−７",
-    "lat": 35.7000531,
-    "lng": 139.4042048,
-    "rating": 4.1,
-    "user_ratings_total": 227,
-    "website": "http://twitter.com/hogocafe_tachi",
-    "phone": "042-519-3452",
-    "opening_hours": [
-      "月曜日: 12時00分～19時00分",
-      "火曜日: 12時00分～19時00分",
-      "水曜日: 12時00分～19時00分",
-      "木曜日: 12時00分～19時00分",
-      "金曜日: 12時00分～19時00分",
-      "土曜日: 11時00分～19時00分",
-      "日曜日: 11時00分～19時00分"
     ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
@@ -3690,6 +3440,28 @@
     "opening_hours": [],
     "business_status": "OPERATIONAL",
     "category": "dogrun"
+  },
+  {
+    "place_id": "ChIJry5wJmf6GGARjykWulc5Lew",
+    "name": "LILY CAFE リリーカフェ 新百合ヶ丘 DOG店内入店OK!!",
+    "address": "日本、〒215-0005 神奈川県川崎市麻生区麻生区千代ケ丘６丁目２−１９",
+    "lat": 35.614314,
+    "lng": 139.50992,
+    "rating": 4,
+    "user_ratings_total": 186,
+    "website": "https://lily-cafe.com/",
+    "phone": "044-953-0011",
+    "opening_hours": [
+      "月曜日: 11時00分～20時00分",
+      "火曜日: 定休日",
+      "水曜日: 11時00分～20時00分",
+      "木曜日: 11時00分～20時00分",
+      "金曜日: 11時00分～20時00分",
+      "土曜日: 11時00分～20時00分",
+      "日曜日: 11時00分～20時00分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
   },
   {
     "place_id": "ChIJ3exxfJ3hGGAR49PclhbenQ8",
@@ -4171,28 +3943,6 @@
       "日曜日: 11時00分～14時30分, 16時30分～20時00分"
     ],
     "business_status": "OPERATIONAL",
-    "category": "dogfriendly"
-  },
-  {
-    "place_id": "ChIJ6TUCEIMvGWAR-nPubFHYz2o",
-    "name": "ワンコカフェ＆BBQ ジビエールカフェ",
-    "address": "日本、〒357-0124 埼玉県飯能市原市場１０３６−１",
-    "lat": 35.8633009,
-    "lng": 139.2353086,
-    "rating": 4.8,
-    "user_ratings_total": 34,
-    "website": "https://jibiyellcafe.com/?utm_source=GBP&utm_medium=GBP&utm_term=GBP&utm_content=GBP&utm_campaign=GBP",
-    "phone": "080-1681-0638",
-    "opening_hours": [
-      "月曜日: 11時00分～16時00分",
-      "火曜日: 定休日",
-      "水曜日: 定休日",
-      "木曜日: 定休日",
-      "金曜日: 定休日",
-      "土曜日: 11時00分～16時00分",
-      "日曜日: 11時00分～16時00分"
-    ],
-    "business_status": "OPERATIONAL",
     "category": "dogcafe"
   },
   {
@@ -4260,50 +4010,6 @@
     ],
     "business_status": "OPERATIONAL",
     "category": "dogrun"
-  },
-  {
-    "place_id": "ChIJb78xMDEfGWARauCNbiETzHE",
-    "name": "犬と人の学び場 ポケット",
-    "address": "日本、〒193-0801 東京都八王子市川口町１９５６−５",
-    "lat": 35.6917259,
-    "lng": 139.2895624,
-    "rating": 4.8,
-    "user_ratings_total": 125,
-    "website": "http://www.pocket2018.com/",
-    "phone": "090-2265-9618",
-    "opening_hours": [
-      "月曜日: 9時00分～18時00分",
-      "火曜日: 9時00分～18時00分",
-      "水曜日: 9時00分～18時00分",
-      "木曜日: 9時00分～18時00分",
-      "金曜日: 9時00分～18時00分",
-      "土曜日: 9時00分～18時00分",
-      "日曜日: 9時00分～18時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogfriendly"
-  },
-  {
-    "place_id": "ChIJmerccl_5GGARxvLCZ-IRi_o",
-    "name": "サモエドカフェアル町田店",
-    "address": "日本、〒194-0013 東京都町田市原町田３丁目７−２ サトウ時計宝飾ビル 1F",
-    "lat": 35.5418463,
-    "lng": 139.4508024,
-    "rating": 5,
-    "user_ratings_total": 2868,
-    "website": "https://www.instagram.com/samoyedcafe_machida",
-    "phone": "",
-    "opening_hours": [
-      "月曜日: 10時00分～19時00分",
-      "火曜日: 10時00分～19時00分",
-      "水曜日: 10時00分～19時00分",
-      "木曜日: 10時00分～19時00分",
-      "金曜日: 10時00分～19時00分",
-      "土曜日: 10時00分～19時00分",
-      "日曜日: 10時00分～19時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
   },
   {
     "place_id": "ChIJJy8-qz4nGWARzyk-WZFZIXI",
@@ -4590,28 +4296,6 @@
     "category": "dogrun"
   },
   {
-    "place_id": "ChIJsYTcS39dGGARZIYaAWyDGAw",
-    "name": "サモエドカフェ アル 横浜中華街店",
-    "address": "日本、〒231-0023 神奈川県横浜市中区山下町１４７ ヒナガタビル 2階",
-    "lat": 35.4427899,
-    "lng": 139.6456606,
-    "rating": 4.9,
-    "user_ratings_total": 3443,
-    "website": "https://samoyed.jp/yokohama",
-    "phone": "",
-    "opening_hours": [
-      "月曜日: 10時00分～19時00分",
-      "火曜日: 10時00分～19時00分",
-      "水曜日: 10時00分～19時00分",
-      "木曜日: 10時00分～19時00分",
-      "金曜日: 10時00分～19時00分",
-      "土曜日: 10時00分～19時00分",
-      "日曜日: 10時00分～19時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
-  },
-  {
     "place_id": "ChIJMVBKOlRRGGAR-jUtPveV8t0",
     "name": "DOG CAFE G+ （ドッグカフェジープラス）",
     "address": "日本、〒252-0813 神奈川県藤沢市亀井野１丁目16−１７",
@@ -4687,6 +4371,28 @@
       "金曜日: 10時00分～20時00分",
       "土曜日: 10時00分～20時00分",
       "日曜日: 10時00分～20時00分"
+    ],
+    "business_status": "OPERATIONAL",
+    "category": "dogcafe"
+  },
+  {
+    "place_id": "ChIJ8T1Bt5n3GGARU6AhKoabk5E",
+    "name": "花とカフェ Petite notes for Flower shop &cafe たまプラーザ",
+    "address": "日本、〒216-0015 神奈川県川崎市宮前区菅生４丁目４−３ JAMビル １階ーＣ",
+    "lat": 35.5921353,
+    "lng": 139.5540538,
+    "rating": 4.9,
+    "user_ratings_total": 17,
+    "website": "https://instagram.com/petitenotes.cafe?igshid=OGQ5ZDc2ODk2ZA==",
+    "phone": "070-9061-3014",
+    "opening_hours": [
+      "月曜日: 定休日",
+      "火曜日: 11時00分～19時00分",
+      "水曜日: 11時00分～19時00分",
+      "木曜日: 定休日",
+      "金曜日: 11時00分～19時00分",
+      "土曜日: 11時00分～19時00分",
+      "日曜日: 11時00分～19時00分"
     ],
     "business_status": "OPERATIONAL",
     "category": "dogcafe"
@@ -4908,28 +4614,6 @@
     ],
     "business_status": "OPERATIONAL",
     "category": "dogrun"
-  },
-  {
-    "place_id": "ChIJNW2PnbvbGGAR8Heva81EtpU",
-    "name": "サモエドカフェアル 川越店",
-    "address": "日本、〒350-1122 埼玉県川越市脇田町12−９ カシーラガーデン 4階",
-    "lat": 35.9112764,
-    "lng": 139.4828839,
-    "rating": 4.9,
-    "user_ratings_total": 2097,
-    "website": "",
-    "phone": "",
-    "opening_hours": [
-      "月曜日: 10時00分～19時00分",
-      "火曜日: 10時00分～19時00分",
-      "水曜日: 10時00分～19時00分",
-      "木曜日: 10時00分～19時00分",
-      "金曜日: 10時00分～19時00分",
-      "土曜日: 10時00分～19時00分",
-      "日曜日: 10時00分～19時00分"
-    ],
-    "business_status": "OPERATIONAL",
-    "category": "dogcafe"
   },
   {
     "place_id": "ChIJfW53ULTDGGARU75SMNmWW8Y",
