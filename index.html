@@ -83,12 +83,12 @@
   <div id="header">
     <img src="favicon-32x32.png" alt="ぽんず">
     <h1>東京ドッグマップ</h1>
-    <span id="count-display">2368件</span>
+    <span id="count-display">読み込み中...</span>
   </div>
   <div id="filter-bar">
-    <button class="filter-btn active" onclick="setFilter('all',this)">すべて（2368件）</button>
-    <button class="filter-btn dogrun" onclick="setFilter('dogrun',this)">ドッグラン（790件）</button>
-    <button class="filter-btn dogcafe" onclick="setFilter('dogcafe',this)">ドッグカフェ（1578件）</button>
+    <button class="filter-btn active" id="btn-all" onclick="setFilter('all',this)">すべて</button>
+    <button class="filter-btn dogrun" id="btn-dogrun" onclick="setFilter('dogrun',this)">ドッグラン</button>
+    <button class="filter-btn dogcafe" id="btn-dogcafe" onclick="setFilter('dogcafe',this)">ドッグカフェ</button>
   </div>
   <div id="loading">地図を読み込み中...</div>
   <div id="map"></div>
@@ -102,29 +102,14 @@
   </div>
 
   <script>
-    let map, infoWindow;
-    let markers = [];
-    let PLACES_DATA = [];
-    let currentFilter = 'all';
-    let listOpen = false;
+    var map, infoWindow;
+    var markers = [];
+    var PLACES_DATA = [];
+    var currentFilter = 'all';
+    var listOpen = false;
 
-    // データをJSONファイルから読み込む
-    fetch('places.json')
-      .then(r => r.json())
-      .then(data => {
-        PLACES_DATA = data;
-        // Google Maps APIの読み込みを開始
-        const script = document.createElement('script');
-        script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&callback=initMap&language=ja';
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
-      })
-      .catch(err => {
-        document.getElementById('loading').textContent = 'データの読み込みに失敗しました: ' + err.message;
-      });
-
-    window.initMap = function() {
+    // Google Maps APIのコールバック（グローバルに定義）
+    function initMap() {
       map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 35.6762, lng: 139.6503 },
         zoom: 11,
@@ -136,32 +121,49 @@
         ]
       });
       infoWindow = new google.maps.InfoWindow();
-      renderMarkers();
-      renderList();
-      document.getElementById('loading').style.display = 'none';
+
+      // 地図初期化後にデータを読み込む
+      fetch('places.json')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          PLACES_DATA = data;
+          var total = data.length;
+          var dogrun = data.filter(function(p){ return p.category === 'dogrun'; }).length;
+          var dogcafe = data.filter(function(p){ return p.category === 'dogcafe'; }).length;
+          document.getElementById('btn-all').textContent = 'すべて（' + total + '件）';
+          document.getElementById('btn-dogrun').textContent = 'ドッグラン（' + dogrun + '件）';
+          document.getElementById('btn-dogcafe').textContent = 'ドッグカフェ（' + dogcafe + '件）';
+          document.getElementById('count-display').textContent = total + '件';
+          renderMarkers();
+          renderList();
+          document.getElementById('loading').style.display = 'none';
+        })
+        .catch(function(err) {
+          document.getElementById('loading').textContent = 'データ読み込みエラー: ' + err.message;
+        });
     }
 
     function getFiltered() {
       if (currentFilter === 'all') return PLACES_DATA;
-      return PLACES_DATA.filter(p => p.category === currentFilter);
+      return PLACES_DATA.filter(function(p) { return p.category === currentFilter; });
     }
 
     function setFilter(filter, btn) {
       currentFilter = filter;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
       renderMarkers();
       renderList();
     }
 
     function renderMarkers() {
-      markers.forEach(m => m.setMap(null));
+      markers.forEach(function(m) { m.setMap(null); });
       markers = [];
-      const filtered = getFiltered();
+      var filtered = getFiltered();
       document.getElementById('count-display').textContent = filtered.length + '件';
-      filtered.forEach(place => {
-        const color = place.category === 'dogrun' ? '#27ae60' : '#c0392b';
-        const marker = new google.maps.Marker({
+      filtered.forEach(function(place) {
+        var color = place.category === 'dogrun' ? '#27ae60' : '#c0392b';
+        var marker = new google.maps.Marker({
           position: { lat: place.lat, lng: place.lng },
           map: map,
           title: place.name,
@@ -174,23 +176,25 @@
             strokeWeight: 1.5,
           }
         });
-        marker.addListener('click', () => showInfo(place, marker));
+        marker.addListener('click', (function(p, m) {
+          return function() { showInfo(p, m); };
+        })(place, marker));
         markers.push(marker);
       });
     }
 
     function showInfo(place, marker) {
-      const badge = place.category === 'dogrun'
+      var badge = place.category === 'dogrun'
         ? '<span class="badge badge-dogrun">ドッグラン</span>'
         : '<span class="badge badge-dogcafe">ドッグカフェ</span>';
-      const rating = place.rating ? '★ ' + place.rating + ' (' + place.reviews + '件)' : '評価なし';
-      const hours = place.hours && place.hours.length > 0
-        ? '<div style="margin-top:6px;font-size:11px;color:#555;">' + place.hours.slice(0,3).map(h => esc(h)).join('<br>') + (place.hours.length > 3 ? '<br>...' : '') + '</div>'
+      var rating = place.rating ? '★ ' + place.rating + ' (' + place.reviews + '件)' : '評価なし';
+      var hours = place.hours && place.hours.length > 0
+        ? '<div style="margin-top:6px;font-size:11px;color:#555;">' + place.hours.slice(0,3).map(function(h){ return esc(h); }).join('<br>') + (place.hours.length > 3 ? '<br>...' : '') + '</div>'
         : '';
-      const website = place.website
+      var website = place.website
         ? '<div style="margin-top:6px;"><a href="' + esc(place.website) + '" target="_blank" style="color:#1a73e8;font-size:12px;">公式サイト</a></div>'
         : '';
-      const phone = place.phone
+      var phone = place.phone
         ? '<div style="font-size:12px;color:#555;margin-top:4px;">📞 ' + esc(place.phone) + '</div>'
         : '';
       infoWindow.setContent(
@@ -206,28 +210,28 @@
     }
 
     function renderList() {
-      const filtered = getFiltered();
-      const body = document.getElementById('list-body');
+      var filtered = getFiltered();
+      var body = document.getElementById('list-body');
       document.getElementById('list-title').textContent = 'スポット一覧（' + filtered.length + '件）';
-      body.innerHTML = filtered.slice(0, 200).map((p, i) =>
-        '<div class="list-item" onclick="focusPlace(' + i + ')">' +
-        '<div class="list-item-name">' + esc(p.name) + '</div>' +
-        '<div class="list-item-addr">' + esc(p.address) + '</div>' +
-        '<div class="list-item-meta">' +
-        (p.rating ? '★ ' + p.rating : '') +
-        '<span class="badge ' + (p.category === 'dogrun' ? 'badge-dogrun' : 'badge-dogcafe') + '">' +
-        (p.category === 'dogrun' ? 'ドッグラン' : 'ドッグカフェ') + '</span>' +
-        '</div></div>'
-      ).join('');
+      body.innerHTML = filtered.slice(0, 200).map(function(p, i) {
+        return '<div class="list-item" onclick="focusPlace(' + i + ')">' +
+          '<div class="list-item-name">' + esc(p.name) + '</div>' +
+          '<div class="list-item-addr">' + esc(p.address) + '</div>' +
+          '<div class="list-item-meta">' +
+          (p.rating ? '★ ' + p.rating : '') +
+          '<span class="badge ' + (p.category === 'dogrun' ? 'badge-dogrun' : 'badge-dogcafe') + '">' +
+          (p.category === 'dogrun' ? 'ドッグラン' : 'ドッグカフェ') + '</span>' +
+          '</div></div>';
+      }).join('');
     }
 
     function focusPlace(i) {
-      const filtered = getFiltered();
-      const place = filtered[i];
+      var filtered = getFiltered();
+      var place = filtered[i];
       if (!place) return;
       map.panTo({ lat: place.lat, lng: place.lng });
       map.setZoom(15);
-      const marker = markers[i];
+      var marker = markers[i];
       if (marker) showInfo(place, marker);
     }
 
@@ -244,5 +248,8 @@
         .replace(/"/g, '&quot;');
     }
   </script>
+
+  <!-- Google Maps APIはHTMLの末尾で読み込む（callbackでinitMapを呼ぶ） -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&callback=initMap&language=ja" async defer></script>
 </body>
 </html>
