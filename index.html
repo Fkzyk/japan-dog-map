@@ -6,14 +6,9 @@
   <title>東京ドッグマップ | ドッグラン・ドッグカフェ</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <style>
-    html, body {
-      margin: 0; padding: 0;
-      width: 100%; height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
-    }
+    html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; }
     #header {
       position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
       background: #1a1a2e; color: white;
@@ -21,27 +16,23 @@
       padding: 8px 16px; height: 48px;
     }
     #header img { width: 32px; height: 32px; border-radius: 50%; }
-    #header h1 { font-size: 16px; font-weight: 700; }
+    #header h1 { font-size: 16px; font-weight: 700; margin: 0; }
     #count-display { margin-left: auto; font-size: 13px; color: #aaa; }
     #filter-bar {
       position: fixed; top: 48px; left: 0; right: 0; z-index: 1000;
       background: white; border-bottom: 1px solid #eee;
       display: flex; gap: 8px; padding: 8px 12px;
-      overflow-x: auto; white-space: nowrap;
+      overflow-x: auto;
     }
     .filter-btn {
       padding: 6px 14px; border-radius: 20px; border: 1.5px solid #ccc;
       background: white; font-size: 13px; cursor: pointer; white-space: nowrap;
-      transition: all 0.2s; flex-shrink: 0;
+      transition: all 0.2s;
     }
     .filter-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
     .filter-btn.dogrun.active { background: #27ae60; border-color: #27ae60; }
     .filter-btn.dogcafe.active { background: #c0392b; border-color: #c0392b; }
-    #map {
-      position: absolute;
-      top: 96px; left: 0; right: 0; bottom: 0;
-      width: 100%;
-    }
+    #map { width: 100%; height: calc(100vh - 96px); margin-top: 96px; }
     #loading {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
       z-index: 2000; background: white; padding: 20px 32px; border-radius: 12px;
@@ -74,15 +65,10 @@
     .list-item-name { font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 3px; }
     .list-item-addr { font-size: 11px; color: #888; margin-bottom: 3px; }
     .list-item-meta { font-size: 11px; color: #555; display: flex; gap: 8px; align-items: center; }
-    .badge {
-      display: inline-block; padding: 2px 8px; border-radius: 10px;
-      font-size: 10px; font-weight: 600;
-    }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
     .badge-dogrun { background: #e8f5e9; color: #27ae60; }
     .badge-dogcafe { background: #fdecea; color: #c0392b; }
-    @media (max-width: 600px) {
-      #list-panel { width: 100%; }
-    }
+    @media (max-width: 600px) { #list-panel { width: 100%; } }
   </style>
 </head>
 <body>
@@ -108,23 +94,16 @@
   </div>
 
   <script>
-    var map, infoWindow;
-    var markers = [];
-    var PLACES_DATA = [];
-    var currentFilter = 'all';
-    var listOpen = false;
+    var map, infoWindow, markers = [], PLACES_DATA = [], currentFilter = 'all', listOpen = false;
 
     function initMap() {
-      var mapDiv = document.getElementById('map');
-      map = new google.maps.Map(mapDiv, {
+      map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 35.6762, lng: 139.6503 },
         zoom: 11,
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
-        styles: [
-          { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }
-        ]
+        styles: [{ featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }]
       });
       infoWindow = new google.maps.InfoWindow();
 
@@ -142,8 +121,6 @@
           renderMarkers();
           renderList();
           document.getElementById('loading').style.display = 'none';
-          // 地図サイズを再計算
-          google.maps.event.trigger(map, 'resize');
         })
         .catch(function(err) {
           document.getElementById('loading').textContent = 'データ読み込みエラー: ' + err.message;
@@ -180,7 +157,7 @@
             fillColor: color,
             fillOpacity: 0.9,
             strokeColor: 'white',
-            strokeWeight: 1.5,
+            strokeWeight: 1.5
           }
         });
         marker.addListener('click', (function(p, m) {
@@ -196,7 +173,7 @@
         : '<span class="badge badge-dogcafe">ドッグカフェ</span>';
       var rating = place.rating ? '★ ' + place.rating + ' (' + place.reviews + '件)' : '評価なし';
       var hours = place.hours && place.hours.length > 0
-        ? '<div style="margin-top:6px;font-size:11px;color:#555;">' + place.hours.slice(0,3).map(function(h){ return esc(h); }).join('<br>') + (place.hours.length > 3 ? '<br>...' : '') + '</div>'
+        ? '<div style="margin-top:6px;font-size:11px;color:#555;">' + place.hours.slice(0,3).map(function(h){ return esc(h); }).join('<br>') + '</div>'
         : '';
       var website = place.website
         ? '<div style="margin-top:6px;"><a href="' + esc(place.website) + '" target="_blank" style="color:#1a73e8;font-size:12px;">公式サイト</a></div>'
@@ -210,17 +187,15 @@
         '<div style="font-weight:700;font-size:14px;margin:6px 0 4px;">' + esc(place.name) + '</div>' +
         '<div style="font-size:12px;color:#666;">' + esc(place.address) + '</div>' +
         '<div style="font-size:12px;color:#f39c12;margin-top:4px;">' + rating + '</div>' +
-        phone + hours + website +
-        '</div>'
+        phone + hours + website + '</div>'
       );
       infoWindow.open(map, marker);
     }
 
     function renderList() {
       var filtered = getFiltered();
-      var body = document.getElementById('list-body');
       document.getElementById('list-title').textContent = 'スポット一覧（' + filtered.length + '件）';
-      body.innerHTML = filtered.slice(0, 200).map(function(p, i) {
+      document.getElementById('list-body').innerHTML = filtered.slice(0, 200).map(function(p, i) {
         return '<div class="list-item" onclick="focusPlace(' + i + ')">' +
           '<div class="list-item-name">' + esc(p.name) + '</div>' +
           '<div class="list-item-addr">' + esc(p.address) + '</div>' +
@@ -238,8 +213,7 @@
       if (!place) return;
       map.panTo({ lat: place.lat, lng: place.lng });
       map.setZoom(15);
-      var marker = markers[i];
-      if (marker) showInfo(place, marker);
+      if (markers[i]) showInfo(place, markers[i]);
     }
 
     function toggleList() {
@@ -248,11 +222,7 @@
     }
 
     function esc(str) {
-      return String(str || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
   </script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&callback=initMap&language=ja" async defer></script>
