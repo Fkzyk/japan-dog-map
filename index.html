@@ -124,7 +124,7 @@
         document.getElementById('loading').textContent = 'データの読み込みに失敗しました: ' + err.message;
       });
 
-    function initMap() {
+    window.initMap = function() {
       map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 35.6762, lng: 139.6503 },
         zoom: 11,
