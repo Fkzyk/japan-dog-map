@@ -9,10 +9,13 @@
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; overflow: hidden; }
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+    }
     #header {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
       background: #1a1a2e; color: white;
       display: flex; align-items: center; gap: 12px;
       padding: 8px 16px; height: 48px;
@@ -21,35 +24,38 @@
     #header h1 { font-size: 16px; font-weight: 700; }
     #count-display { margin-left: auto; font-size: 13px; color: #aaa; }
     #filter-bar {
-      position: fixed; top: 48px; left: 0; right: 0; z-index: 100;
+      position: fixed; top: 48px; left: 0; right: 0; z-index: 1000;
       background: white; border-bottom: 1px solid #eee;
-      display: flex; gap: 8px; padding: 8px 12px; overflow-x: auto;
+      display: flex; gap: 8px; padding: 8px 12px;
+      overflow-x: auto; white-space: nowrap;
     }
     .filter-btn {
       padding: 6px 14px; border-radius: 20px; border: 1.5px solid #ccc;
       background: white; font-size: 13px; cursor: pointer; white-space: nowrap;
-      transition: all 0.2s;
+      transition: all 0.2s; flex-shrink: 0;
     }
     .filter-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
     .filter-btn.dogrun.active { background: #27ae60; border-color: #27ae60; }
     .filter-btn.dogcafe.active { background: #c0392b; border-color: #c0392b; }
     #map {
-      position: fixed; top: 96px; left: 0; right: 0; bottom: 0;
+      position: absolute;
+      top: 96px; left: 0; right: 0; bottom: 0;
+      width: 100%;
     }
     #loading {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
-      z-index: 200; background: white; padding: 20px 32px; border-radius: 12px;
+      z-index: 2000; background: white; padding: 20px 32px; border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.15); font-size: 14px; color: #333;
     }
     #list-toggle {
-      position: fixed; bottom: 24px; right: 16px; z-index: 200;
+      position: fixed; bottom: 24px; right: 16px; z-index: 2000;
       background: #1a1a2e; color: white; border: none;
       padding: 12px 20px; border-radius: 24px; font-size: 14px;
       cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     #list-panel {
       position: fixed; top: 96px; right: 0; bottom: 0; width: 320px;
-      background: white; z-index: 150; overflow-y: auto;
+      background: white; z-index: 1500; overflow-y: auto;
       box-shadow: -4px 0 16px rgba(0,0,0,0.1);
       transform: translateX(100%); transition: transform 0.3s;
     }
@@ -67,7 +73,7 @@
     .list-item:hover { background: #f8f8f8; }
     .list-item-name { font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 3px; }
     .list-item-addr { font-size: 11px; color: #888; margin-bottom: 3px; }
-    .list-item-meta { font-size: 11px; color: #555; display: flex; gap: 8px; }
+    .list-item-meta { font-size: 11px; color: #555; display: flex; gap: 8px; align-items: center; }
     .badge {
       display: inline-block; padding: 2px 8px; border-radius: 10px;
       font-size: 10px; font-weight: 600;
@@ -108,9 +114,9 @@
     var currentFilter = 'all';
     var listOpen = false;
 
-    // Google Maps APIのコールバック（グローバルに定義）
     function initMap() {
-      map = new google.maps.Map(document.getElementById('map'), {
+      var mapDiv = document.getElementById('map');
+      map = new google.maps.Map(mapDiv, {
         center: { lat: 35.6762, lng: 139.6503 },
         zoom: 11,
         mapTypeControl: false,
@@ -122,7 +128,6 @@
       });
       infoWindow = new google.maps.InfoWindow();
 
-      // 地図初期化後にデータを読み込む
       fetch('places.json')
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -137,6 +142,8 @@
           renderMarkers();
           renderList();
           document.getElementById('loading').style.display = 'none';
+          // 地図サイズを再計算
+          google.maps.event.trigger(map, 'resize');
         })
         .catch(function(err) {
           document.getElementById('loading').textContent = 'データ読み込みエラー: ' + err.message;
@@ -218,7 +225,7 @@
           '<div class="list-item-name">' + esc(p.name) + '</div>' +
           '<div class="list-item-addr">' + esc(p.address) + '</div>' +
           '<div class="list-item-meta">' +
-          (p.rating ? '★ ' + p.rating : '') +
+          (p.rating ? '★ ' + p.rating + '&nbsp;' : '') +
           '<span class="badge ' + (p.category === 'dogrun' ? 'badge-dogrun' : 'badge-dogcafe') + '">' +
           (p.category === 'dogrun' ? 'ドッグラン' : 'ドッグカフェ') + '</span>' +
           '</div></div>';
@@ -248,8 +255,6 @@
         .replace(/"/g, '&quot;');
     }
   </script>
-
-  <!-- Google Maps APIはHTMLの末尾で読み込む（callbackでinitMapを呼ぶ） -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&callback=initMap&language=ja" async defer></script>
 </body>
 </html>
