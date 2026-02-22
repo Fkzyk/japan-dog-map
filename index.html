@@ -32,7 +32,11 @@
     .filter-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
     .filter-btn.dogrun.active { background: #27ae60; border-color: #27ae60; }
     .filter-btn.dogcafe.active { background: #c0392b; border-color: #c0392b; }
-    #map { width: 100%; height: calc(100vh - 96px); margin-top: 96px; }
+    #map-container {
+      position: fixed;
+      top: 96px; left: 0; right: 0; bottom: 0;
+    }
+    #map { width: 100%; height: 100%; }
     #loading {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
       z-index: 2000; background: white; padding: 20px 32px; border-radius: 12px;
@@ -70,6 +74,8 @@
     .badge-dogcafe { background: #fdecea; color: #c0392b; }
     @media (max-width: 600px) { #list-panel { width: 100%; } }
   </style>
+  <!-- Maps APIをheadで先に読み込む（asyncなし） -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&language=ja"></script>
 </head>
 <body>
   <div id="header">
@@ -83,7 +89,9 @@
     <button class="filter-btn dogcafe" id="btn-dogcafe" onclick="setFilter('dogcafe',this)">ドッグカフェ</button>
   </div>
   <div id="loading">地図を読み込み中...</div>
-  <div id="map"></div>
+  <div id="map-container">
+    <div id="map"></div>
+  </div>
   <button id="list-toggle" onclick="toggleList()">☰ リスト</button>
   <div id="list-panel">
     <div id="list-header">
@@ -96,7 +104,7 @@
   <script>
     var map, infoWindow, markers = [], PLACES_DATA = [], currentFilter = 'all', listOpen = false;
 
-    function initMap() {
+    window.addEventListener('load', function() {
       map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 35.6762, lng: 139.6503 },
         zoom: 11,
@@ -107,13 +115,14 @@
       });
       infoWindow = new google.maps.InfoWindow();
 
-      fetch('places.json')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          PLACES_DATA = data;
-          var total = data.length;
-          var dogrun = data.filter(function(p){ return p.category === 'dogrun'; }).length;
-          var dogcafe = data.filter(function(p){ return p.category === 'dogcafe'; }).length;
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'places.json', true);
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          PLACES_DATA = JSON.parse(xhr.responseText);
+          var total = PLACES_DATA.length;
+          var dogrun = PLACES_DATA.filter(function(p){ return p.category === 'dogrun'; }).length;
+          var dogcafe = PLACES_DATA.filter(function(p){ return p.category === 'dogcafe'; }).length;
           document.getElementById('btn-all').textContent = 'すべて（' + total + '件）';
           document.getElementById('btn-dogrun').textContent = 'ドッグラン（' + dogrun + '件）';
           document.getElementById('btn-dogcafe').textContent = 'ドッグカフェ（' + dogcafe + '件）';
@@ -121,11 +130,10 @@
           renderMarkers();
           renderList();
           document.getElementById('loading').style.display = 'none';
-        })
-        .catch(function(err) {
-          document.getElementById('loading').textContent = 'データ読み込みエラー: ' + err.message;
-        });
-    }
+        }
+      };
+      xhr.send();
+    });
 
     function getFiltered() {
       if (currentFilter === 'all') return PLACES_DATA;
@@ -225,6 +233,5 @@
       return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
   </script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&callback=initMap&language=ja" async defer></script>
 </body>
 </html>
