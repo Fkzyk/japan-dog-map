@@ -33,7 +33,6 @@
     #btn-all.active    { background: #333; }
     #btn-dogrun.active    { background: #27ae60; }
     #btn-dogcafe.active   { background: #e74c3c; }
-    #btn-dogfriendly.active { background: #2980b9; }
     #btn-vet.active       { background: #8e44ad; }
     #map-container {
       position: fixed; top: 96px; left: 0; right: 0; bottom: 0;
@@ -60,9 +59,17 @@
     #list-header {
       padding: 12px 16px; background: #1a1a2e; color: white;
       display: flex; justify-content: space-between; align-items: center;
-      font-size: 14px; font-weight: 600; position: sticky; top: 0;
+      font-size: 14px; font-weight: 600; position: sticky; top: 0; z-index: 10;
     }
     #list-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+    #list-search-wrap {
+      padding: 8px 12px; background: #f5f5f5; border-bottom: 1px solid #eee;
+      position: sticky; top: 45px; z-index: 9;
+    }
+    #list-search {
+      width: 100%; box-sizing: border-box; padding: 6px 10px;
+      border: 1px solid #ddd; border-radius: 8px; font-size: 13px;
+    }
     .list-item {
       padding: 10px 14px; border-bottom: 1px solid #f0f0f0;
       cursor: pointer; transition: background 0.15s;
@@ -72,10 +79,14 @@
     .list-item-addr { font-size: 11px; color: #888; margin-bottom: 3px; }
     .list-item-meta { font-size: 11px; color: #555; display: flex; gap: 6px; align-items: center; }
     .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; color: white; }
-    .badge-dogrun     { background: #27ae60; }
-    .badge-dogcafe    { background: #e74c3c; }
-    .badge-dogfriendly { background: #2980b9; }
-    .badge-vet        { background: #8e44ad; }
+    .badge-dogrun  { background: #27ae60; }
+    .badge-dogcafe { background: #e74c3c; }
+    .badge-vet     { background: #8e44ad; }
+    #list-more {
+      padding: 12px; text-align: center; font-size: 13px; color: #1a73e8;
+      cursor: pointer; border-top: 1px solid #eee;
+    }
+    #list-more:hover { background: #f0f4ff; }
     @media (max-width: 600px) { #list-panel { width: 100%; } }
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&language=ja"></script>
@@ -87,11 +98,10 @@
     <span id="count-display">読み込み中...</span>
   </div>
   <div id="filter-bar">
-    <button class="filter-btn active" id="btn-all"          onclick="setFilter('all',this)">すべて</button>
-    <button class="filter-btn"        id="btn-dogrun"       onclick="setFilter('dogrun',this)">ドッグラン</button>
-    <button class="filter-btn"        id="btn-dogcafe"      onclick="setFilter('dogcafe',this)">ドッグカフェ</button>
-    <button class="filter-btn"        id="btn-dogfriendly"  onclick="setFilter('dogfriendly',this)">ドッグフレンドリー</button>
-    <button class="filter-btn"        id="btn-vet"          onclick="setFilter('vet',this)">動物病院</button>
+    <button class="filter-btn active" id="btn-all"     onclick="setFilter('all',this)">すべて</button>
+    <button class="filter-btn"        id="btn-dogrun"  onclick="setFilter('dogrun',this)">ドッグラン</button>
+    <button class="filter-btn"        id="btn-dogcafe" onclick="setFilter('dogcafe',this)">ペット可飲食店</button>
+    <button class="filter-btn"        id="btn-vet"     onclick="setFilter('vet',this)">動物病院</button>
   </div>
   <div id="loading">地図を読み込み中...</div>
   <div id="map-container">
@@ -103,15 +113,21 @@
       <span id="list-title">スポット一覧</span>
       <button id="list-close" onclick="toggleList()">✕</button>
     </div>
+    <div id="list-search-wrap">
+      <input id="list-search" type="text" placeholder="店名・住所で絞り込み" oninput="onSearchInput()">
+    </div>
     <div id="list-body"></div>
+    <div id="list-more" style="display:none" onclick="loadMore()">さらに表示</div>
   </div>
 
   <script>
     var map, infoWindow, markers = [], PLACES_DATA = [], currentFilter = 'all', listOpen = false;
+    var listFiltered = [], listOffset = 0;
+    var LIST_PAGE = 100;
 
-    var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ドッグカフェ', dogfriendly:'ドッグフレンドリー', vet:'動物病院' };
-    var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', dogfriendly:'#2980b9', vet:'#8e44ad' };
-    var CAT_BADGE  = { dogrun:'badge-dogrun', dogcafe:'badge-dogcafe', dogfriendly:'badge-dogfriendly', vet:'badge-vet' };
+    var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ペット可飲食店', vet:'動物病院' };
+    var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', vet:'#8e44ad' };
+    var CAT_BADGE  = { dogrun:'badge-dogrun', dogcafe:'badge-dogcafe', vet:'badge-vet' };
 
     window.addEventListener('load', function() {
       map = new google.maps.Map(document.getElementById('map'), {
@@ -131,7 +147,7 @@
           PLACES_DATA = JSON.parse(xhr.responseText);
           updateFilterLabels();
           renderMarkers();
-          renderList();
+          refreshList();
           document.getElementById('loading').style.display = 'none';
         } else {
           document.getElementById('loading').textContent = 'データ読み込みエラー';
@@ -144,35 +160,45 @@
     });
 
     function updateFilterLabels() {
-      var counts = { all: PLACES_DATA.length, dogrun:0, dogcafe:0, dogfriendly:0, vet:0 };
+      var counts = { all: PLACES_DATA.length, dogrun:0, dogcafe:0, vet:0 };
       PLACES_DATA.forEach(function(p) { if (counts[p.category] !== undefined) counts[p.category]++; });
-      document.getElementById('btn-all').textContent         = 'すべて（' + counts.all + '件）';
-      document.getElementById('btn-dogrun').textContent      = 'ドッグラン（' + counts.dogrun + '件）';
-      document.getElementById('btn-dogcafe').textContent     = 'ドッグカフェ（' + counts.dogcafe + '件）';
-      document.getElementById('btn-dogfriendly').textContent = 'ドッグフレンドリー（' + counts.dogfriendly + '件）';
-      document.getElementById('btn-vet').textContent         = '動物病院（' + counts.vet + '件）';
-      document.getElementById('count-display').textContent   = counts.all + '件';
+      document.getElementById('btn-all').textContent     = 'すべて（' + counts.all + '件）';
+      document.getElementById('btn-dogrun').textContent  = 'ドッグラン（' + counts.dogrun + '件）';
+      document.getElementById('btn-dogcafe').textContent = 'ペット可飲食店（' + counts.dogcafe + '件）';
+      document.getElementById('btn-vet').textContent     = '動物病院（' + counts.vet + '件）';
+      document.getElementById('count-display').textContent = counts.all + '件';
     }
 
     function getFiltered() {
-      if (currentFilter === 'all') return PLACES_DATA;
-      return PLACES_DATA.filter(function(p) { return p.category === currentFilter; });
+      var base = currentFilter === 'all' ? PLACES_DATA : PLACES_DATA.filter(function(p) { return p.category === currentFilter; });
+      var q = document.getElementById('list-search').value.trim();
+      if (!q) return base;
+      var lower = q.toLowerCase();
+      return base.filter(function(p) {
+        return (p.name || '').toLowerCase().indexOf(lower) >= 0 ||
+               (p.address || '').toLowerCase().indexOf(lower) >= 0;
+      });
     }
 
     function setFilter(filter, btn) {
       currentFilter = filter;
       document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
+      document.getElementById('list-search').value = '';
       renderMarkers();
-      renderList();
+      refreshList();
+    }
+
+    function onSearchInput() {
+      refreshList();
     }
 
     function renderMarkers() {
       markers.forEach(function(m) { m.setMap(null); });
       markers = [];
-      var filtered = getFiltered();
+      var filtered = currentFilter === 'all' ? PLACES_DATA : PLACES_DATA.filter(function(p) { return p.category === currentFilter; });
       document.getElementById('count-display').textContent = filtered.length + '件';
-      filtered.forEach(function(place, i) {
+      filtered.forEach(function(place) {
         var color = CAT_COLORS[place.category] || '#999';
         var marker = new google.maps.Marker({
           position: { lat: place.lat, lng: place.lng },
@@ -187,6 +213,7 @@
             strokeWeight: 1.5
           }
         });
+        marker._place = place;
         marker.addListener('click', (function(p, m) {
           return function() { showInfo(p, m); };
         })(place, marker));
@@ -198,39 +225,80 @@
       var label = CAT_LABELS[place.category] || '';
       var color = CAT_COLORS[place.category] || '#999';
       var rating = place.rating ? '★ ' + place.rating + (place.user_ratings_total ? ' (' + place.user_ratings_total + '件)' : '') : '';
+      var genre = place.genre ? '<div style="font-size:11px;color:#888;margin-bottom:4px">' + esc(place.genre) + '</div>' : '';
+
+      var linkHtml = '';
+      if (place.source === 'hotpepper' && place.website) {
+        linkHtml = '<a href="' + esc(place.website) + '" target="_blank" style="font-size:12px;color:#e74c3c;margin-right:8px">ホットペッパーで確認</a>';
+      }
+      var gmapId = place.place_id && place.place_id.indexOf('hp_') !== 0 ? place.place_id : null;
+      if (gmapId) {
+        linkHtml += '<a href="https://www.google.com/maps/place/?q=place_id:' + esc(gmapId) + '" target="_blank" style="font-size:12px;color:#1a73e8">Google Mapsで確認</a>';
+      } else {
+        var q = encodeURIComponent((place.name || '') + ' ' + (place.address || ''));
+        linkHtml += '<a href="https://www.google.com/maps/search/?api=1&query=' + q + '" target="_blank" style="font-size:12px;color:#1a73e8">Google Mapsで確認</a>';
+      }
+
       infoWindow.setContent(
-        '<div style="max-width:240px;padding:4px;font-family:-apple-system,sans-serif">' +
+        '<div style="max-width:260px;padding:4px;font-family:-apple-system,sans-serif">' +
         '<span style="background:' + color + ';color:white;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600">' + label + '</span>' +
         '<div style="font-weight:700;font-size:14px;margin:6px 0 4px">' + esc(place.name) + '</div>' +
         '<div style="font-size:12px;color:#666;margin-bottom:4px">' + esc(place.address || '') + '</div>' +
+        genre +
         (rating ? '<div style="font-size:12px;color:#f39c12;margin-bottom:6px">' + rating + '</div>' : '') +
-        '<a href="https://www.google.com/maps/place/?q=place_id:' + esc(place.place_id) + '" target="_blank" style="font-size:12px;color:#1a73e8">Google Mapsで確認</a>' +
+        '<div style="margin-top:4px">' + linkHtml + '</div>' +
         '</div>'
       );
       infoWindow.open(map, marker);
     }
 
-    function renderList() {
-      var filtered = getFiltered();
-      document.getElementById('list-title').textContent = 'スポット一覧（' + filtered.length + '件）';
-      document.getElementById('list-body').innerHTML = filtered.slice(0, 300).map(function(p, i) {
-        return '<div class="list-item" onclick="focusPlace(' + i + ')">' +
+    function refreshList() {
+      listFiltered = getFiltered();
+      listOffset = 0;
+      document.getElementById('list-title').textContent = 'スポット一覧（' + listFiltered.length + '件）';
+      document.getElementById('list-body').innerHTML = '';
+      appendListItems();
+    }
+
+    function appendListItems() {
+      var end = Math.min(listOffset + LIST_PAGE, listFiltered.length);
+      var html = '';
+      for (var i = listOffset; i < end; i++) {
+        var p = listFiltered[i];
+        var idx = i;
+        html += '<div class="list-item" onclick="focusPlace(' + idx + ')">' +
           '<div class="list-item-name">' + esc(p.name) + '</div>' +
           '<div class="list-item-addr">' + esc(p.address || '') + '</div>' +
           '<div class="list-item-meta">' +
           '<span class="badge ' + (CAT_BADGE[p.category] || '') + '">' + (CAT_LABELS[p.category] || '') + '</span>' +
           (p.rating ? '<span>★ ' + p.rating + '</span>' : '') +
+          (p.genre ? '<span style="color:#aaa">' + esc(p.genre) + '</span>' : '') +
           '</div></div>';
-      }).join('');
+      }
+      document.getElementById('list-body').innerHTML += html;
+      listOffset = end;
+      var moreEl = document.getElementById('list-more');
+      moreEl.style.display = listOffset < listFiltered.length ? 'block' : 'none';
+      if (listOffset < listFiltered.length) {
+        moreEl.textContent = 'さらに表示（残り' + (listFiltered.length - listOffset) + '件）';
+      }
+    }
+
+    function loadMore() {
+      appendListItems();
     }
 
     function focusPlace(i) {
-      var filtered = getFiltered();
-      var place = filtered[i];
+      var place = listFiltered[i];
       if (!place) return;
       map.panTo({ lat: place.lat, lng: place.lng });
-      map.setZoom(15);
-      if (markers[i]) showInfo(place, markers[i]);
+      map.setZoom(16);
+      for (var j = 0; j < markers.length; j++) {
+        if (markers[j]._place === place) {
+          showInfo(place, markers[j]);
+          break;
+        }
+      }
     }
 
     function toggleList() {
