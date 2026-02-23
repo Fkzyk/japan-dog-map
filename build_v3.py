@@ -1,0 +1,304 @@
+#!/usr/bin/env python3
+"""
+データをJSONファイルに分離し、軽量なindex.htmlを生成するビルドスクリプト
+"""
+import json, os
+
+API_KEY = "AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4"
+DATA_FILE = "/home/ubuntu/dogmap/places_final_v3.json"
+OUT_DIR = "/home/ubuntu/dogmap"
+
+# データ読み込み
+with open(DATA_FILE) as f:
+    raw = json.load(f)
+
+# 重複排除（place_idで）
+seen = set()
+places = []
+for p in raw:
+    pid = p.get("id") or p.get("place_id")
+    if pid and pid not in seen:
+        seen.add(pid)
+        places.append({
+            "id": pid,
+            "name": p.get("name",""),
+            "address": p.get("address","").replace("日本、","").replace("〒",""),
+            "lat": p.get("lat"),
+            "lng": p.get("lng"),
+            "rating": p.get("rating"),
+            "reviews": p.get("user_ratings_total",0),
+            "website": p.get("website",""),
+            "phone": p.get("phone",""),
+            "hours": p.get("opening_hours",[]),
+            "category": p.get("category","dogcafe"),
+        })
+
+print(f"総件数（重複排除後）: {len(places)}")
+from collections import Counter
+cats = Counter(p["category"] for p in places)
+print(f"カテゴリ: {dict(cats)}")
+
+# places.jsonとして保存
+with open(os.path.join(OUT_DIR, "places.json"), "w", encoding="utf-8") as f:
+    json.dump(places, f, ensure_ascii=False, separators=(",",":"))
+print(f"places.json 保存完了: {os.path.getsize(os.path.join(OUT_DIR, 'places.json'))/1024:.0f}KB")
+
+dogrun_count = cats.get("dogrun", 0)
+dogcafe_count = cats.get("dogcafe", 0)
+total_count = len(places)
+
+# 軽量なindex.htmlを生成
+html = f"""<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>東京ドッグマップ | ドッグラン・ドッグカフェ</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <style>
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; overflow: hidden; }}
+    #header {{
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: #1a1a2e; color: white;
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 16px; height: 48px;
+    }}
+    #header img {{ width: 32px; height: 32px; border-radius: 50%; }}
+    #header h1 {{ font-size: 16px; font-weight: 700; }}
+    #count-display {{ margin-left: auto; font-size: 13px; color: #aaa; }}
+    #filter-bar {{
+      position: fixed; top: 48px; left: 0; right: 0; z-index: 100;
+      background: white; border-bottom: 1px solid #eee;
+      display: flex; gap: 8px; padding: 8px 12px; overflow-x: auto;
+    }}
+    .filter-btn {{
+      padding: 6px 14px; border-radius: 20px; border: 1.5px solid #ccc;
+      background: white; font-size: 13px; cursor: pointer; white-space: nowrap;
+      transition: all 0.2s;
+    }}
+    .filter-btn.active {{ background: #1a1a2e; color: white; border-color: #1a1a2e; }}
+    .filter-btn.dogrun.active {{ background: #27ae60; border-color: #27ae60; }}
+    .filter-btn.dogcafe.active {{ background: #c0392b; border-color: #c0392b; }}
+    #map {{
+      position: fixed; top: 96px; left: 0; right: 0; bottom: 0;
+    }}
+    #loading {{
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      z-index: 200; background: white; padding: 20px 32px; border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15); font-size: 14px; color: #333;
+    }}
+    #list-toggle {{
+      position: fixed; bottom: 24px; right: 16px; z-index: 200;
+      background: #1a1a2e; color: white; border: none;
+      padding: 12px 20px; border-radius: 24px; font-size: 14px;
+      cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }}
+    #list-panel {{
+      position: fixed; top: 96px; right: 0; bottom: 0; width: 320px;
+      background: white; z-index: 150; overflow-y: auto;
+      box-shadow: -4px 0 16px rgba(0,0,0,0.1);
+      transform: translateX(100%); transition: transform 0.3s;
+    }}
+    #list-panel.open {{ transform: translateX(0); }}
+    #list-header {{
+      padding: 12px 16px; background: #1a1a2e; color: white;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 14px; font-weight: 600; position: sticky; top: 0;
+    }}
+    #list-close {{ background: none; border: none; color: white; font-size: 20px; cursor: pointer; }}
+    .list-item {{
+      padding: 12px 16px; border-bottom: 1px solid #f0f0f0;
+      cursor: pointer; transition: background 0.15s;
+    }}
+    .list-item:hover {{ background: #f8f8f8; }}
+    .list-item-name {{ font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 3px; }}
+    .list-item-addr {{ font-size: 11px; color: #888; margin-bottom: 3px; }}
+    .list-item-meta {{ font-size: 11px; color: #555; display: flex; gap: 8px; }}
+    .badge {{
+      display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 10px; font-weight: 600;
+    }}
+    .badge-dogrun {{ background: #e8f5e9; color: #27ae60; }}
+    .badge-dogcafe {{ background: #fdecea; color: #c0392b; }}
+    @media (max-width: 600px) {{
+      #list-panel {{ width: 100%; }}
+    }}
+  </style>
+</head>
+<body>
+  <div id="header">
+    <img src="favicon-32x32.png" alt="ぽんず">
+    <h1>東京ドッグマップ</h1>
+    <span id="count-display">{total_count}件</span>
+  </div>
+  <div id="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('all',this)">すべて（{total_count}件）</button>
+    <button class="filter-btn dogrun" onclick="setFilter('dogrun',this)">ドッグラン（{dogrun_count}件）</button>
+    <button class="filter-btn dogcafe" onclick="setFilter('dogcafe',this)">ドッグカフェ（{dogcafe_count}件）</button>
+  </div>
+  <div id="loading">地図を読み込み中...</div>
+  <div id="map"></div>
+  <button id="list-toggle" onclick="toggleList()">☰ リスト</button>
+  <div id="list-panel">
+    <div id="list-header">
+      <span id="list-title">スポット一覧</span>
+      <button id="list-close" onclick="toggleList()">✕</button>
+    </div>
+    <div id="list-body"></div>
+  </div>
+
+  <script>
+    let map, infoWindow;
+    let markers = [];
+    let PLACES_DATA = [];
+    let currentFilter = 'all';
+    let listOpen = false;
+
+    // データをJSONファイルから読み込む
+    fetch('places.json')
+      .then(r => r.json())
+      .then(data => {{
+        PLACES_DATA = data;
+        // Google Maps APIの読み込みを開始
+        const script = document.createElement('script');
+        script.src = 'https://maps.googleapis.com/maps/api/js?key={API_KEY}&callback=initMap&language=ja';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }})
+      .catch(err => {{
+        document.getElementById('loading').textContent = 'データの読み込みに失敗しました: ' + err.message;
+      }});
+
+    function initMap() {{
+      map = new google.maps.Map(document.getElementById('map'), {{
+        center: {{ lat: 35.6762, lng: 139.6503 }},
+        zoom: 11,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        styles: [
+          {{ featureType: 'poi', elementType: 'labels', stylers: [{{ visibility: 'off' }}] }}
+        ]
+      }});
+      infoWindow = new google.maps.InfoWindow();
+      renderMarkers();
+      renderList();
+      document.getElementById('loading').style.display = 'none';
+    }}
+
+    function getFiltered() {{
+      if (currentFilter === 'all') return PLACES_DATA;
+      return PLACES_DATA.filter(p => p.category === currentFilter);
+    }}
+
+    function setFilter(filter, btn) {{
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderMarkers();
+      renderList();
+    }}
+
+    function renderMarkers() {{
+      markers.forEach(m => m.setMap(null));
+      markers = [];
+      const filtered = getFiltered();
+      document.getElementById('count-display').textContent = filtered.length + '件';
+      filtered.forEach(place => {{
+        const color = place.category === 'dogrun' ? '#27ae60' : '#c0392b';
+        const marker = new google.maps.Marker({{
+          position: {{ lat: place.lat, lng: place.lng }},
+          map: map,
+          title: place.name,
+          icon: {{
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 7,
+            fillColor: color,
+            fillOpacity: 0.9,
+            strokeColor: 'white',
+            strokeWeight: 1.5,
+          }}
+        }});
+        marker.addListener('click', () => showInfo(place, marker));
+        markers.push(marker);
+      }});
+    }}
+
+    function showInfo(place, marker) {{
+      const badge = place.category === 'dogrun'
+        ? '<span class="badge badge-dogrun">ドッグラン</span>'
+        : '<span class="badge badge-dogcafe">ドッグカフェ</span>';
+      const rating = place.rating ? '★ ' + place.rating + ' (' + place.reviews + '件)' : '評価なし';
+      const hours = place.hours && place.hours.length > 0
+        ? '<div style="margin-top:6px;font-size:11px;color:#555;">' + place.hours.slice(0,3).map(h => esc(h)).join('<br>') + (place.hours.length > 3 ? '<br>...' : '') + '</div>'
+        : '';
+      const website = place.website
+        ? '<div style="margin-top:6px;"><a href="' + esc(place.website) + '" target="_blank" style="color:#1a73e8;font-size:12px;">公式サイト</a></div>'
+        : '';
+      const phone = place.phone
+        ? '<div style="font-size:12px;color:#555;margin-top:4px;">📞 ' + esc(place.phone) + '</div>'
+        : '';
+      infoWindow.setContent(
+        '<div style="max-width:260px;padding:4px;">' +
+        badge +
+        '<div style="font-weight:700;font-size:14px;margin:6px 0 4px;">' + esc(place.name) + '</div>' +
+        '<div style="font-size:12px;color:#666;">' + esc(place.address) + '</div>' +
+        '<div style="font-size:12px;color:#f39c12;margin-top:4px;">' + rating + '</div>' +
+        phone + hours + website +
+        '</div>'
+      );
+      infoWindow.open(map, marker);
+    }}
+
+    function renderList() {{
+      const filtered = getFiltered();
+      const body = document.getElementById('list-body');
+      document.getElementById('list-title').textContent = 'スポット一覧（' + filtered.length + '件）';
+      body.innerHTML = filtered.slice(0, 200).map((p, i) =>
+        '<div class="list-item" onclick="focusPlace(' + i + ')">' +
+        '<div class="list-item-name">' + esc(p.name) + '</div>' +
+        '<div class="list-item-addr">' + esc(p.address) + '</div>' +
+        '<div class="list-item-meta">' +
+        (p.rating ? '★ ' + p.rating : '') +
+        '<span class="badge ' + (p.category === 'dogrun' ? 'badge-dogrun' : 'badge-dogcafe') + '">' +
+        (p.category === 'dogrun' ? 'ドッグラン' : 'ドッグカフェ') + '</span>' +
+        '</div></div>'
+      ).join('');
+    }}
+
+    function focusPlace(i) {{
+      const filtered = getFiltered();
+      const place = filtered[i];
+      if (!place) return;
+      map.panTo({{ lat: place.lat, lng: place.lng }});
+      map.setZoom(15);
+      const marker = markers[i];
+      if (marker) showInfo(place, marker);
+    }}
+
+    function toggleList() {{
+      listOpen = !listOpen;
+      document.getElementById('list-panel').classList.toggle('open', listOpen);
+    }}
+
+    function esc(str) {{
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }}
+  </script>
+</body>
+</html>"""
+
+with open(os.path.join(OUT_DIR, "index.html"), "w", encoding="utf-8") as f:
+    f.write(html)
+
+print(f"index.html 保存完了: {os.path.getsize(os.path.join(OUT_DIR, 'index.html'))/1024:.0f}KB")
+print("完了")
