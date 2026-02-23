@@ -17,7 +17,7 @@
     }
     #header img { width: 32px; height: 32px; border-radius: 50%; }
     #header h1 { font-size: 16px; font-weight: 700; margin: 0; }
-    #count-display { margin-left: auto; font-size: 13px; color: #aaa; }
+    #count-display { margin-left: auto; font-size: 13px; color: #aaa; white-space: nowrap; }
     #filter-bar {
       position: fixed; top: 48px; left: 0; right: 0; z-index: 1000;
       background: white; border-bottom: 1px solid #eee;
@@ -31,11 +31,29 @@
     }
     .filter-btn.active { color: white; border-color: transparent; }
     #btn-all.active    { background: #333; }
-    #btn-dogrun.active    { background: #27ae60; }
-    #btn-dogcafe.active   { background: #e74c3c; }
-    #btn-vet.active       { background: #8e44ad; }
+    #btn-dogrun.active { background: #27ae60; }
+    #btn-dogcafe.active { background: #e74c3c; }
+    #btn-vet.active    { background: #8e44ad; }
+    #search-bar {
+      position: fixed; top: 96px; left: 0; right: 0; z-index: 999;
+      background: #f8f8f8; border-bottom: 1px solid #e0e0e0;
+      display: flex; gap: 6px; padding: 6px 12px; align-items: center;
+    }
+    #search-input {
+      flex: 1; padding: 7px 12px; border: 1px solid #ddd; border-radius: 8px;
+      font-size: 13px; outline: none;
+    }
+    #search-input:focus { border-color: #1a1a2e; }
+    #genre-select {
+      padding: 7px 8px; border: 1px solid #ddd; border-radius: 8px;
+      font-size: 12px; background: white; outline: none; max-width: 130px;
+    }
+    #search-clear {
+      padding: 6px 10px; border: none; background: #ddd; border-radius: 8px;
+      font-size: 12px; cursor: pointer; white-space: nowrap; color: #555;
+    }
     #map-container {
-      position: fixed; top: 96px; left: 0; right: 0; bottom: 0;
+      position: fixed; top: 140px; left: 0; right: 0; bottom: 0;
     }
     #map { width: 100%; height: 100%; }
     #loading {
@@ -50,7 +68,7 @@
       cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     #list-panel {
-      position: fixed; top: 96px; right: 0; bottom: 0; width: 300px;
+      position: fixed; top: 140px; right: 0; bottom: 0; width: 300px;
       background: white; z-index: 1500; overflow-y: auto;
       box-shadow: -4px 0 16px rgba(0,0,0,0.1);
       transform: translateX(100%); transition: transform 0.3s;
@@ -62,14 +80,6 @@
       font-size: 14px; font-weight: 600; position: sticky; top: 0; z-index: 10;
     }
     #list-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
-    #list-search-wrap {
-      padding: 8px 12px; background: #f5f5f5; border-bottom: 1px solid #eee;
-      position: sticky; top: 45px; z-index: 9;
-    }
-    #list-search {
-      width: 100%; box-sizing: border-box; padding: 6px 10px;
-      border: 1px solid #ddd; border-radius: 8px; font-size: 13px;
-    }
     .list-item {
       padding: 10px 14px; border-bottom: 1px solid #f0f0f0;
       cursor: pointer; transition: background 0.15s;
@@ -77,7 +87,7 @@
     .list-item:hover { background: #f8f8f8; }
     .list-item-name { font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 3px; }
     .list-item-addr { font-size: 11px; color: #888; margin-bottom: 3px; }
-    .list-item-meta { font-size: 11px; color: #555; display: flex; gap: 6px; align-items: center; }
+    .list-item-meta { font-size: 11px; color: #555; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
     .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; color: white; }
     .badge-dogrun  { background: #27ae60; }
     .badge-dogcafe { background: #e74c3c; }
@@ -87,9 +97,13 @@
       cursor: pointer; border-top: 1px solid #eee;
     }
     #list-more:hover { background: #f0f4ff; }
-    @media (max-width: 600px) { #list-panel { width: 100%; } }
+    @media (max-width: 600px) {
+      #list-panel { width: 100%; }
+      #genre-select { max-width: 100px; }
+    }
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&language=ja"></script>
+  <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 </head>
 <body>
   <div id="header">
@@ -103,6 +117,13 @@
     <button class="filter-btn"        id="btn-dogcafe" onclick="setFilter('dogcafe',this)">ペット可飲食店</button>
     <button class="filter-btn"        id="btn-vet"     onclick="setFilter('vet',this)">動物病院</button>
   </div>
+  <div id="search-bar">
+    <input id="search-input" type="text" placeholder="店名・住所で検索" oninput="onSearchChange()">
+    <select id="genre-select" onchange="onSearchChange()">
+      <option value="">ジャンル（全て）</option>
+    </select>
+    <button id="search-clear" onclick="clearSearch()">クリア</button>
+  </div>
   <div id="loading">地図を読み込み中...</div>
   <div id="map-container">
     <div id="map"></div>
@@ -113,17 +134,16 @@
       <span id="list-title">スポット一覧</span>
       <button id="list-close" onclick="toggleList()">✕</button>
     </div>
-    <div id="list-search-wrap">
-      <input id="list-search" type="text" placeholder="店名・住所で絞り込み" oninput="onSearchInput()">
-    </div>
     <div id="list-body"></div>
     <div id="list-more" style="display:none" onclick="loadMore()">さらに表示</div>
   </div>
 
   <script>
-    var map, infoWindow, markers = [], PLACES_DATA = [], currentFilter = 'all', listOpen = false;
+    var map, infoWindow, clusterer;
+    var PLACES_DATA = [], currentFilter = 'all', listOpen = false;
     var listFiltered = [], listOffset = 0;
     var LIST_PAGE = 100;
+    var markerMap = new Map(); // place_id -> marker
 
     var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ペット可飲食店', vet:'動物病院' };
     var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', vet:'#8e44ad' };
@@ -145,6 +165,7 @@
       xhr.onload = function() {
         if (xhr.status === 200) {
           PLACES_DATA = JSON.parse(xhr.responseText);
+          buildGenreSelect();
           updateFilterLabels();
           renderMarkers();
           refreshList();
@@ -159,6 +180,20 @@
       xhr.send();
     });
 
+    function buildGenreSelect() {
+      var genres = {};
+      PLACES_DATA.forEach(function(p) {
+        if (p.genre) genres[p.genre] = true;
+      });
+      var sel = document.getElementById('genre-select');
+      Object.keys(genres).sort().forEach(function(g) {
+        var opt = document.createElement('option');
+        opt.value = g;
+        opt.textContent = g;
+        sel.appendChild(opt);
+      });
+    }
+
     function updateFilterLabels() {
       var counts = { all: PLACES_DATA.length, dogrun:0, dogcafe:0, vet:0 };
       PLACES_DATA.forEach(function(p) { if (counts[p.category] !== undefined) counts[p.category]++; });
@@ -169,14 +204,21 @@
       document.getElementById('count-display').textContent = counts.all + '件';
     }
 
-    function getFiltered() {
-      var base = currentFilter === 'all' ? PLACES_DATA : PLACES_DATA.filter(function(p) { return p.category === currentFilter; });
-      var q = document.getElementById('list-search').value.trim();
-      if (!q) return base;
-      var lower = q.toLowerCase();
+    function getBaseFiltered() {
+      if (currentFilter === 'all') return PLACES_DATA;
+      return PLACES_DATA.filter(function(p) { return p.category === currentFilter; });
+    }
+
+    function getSearchFiltered() {
+      var base = getBaseFiltered();
+      var q = document.getElementById('search-input').value.trim().toLowerCase();
+      var genre = document.getElementById('genre-select').value;
       return base.filter(function(p) {
-        return (p.name || '').toLowerCase().indexOf(lower) >= 0 ||
-               (p.address || '').toLowerCase().indexOf(lower) >= 0;
+        var matchQ = !q ||
+          (p.name || '').toLowerCase().indexOf(q) >= 0 ||
+          (p.address || '').toLowerCase().indexOf(q) >= 0;
+        var matchGenre = !genre || p.genre === genre;
+        return matchQ && matchGenre;
       });
     }
 
@@ -184,25 +226,40 @@
       currentFilter = filter;
       document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      document.getElementById('list-search').value = '';
+      document.getElementById('search-input').value = '';
+      document.getElementById('genre-select').value = '';
       renderMarkers();
       refreshList();
     }
 
-    function onSearchInput() {
+    function onSearchChange() {
+      renderMarkers();
+      refreshList();
+    }
+
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('genre-select').value = '';
+      renderMarkers();
       refreshList();
     }
 
     function renderMarkers() {
-      markers.forEach(function(m) { m.setMap(null); });
-      markers = [];
-      var filtered = currentFilter === 'all' ? PLACES_DATA : PLACES_DATA.filter(function(p) { return p.category === currentFilter; });
+      // 既存クラスタラーを破棄
+      if (clusterer) {
+        clusterer.clearMarkers();
+        clusterer = null;
+      }
+      markerMap.forEach(function(m) { m.setMap(null); });
+      markerMap.clear();
+
+      var filtered = getSearchFiltered();
       document.getElementById('count-display').textContent = filtered.length + '件';
-      filtered.forEach(function(place) {
+
+      var newMarkers = filtered.map(function(place) {
         var color = CAT_COLORS[place.category] || '#999';
         var marker = new google.maps.Marker({
           position: { lat: place.lat, lng: place.lng },
-          map: map,
           title: place.name,
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
@@ -217,7 +274,18 @@
         marker.addListener('click', (function(p, m) {
           return function() { showInfo(p, m); };
         })(place, marker));
-        markers.push(marker);
+        markerMap.set(place.place_id, marker);
+        return marker;
+      });
+
+      // MarkerClusterer で描画（ズームイン時も全件表示）
+      clusterer = new markerClusterer.MarkerClusterer({
+        map: map,
+        markers: newMarkers,
+        algorithm: new markerClusterer.SuperClusterAlgorithm({
+          maxZoom: 14,   // ズーム14以上では個別ピン表示
+          radius: 60
+        })
       });
     }
 
@@ -229,7 +297,7 @@
 
       var linkHtml = '';
       if (place.source === 'hotpepper' && place.website) {
-        linkHtml = '<a href="' + esc(place.website) + '" target="_blank" style="font-size:12px;color:#e74c3c;margin-right:8px">ホットペッパーで確認</a>';
+        linkHtml += '<a href="' + esc(place.website) + '" target="_blank" style="font-size:12px;color:#e74c3c;margin-right:8px">ホットペッパーで確認</a>';
       }
       var gmapId = place.place_id && place.place_id.indexOf('hp_') !== 0 ? place.place_id : null;
       if (gmapId) {
@@ -253,7 +321,7 @@
     }
 
     function refreshList() {
-      listFiltered = getFiltered();
+      listFiltered = getSearchFiltered();
       listOffset = 0;
       document.getElementById('list-title').textContent = 'スポット一覧（' + listFiltered.length + '件）';
       document.getElementById('list-body').innerHTML = '';
@@ -265,8 +333,7 @@
       var html = '';
       for (var i = listOffset; i < end; i++) {
         var p = listFiltered[i];
-        var idx = i;
-        html += '<div class="list-item" onclick="focusPlace(' + idx + ')">' +
+        html += '<div class="list-item" onclick="focusPlace(\'' + esc(p.place_id) + '\')">' +
           '<div class="list-item-name">' + esc(p.name) + '</div>' +
           '<div class="list-item-addr">' + esc(p.address || '') + '</div>' +
           '<div class="list-item-meta">' +
@@ -288,17 +355,16 @@
       appendListItems();
     }
 
-    function focusPlace(i) {
-      var place = listFiltered[i];
+    function focusPlace(placeId) {
+      var place = null;
+      for (var i = 0; i < listFiltered.length; i++) {
+        if (listFiltered[i].place_id === placeId) { place = listFiltered[i]; break; }
+      }
       if (!place) return;
       map.panTo({ lat: place.lat, lng: place.lng });
       map.setZoom(16);
-      for (var j = 0; j < markers.length; j++) {
-        if (markers[j]._place === place) {
-          showInfo(place, markers[j]);
-          break;
-        }
-      }
+      var marker = markerMap.get(placeId);
+      if (marker) showInfo(place, marker);
     }
 
     function toggleList() {
