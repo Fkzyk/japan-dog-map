@@ -2,7 +2,7 @@ import requests
 import json
 import time
 
-API_KEY = "AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4"
+API_KEY = "YOUR_GOOGLE_MAPS_API_KEY"
 
 # 追加エリア（日野・東村山・清瀬・東大和・武蔵村山・あきる野・瑞穂・羽村）
 EXTRA_AREAS = [

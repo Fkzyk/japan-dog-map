@@ -2,7 +2,7 @@ import requests
 import json
 import time
 
-API_KEY = "AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4"
+API_KEY = "YOUR_GOOGLE_MAPS_API_KEY"
 
 # 東京都内のエリア中心座標（23区+多摩）
 AREA_CENTERS = [

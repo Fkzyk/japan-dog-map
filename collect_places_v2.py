@@ -3,7 +3,7 @@ import json
 import time
 import math
 
-API_KEY = "AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4"
+API_KEY = "YOUR_GOOGLE_MAPS_API_KEY"
 
 # 東京エリアを格子状に分割するための座標グリッド
 # 東京都全域（23区＋多摩地区）をカバー

@@ -2,7 +2,7 @@ import requests
 import json
 import time
 
-API_KEY = "AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4"
+API_KEY = "YOUR_GOOGLE_MAPS_API_KEY"
 
 AREA_CENTERS = [
     {"name": "千代田・中央", "lat": 35.6762, "lng": 139.7503, "radius": 4000},

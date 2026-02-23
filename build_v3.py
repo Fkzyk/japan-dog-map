@@ -4,7 +4,7 @@
 """
 import json, os
 
-API_KEY = "AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4"
+API_KEY = "YOUR_GOOGLE_MAPS_API_KEY"
 DATA_FILE = "/home/ubuntu/dogmap/places_final_v3.json"
 OUT_DIR = "/home/ubuntu/dogmap"
 
