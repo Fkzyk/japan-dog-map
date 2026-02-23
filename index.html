@@ -18,7 +18,6 @@
     #header img { width: 32px; height: 32px; border-radius: 50%; }
     #header h1 { font-size: 16px; font-weight: 700; margin: 0; }
     #count-display { margin-left: auto; font-size: 13px; color: #aaa; white-space: nowrap; }
-    /* ログインボタン */
     #auth-btn {
       background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3);
       padding: 5px 12px; border-radius: 16px; font-size: 12px; cursor: pointer;
@@ -119,6 +118,7 @@
       background: white; border-radius: 16px; padding: 32px 28px;
       width: 340px; max-width: 90vw;
       box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+      position: relative;
     }
     #auth-modal h2 { margin: 0 0 20px; font-size: 18px; color: #1a1a2e; text-align: center; }
     #auth-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #eee; }
@@ -160,7 +160,27 @@
       position: absolute; top: 12px; right: 16px;
       background: none; border: none; font-size: 22px; cursor: pointer; color: #888;
     }
-    #auth-modal { position: relative; }
+
+    /* ===== ログインウォール ===== */
+    #login-wall {
+      display: none;
+      position: fixed; inset: 0; z-index: 8000;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      align-items: center; justify-content: center; flex-direction: column;
+    }
+    #login-wall.show { display: flex; }
+    #login-wall-inner {
+      text-align: center; color: white; padding: 40px 24px;
+    }
+    #login-wall-inner h2 { font-size: 24px; margin: 0 0 8px; }
+    #login-wall-inner p { font-size: 14px; color: rgba(255,255,255,0.7); margin: 0 0 32px; }
+    #login-wall-btn {
+      background: white; color: #1a1a2e; border: none;
+      padding: 14px 40px; border-radius: 24px; font-size: 15px; font-weight: 700;
+      cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    #login-wall-btn:hover { background: #f0f0f0; }
+    #login-wall-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 16px; }
 
     @media (max-width: 600px) {
       #list-panel { width: 100%; }
@@ -168,13 +188,10 @@
       #user-email { display: none; }
     }
   </style>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&language=ja"></script>
-  <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
   <div id="header">
-    <img src="favicon-32x32.png" alt="ぽんず">
+    <img src="favicon-32x32.png" alt="dog">
     <h1>東京ドッグマップ</h1>
     <span id="count-display">読み込み中...</span>
     <span id="user-email"></span>
@@ -210,7 +227,7 @@
   <!-- 認証モーダル -->
   <div id="auth-overlay" onclick="onOverlayClick(event)">
     <div id="auth-modal">
-      <button id="auth-close-btn" onclick="closeAuthModal()">×</button>
+      <button id="auth-close-btn" id="auth-close-btn-inner" onclick="closeAuthModal()">×</button>
       <h2>東京ドッグマップ</h2>
       <div id="auth-tabs">
         <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">ログイン</div>
@@ -230,35 +247,65 @@
     </div>
   </div>
 
+  <!-- ログインウォール（未ログイン時に表示） -->
+  <div id="login-wall">
+    <div id="login-wall-inner">
+      <div style="font-size:64px;margin-bottom:16px;">🐾</div>
+      <h2>東京ドッグマップ</h2>
+      <p>ドッグラン・ペット可飲食店・動物病院を地図で探せます。<br>ご利用にはログインが必要です。</p>
+      <button id="login-wall-btn" onclick="openAuthModal()">ログイン / 新規登録</button>
+      <div id="login-wall-sub">登録は無料です</div>
+    </div>
+  </div>
+
+  <!-- Supabase SDK を先に同期読み込み -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&language=ja"></script>
+  <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+
   <script>
     // ===== Supabase 初期化 =====
     var SUPABASE_URL = 'https://rfcfilhqkkjmkecxzijw.supabase.co';
     var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmY2ZpbGhxa2tqbWtlY3h6aWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NDI4MjQsImV4cCI6MjA4NzQxODgyNH0.xtjFtJaWFWeoGRs8O_g57mDHn6ElQlEMZJN8Q0Kn6xk';
-    var supabase = null;
 
-    // Supabase SDK ロード後に初期化
-    function initSupabase() {
-      try {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        // セッション復元
-        supabase.auth.getSession().then(function(res) {
-          if (res.data && res.data.session) {
-            updateAuthUI(res.data.session.user);
-          }
-        });
-        // 認証状態変化を監視
-        supabase.auth.onAuthStateChange(function(event, session) {
-          if (session) {
-            updateAuthUI(session.user);
-            closeAuthModal();
-          } else {
-            updateAuthUI(null);
-          }
-        });
-      } catch(e) {
-        console.error('Supabase init error:', e);
-      }
+    // SDKはbody末尾で同期読み込みしているので即座に初期化可能
+    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ===== ログインウォール制御 =====
+    var appInitialized = false;
+
+    function showLoginWall() {
+      document.getElementById('login-wall').classList.add('show');
     }
+
+    function hideLoginWall() {
+      document.getElementById('login-wall').classList.remove('show');
+    }
+
+    // 認証状態を確認してUIを制御
+    supabase.auth.getSession().then(function(res) {
+      var session = res.data && res.data.session;
+      if (session) {
+        hideLoginWall();
+        updateAuthUI(session.user);
+        if (!appInitialized) initApp();
+      } else {
+        showLoginWall();
+      }
+    });
+
+    // 認証状態変化を監視
+    supabase.auth.onAuthStateChange(function(event, session) {
+      if (session) {
+        hideLoginWall();
+        updateAuthUI(session.user);
+        closeAuthModal();
+        if (!appInitialized) initApp();
+      } else {
+        showLoginWall();
+        updateAuthUI(null);
+      }
+    });
 
     function updateAuthUI(user) {
       var btn = document.getElementById('auth-btn');
@@ -300,39 +347,46 @@
     }
 
     function submitAuth() {
-      if (!supabase) { showAuthMsg('初期化中です。少し待ってから再試行してください。'); return; }
       var email = document.getElementById('auth-email').value.trim();
       var password = document.getElementById('auth-password').value;
       if (!email || !password) { showAuthMsg('メールアドレスとパスワードを入力してください。'); return; }
 
-      document.getElementById('auth-submit').textContent = '処理中...';
-      document.getElementById('auth-submit').disabled = true;
+      var submitBtn = document.getElementById('auth-submit');
+      submitBtn.textContent = '処理中...';
+      submitBtn.disabled = true;
 
       var promise = currentTab === 'login'
         ? supabase.auth.signInWithPassword({ email: email, password: password })
         : supabase.auth.signUp({ email: email, password: password });
 
       promise.then(function(res) {
-        document.getElementById('auth-submit').disabled = false;
-        document.getElementById('auth-submit').textContent = currentTab === 'login' ? 'ログイン' : '新規登録';
+        submitBtn.disabled = false;
+        submitBtn.textContent = currentTab === 'login' ? 'ログイン' : '新規登録';
         if (res.error) {
           showAuthMsg(translateError(res.error.message));
-        } else if (currentTab === 'signup' && res.data && res.data.user && !res.data.session) {
-          showAuthMsg('確認メールを送信しました。メールのリンクをクリックして登録を完了してください。', '#27ae60');
+        } else if (currentTab === 'signup') {
+          if (res.data && res.data.session) {
+            // メール確認不要の設定の場合、即座にログイン
+            // onAuthStateChange が発火するので追加処理不要
+          } else {
+            showAuthMsg('確認メールを送信しました。メールのリンクをクリックして登録を完了してください。', '#27ae60');
+          }
         }
+      }).catch(function(err) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = currentTab === 'login' ? 'ログイン' : '新規登録';
+        showAuthMsg('エラーが発生しました。再試行してください。');
       });
     }
 
     function signInWithGoogle() {
-      if (!supabase) { showAuthMsg('初期化中です。少し待ってから再試行してください。'); return; }
       supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.href }
+        options: { redirectTo: 'https://fkzyk.github.io/tokyo-dog-map/' }
       });
     }
 
     function signOut() {
-      if (!supabase) return;
       supabase.auth.signOut();
     }
 
@@ -347,6 +401,7 @@
       if (msg.indexOf('Email not confirmed') >= 0) return 'メールアドレスの確認が完了していません。';
       if (msg.indexOf('User already registered') >= 0) return 'このメールアドレスはすでに登録されています。';
       if (msg.indexOf('Password should be at least') >= 0) return 'パスワードは6文字以上で入力してください。';
+      if (msg.indexOf('signup is disabled') >= 0) return '現在新規登録を受け付けていません。';
       return msg;
     }
 
@@ -361,9 +416,8 @@
     var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', vet:'#8e44ad' };
     var CAT_BADGE  = { dogrun:'badge-dogrun', dogcafe:'badge-dogcafe', vet:'badge-vet' };
 
-    window.addEventListener('load', function() {
-      // Supabase 初期化
-      initSupabase();
+    function initApp() {
+      appInitialized = true;
 
       map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 35.6762, lng: 139.6503 },
@@ -393,7 +447,7 @@
         document.getElementById('loading').textContent = 'データ読み込みエラー';
       };
       xhr.send();
-    });
+    }
 
     function buildGenreSelect() {
       var genres = {};
@@ -460,84 +514,63 @@
     }
 
     function renderMarkers() {
-      if (clusterer) {
-        clusterer.clearMarkers();
-        clusterer = null;
-      }
-      markerMap.forEach(function(m) { m.setMap(null); });
+      if (!map) return;
+      if (clusterer) { clusterer.clearMarkers(); }
       markerMap.clear();
 
       var filtered = getSearchFiltered();
-      document.getElementById('count-display').textContent = filtered.length + '件';
-
-      var newMarkers = filtered.map(function(place) {
-        var color = CAT_COLORS[place.category] || '#999';
+      var markers = filtered.map(function(p) {
         var marker = new google.maps.Marker({
-          position: { lat: place.lat, lng: place.lng },
-          title: place.name,
+          position: { lat: p.lat, lng: p.lng },
+          title: p.name,
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
             scale: 7,
-            fillColor: color,
+            fillColor: CAT_COLORS[p.category] || '#999',
             fillOpacity: 0.9,
             strokeColor: 'white',
             strokeWeight: 1.5
           }
         });
-        marker._place = place;
-        marker.addListener('click', (function(p, m) {
-          return function() { showInfo(p, m); };
-        })(place, marker));
-        markerMap.set(place.place_id, marker);
+        marker.addListener('click', function() { showInfo(p, marker); });
+        markerMap.set(p.place_id, marker);
         return marker;
       });
 
       clusterer = new markerClusterer.MarkerClusterer({
         map: map,
-        markers: newMarkers,
-        algorithm: new markerClusterer.SuperClusterAlgorithm({
-          maxZoom: 14,
-          radius: 60
-        })
+        markers: markers,
+        algorithm: new markerClusterer.SuperClusterAlgorithm({ maxZoom: 14, radius: 60 })
       });
     }
 
-    function showInfo(place, marker) {
-      var label = CAT_LABELS[place.category] || '';
-      var color = CAT_COLORS[place.category] || '#999';
-      var rating = place.rating ? '★ ' + place.rating + (place.user_ratings_total ? ' (' + place.user_ratings_total + '件)' : '') : '';
-      var genre = place.genre ? '<div style="font-size:11px;color:#888;margin-bottom:4px">' + esc(place.genre) + '</div>' : '';
-
-      var linkHtml = '';
-      if (place.source === 'hotpepper' && place.website) {
-        linkHtml += '<a href="' + esc(place.website) + '" target="_blank" style="font-size:12px;color:#e74c3c;margin-right:8px">ホットペッパーで確認</a>';
-      }
-      var gmapId = place.place_id && place.place_id.indexOf('hp_') !== 0 ? place.place_id : null;
-      if (gmapId) {
-        linkHtml += '<a href="https://www.google.com/maps/place/?q=place_id:' + esc(gmapId) + '" target="_blank" style="font-size:12px;color:#1a73e8">Google Mapsで確認</a>';
-      } else {
-        var q = encodeURIComponent((place.name || '') + ' ' + (place.address || ''));
-        linkHtml += '<a href="https://www.google.com/maps/search/?api=1&query=' + q + '" target="_blank" style="font-size:12px;color:#1a73e8">Google Mapsで確認</a>';
-      }
-
-      infoWindow.setContent(
-        '<div style="max-width:260px;padding:4px;font-family:-apple-system,sans-serif">' +
-        '<span style="background:' + color + ';color:white;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600">' + label + '</span>' +
-        '<div style="font-weight:700;font-size:14px;margin:6px 0 4px">' + esc(place.name) + '</div>' +
-        '<div style="font-size:12px;color:#666;margin-bottom:4px">' + esc(place.address || '') + '</div>' +
-        genre +
-        (rating ? '<div style="font-size:12px;color:#f39c12;margin-bottom:6px">' + rating + '</div>' : '') +
-        '<div style="margin-top:4px">' + linkHtml + '</div>' +
-        '</div>'
-      );
+    function showInfo(p, marker) {
+      var url = p.url || (p.place_id && !p.place_id.startsWith('hp_')
+        ? 'https://www.google.com/maps/place/?q=place_id:' + p.place_id
+        : null);
+      var linkHtml = url
+        ? '<a href="' + url + '" target="_blank" style="color:#1a73e8;font-size:12px;">詳細を見る</a>'
+        : '';
+      var content =
+        '<div style="max-width:220px;font-family:sans-serif;">' +
+        '<div style="font-weight:700;font-size:14px;margin-bottom:4px;">' + esc(p.name) + '</div>' +
+        '<div style="font-size:11px;color:#888;margin-bottom:6px;">' + esc(p.address || '') + '</div>' +
+        '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' +
+        '<span style="background:' + (CAT_COLORS[p.category] || '#999') + ';color:white;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;">' + (CAT_LABELS[p.category] || '') + '</span>' +
+        (p.rating ? '<span style="font-size:12px;">★ ' + p.rating + '</span>' : '') +
+        (p.genre ? '<span style="font-size:11px;color:#aaa;">' + esc(p.genre) + '</span>' : '') +
+        '</div>' +
+        (linkHtml ? '<div style="margin-top:8px;">' + linkHtml + '</div>' : '') +
+        '</div>';
+      infoWindow.setContent(content);
       infoWindow.open(map, marker);
     }
 
     function refreshList() {
       listFiltered = getSearchFiltered();
       listOffset = 0;
-      document.getElementById('list-title').textContent = 'スポット一覧（' + listFiltered.length + '件）';
       document.getElementById('list-body').innerHTML = '';
+      document.getElementById('list-title').textContent = 'スポット一覧（' + listFiltered.length + '件）';
       appendListItems();
     }
 
