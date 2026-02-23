@@ -429,24 +429,41 @@
       });
       infoWindow = new google.maps.InfoWindow();
 
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', 'places.json', true);
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          PLACES_DATA = JSON.parse(xhr.responseText);
-          buildGenreSelect();
-          updateFilterLabels();
-          renderMarkers();
-          refreshList();
-          document.getElementById('loading').style.display = 'none';
-        } else {
-          document.getElementById('loading').textContent = 'データ読み込みエラー';
-        }
-      };
-      xhr.onerror = function() {
-        document.getElementById('loading').textContent = 'データ読み込みエラー';
-      };
-      xhr.send();
+      loadAllPlaces();
+    }
+
+    // Supabase DB から全件取得（1000件ずつページネーション）
+    function loadAllPlaces() {
+      var PAGE_SIZE = 1000;
+      var allData = [];
+
+      function fetchPage(from) {
+        supabase
+          .from('places')
+          .select('place_id,name,address,lat,lng,rating,user_ratings_total,website,phone,opening_hours,business_status,category,source,genre')
+          .range(from, from + PAGE_SIZE - 1)
+          .then(function(res) {
+            if (res.error) {
+              document.getElementById('loading').textContent = 'データ読み込みエラー: ' + res.error.message;
+              return;
+            }
+            allData = allData.concat(res.data);
+            if (res.data.length === PAGE_SIZE) {
+              // まだデータがある可能性があるので次ページを取得
+              fetchPage(from + PAGE_SIZE);
+            } else {
+              // 全件取得完了
+              PLACES_DATA = allData;
+              buildGenreSelect();
+              updateFilterLabels();
+              renderMarkers();
+              refreshList();
+              document.getElementById('loading').style.display = 'none';
+            }
+          });
+      }
+
+      fetchPage(0);
     }
 
     function buildGenreSelect() {
