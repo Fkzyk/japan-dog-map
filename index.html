@@ -562,7 +562,7 @@
     }
 
     function showInfo(p, marker) {
-      var url = p.url || (p.place_id && !p.place_id.startsWith('hp_')
+      var url = p.url || p.website || (p.place_id && !p.place_id.startsWith('hp_')
         ? 'https://www.google.com/maps/place/?q=place_id:' + p.place_id
         : null);
       var linkHtml = url
