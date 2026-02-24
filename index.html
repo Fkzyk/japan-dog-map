@@ -187,6 +187,59 @@
       #genre-select { max-width: 100px; }
       #user-email { display: none; }
     }
+
+    /* ===== お知らせベル ===== */
+    #bell-btn {
+      position: relative;
+      background: none; border: none; color: white;
+      font-size: 20px; cursor: pointer; padding: 4px;
+      line-height: 1; flex-shrink: 0;
+    }
+    #bell-badge {
+      position: absolute; top: 0; right: 0;
+      background: #e74c3c; color: white;
+      font-size: 9px; font-weight: 700;
+      width: 14px; height: 14px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    #bell-badge.hidden { display: none; }
+
+    /* ===== お知らせモーダル ===== */
+    #news-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9000;
+      background: rgba(0,0,0,0.5); align-items: flex-start; justify-content: center;
+      padding-top: 80px;
+    }
+    #news-overlay.open { display: flex; }
+    #news-modal {
+      background: white; border-radius: 16px; padding: 0;
+      width: 360px; max-width: 92vw; max-height: 70vh;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    #news-modal-header {
+      background: #1a1a2e; color: white;
+      padding: 14px 18px; font-size: 15px; font-weight: 700;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0;
+    }
+    #news-close-btn {
+      background: none; border: none; color: white;
+      font-size: 20px; cursor: pointer; line-height: 1;
+    }
+    #news-body {
+      overflow-y: auto; padding: 16px 18px;
+      flex: 1;
+    }
+    .news-item {
+      margin-bottom: 18px; padding-bottom: 18px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .news-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .news-date { font-size: 11px; color: #aaa; margin-bottom: 4px; }
+    .news-title { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+    .news-desc { font-size: 12px; color: #555; line-height: 1.6; }
   </style>
 </head>
 <body>
@@ -195,7 +248,38 @@
     <h1>Japan Dog Map</h1>
     <span id="count-display">読み込み中...</span>
     <span id="user-email"></span>
+    <button id="bell-btn" onclick="openNewsModal()" title="お知らせ">
+      🔔
+      <span id="bell-badge">1</span>
+    </button>
     <button id="auth-btn" onclick="openAuthModal()">ログイン</button>
+  </div>
+
+  <!-- お知らせモーダル -->
+  <div id="news-overlay" onclick="onNewsOverlayClick(event)">
+    <div id="news-modal">
+      <div id="news-modal-header">
+        <span>🔔 お知らせ</span>
+        <button id="news-close-btn" onclick="closeNewsModal()">×</button>
+      </div>
+      <div id="news-body">
+        <div class="news-item">
+          <div class="news-date">2026-02-25</div>
+          <div class="news-title">大阪・福岡・名古屋のデータを追加しました</div>
+          <div class="news-desc">大阪府・福岡県・愛知県のドッグラン・ペット可飲食店・動物病院を新たに登録しました。全国5,600件以上のスポットを掲載中です。</div>
+        </div>
+        <div class="news-item">
+          <div class="news-date">2026-02-25</div>
+          <div class="news-title">アプリ名を「Japan Dog Map」に変更しました</div>
+          <div class="news-desc">東京以外の都市にも対応したため、アプリ名を「東京ドッグマップ」から「Japan Dog Map」に変更しました。</div>
+        </div>
+        <div class="news-item">
+          <div class="news-date">2026-02-25</div>
+          <div class="news-title">ホームページ・ホットペッパー・Googleマップのリンクを表示するようになりました</div>
+          <div class="news-desc">ピンをタップすると、店舗のホームページ・ホットペッパー・Googleマップのリンクをまとめて確認できるようになりました。</div>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="filter-bar">
     <button class="filter-btn active" id="btn-all"     onclick="setFilter('all',this)">すべて</button>
@@ -704,6 +788,31 @@
 
     function esc(str) {
       return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ===== お知らせ機能 =====
+    var NEWS_VERSION = '20260225'; // 新しいお知らせを追加したらこの値を更新する
+
+    (function initBell() {
+      var read = localStorage.getItem('news_read_version');
+      if (read === NEWS_VERSION) {
+        document.getElementById('bell-badge').classList.add('hidden');
+      }
+    })();
+
+    function openNewsModal() {
+      document.getElementById('news-overlay').classList.add('open');
+      // 開いたら既読にする
+      localStorage.setItem('news_read_version', NEWS_VERSION);
+      document.getElementById('bell-badge').classList.add('hidden');
+    }
+
+    function closeNewsModal() {
+      document.getElementById('news-overlay').classList.remove('open');
+    }
+
+    function onNewsOverlayClick(e) {
+      if (e.target === document.getElementById('news-overlay')) closeNewsModal();
     }
   </script>
 </body>
