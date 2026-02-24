@@ -263,21 +263,7 @@
         <button id="news-close-btn" onclick="closeNewsModal()">×</button>
       </div>
       <div id="news-body">
-        <div class="news-item">
-          <div class="news-date">2026-02-25</div>
-          <div class="news-title">大阪・福岡・名古屋のデータを追加しました</div>
-          <div class="news-desc">大阪府・福岡県・愛知県のドッグラン・ペット可飲食店・動物病院を新たに登録しました。全国5,600件以上のスポットを掲載中です。</div>
-        </div>
-        <div class="news-item">
-          <div class="news-date">2026-02-25</div>
-          <div class="news-title">アプリ名を「Japan Dog Map」に変更しました</div>
-          <div class="news-desc">東京以外の都市にも対応したため、アプリ名を「東京ドッグマップ」から「Japan Dog Map」に変更しました。</div>
-        </div>
-        <div class="news-item">
-          <div class="news-date">2026-02-25</div>
-          <div class="news-title">ホームページ・ホットペッパー・Googleマップのリンクを表示するようになりました</div>
-          <div class="news-desc">ピンをタップすると、店舗のホームページ・ホットペッパー・Googleマップのリンクをまとめて確認できるようになりました。</div>
-        </div>
+        <div style="padding:20px;text-align:center;color:#aaa;font-size:13px;">読み込み中...</div>
       </div>
     </div>
   </div>
@@ -791,19 +777,47 @@
     }
 
     // ===== お知らせ機能 =====
-    var NEWS_VERSION = '20260225'; // 新しいお知らせを追加したらこの値を更新する
+    // news.jsonをfetchしてモーダルに動的レンダリングする
+    var newsLoaded = false;
 
     (function initBell() {
-      var read = localStorage.getItem('news_read_version');
-      if (read === NEWS_VERSION) {
-        document.getElementById('bell-badge').classList.add('hidden');
-      }
+      fetch('news.json?v=' + Date.now())
+        .then(function(r) { return r.json(); })
+        .then(function(items) {
+          // 最新記事の日付をバージョンとして使う
+          var latestVersion = items.length ? items[0].date.replace(/-/g,'') : '0';
+          var read = localStorage.getItem('news_read_version');
+          if (read !== latestVersion) {
+            document.getElementById('bell-badge').classList.remove('hidden');
+            document.getElementById('bell-badge').textContent = items.length;
+          } else {
+            document.getElementById('bell-badge').classList.add('hidden');
+          }
+          // モーダル本文を構築
+          var html = items.map(function(item) {
+            return '<div class="news-item">'
+              + '<div class="news-date">' + esc(item.date) + '</div>'
+              + '<div class="news-title">' + esc(item.title) + '</div>'
+              + '<div class="news-desc">' + esc(item.desc) + '</div>'
+              + '</div>';
+          }).join('');
+          document.getElementById('news-body').innerHTML = html || '<div style="padding:20px;text-align:center;color:#aaa;font-size:13px;">お知らせはありません</div>';
+          newsLoaded = true;
+          // latestVersionをクロージャに保持
+          initBell._latestVersion = latestVersion;
+        })
+        .catch(function() {
+          document.getElementById('news-body').innerHTML = '<div style="padding:20px;text-align:center;color:#aaa;font-size:13px;">読み込みに失敗しました</div>';
+        });
     })();
 
     function openNewsModal() {
       document.getElementById('news-overlay').classList.add('open');
       // 開いたら既読にする
-      localStorage.setItem('news_read_version', NEWS_VERSION);
+      var latestVersion = initBell._latestVersion;
+      if (latestVersion) {
+        localStorage.setItem('news_read_version', latestVersion);
+      }
       document.getElementById('bell-badge').classList.add('hidden');
     }
 
