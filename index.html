@@ -598,23 +598,40 @@
     }
 
     function showInfo(p, marker) {
-      var url = p.url || p.website || (p.place_id && !p.place_id.startsWith('hp_')
-        ? 'https://www.google.com/maps/place/?q=place_id:' + p.place_id
-        : null);
-      var linkHtml = url
-        ? '<a href="' + url + '" target="_blank" style="color:#1a73e8;font-size:12px;">詳細を見る</a>'
+      // 表示するリンクを複数生成
+      var links = [];
+      var isHp = p.place_id && p.place_id.startsWith('hp_');
+
+      if (isHp) {
+        // ホットペッパーデータ: websiteにホットペッパー URLが入っている
+        if (p.website) {
+          links.push('<a href="' + p.website + '" target="_blank" style="color:#e74c3c;font-size:12px;white-space:nowrap;">ホットペッパー</a>');
+        }
+      } else {
+        // 通常データ: websiteにホームページURLが入っている場合がある
+        if (p.website) {
+          links.push('<a href="' + p.website + '" target="_blank" style="color:#1a73e8;font-size:12px;white-space:nowrap;">ホームページ</a>');
+        }
+        // Googleマップリンクは常に生成可能
+        var gmapUrl = 'https://www.google.com/maps/place/?q=place_id:' + p.place_id;
+        links.push('<a href="' + gmapUrl + '" target="_blank" style="color:#555;font-size:12px;white-space:nowrap;">Googleマップ</a>');
+      }
+
+      var linksHtml = links.length
+        ? '<div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;">' + links.join('') + '</div>'
         : '';
+
       var content =
-        '<div style="max-width:220px;font-family:sans-serif;">' +
-        '<div style="font-weight:700;font-size:14px;margin-bottom:4px;">' + esc(p.name) + '</div>' +
-        '<div style="font-size:11px;color:#888;margin-bottom:6px;">' + esc(p.address || '') + '</div>' +
-        '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' +
-        '<span style="background:' + (CAT_COLORS[p.category] || '#999') + ';color:white;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;">' + (CAT_LABELS[p.category] || '') + '</span>' +
-        (p.rating ? '<span style="font-size:12px;">★ ' + p.rating + '</span>' : '') +
-        (p.genre ? '<span style="font-size:11px;color:#aaa;">' + esc(p.genre) + '</span>' : '') +
-        '</div>' +
-        (linkHtml ? '<div style="margin-top:8px;">' + linkHtml + '</div>' : '') +
-        '</div>';
+        '<div style="max-width:240px;font-family:sans-serif;">'
+        + '<div style="font-weight:700;font-size:14px;margin-bottom:4px;">' + esc(p.name) + '</div>'
+        + '<div style="font-size:11px;color:#888;margin-bottom:6px;">' + esc(p.address || '') + '</div>'
+        + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'
+        + '<span style="background:' + (CAT_COLORS[p.category] || '#999') + ';color:white;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;">' + (CAT_LABELS[p.category] || '') + '</span>'
+        + (p.rating ? '<span style="font-size:12px;">★ ' + p.rating + '</span>' : '')
+        + (p.genre ? '<span style="font-size:11px;color:#aaa;">' + esc(p.genre) + '</span>' : '')
+        + '</div>'
+        + linksHtml
+        + '</div>';
       infoWindow.setContent(content);
       infoWindow.open(map, marker);
     }
