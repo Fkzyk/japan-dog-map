@@ -554,10 +554,46 @@
         return marker;
       });
 
+      // マーカーにcategoryを持たせてクラスタ色判定に使う
+      markers.forEach(function(m, i) { m._category = filtered[i].category; });
+
       clusterer = new markerClusterer.MarkerClusterer({
         map: map,
         markers: markers,
-        algorithm: new markerClusterer.SuperClusterAlgorithm({ maxZoom: 14, radius: 60 })
+        algorithm: new markerClusterer.SuperClusterAlgorithm({ maxZoom: 14, radius: 60 }),
+        renderer: {
+          render: function(cluster, stats) {
+            // クラスタ内のカテゴリを集計
+            var cats = {};
+            (cluster.markers || []).forEach(function(m) {
+              var c = m._category || 'unknown';
+              cats[c] = (cats[c] || 0) + 1;
+            });
+            var keys = Object.keys(cats);
+            // 単一カテゴリならそのカテゴリ色、混在はグレー
+            var color = (keys.length === 1 && CAT_COLORS[keys[0]])
+              ? CAT_COLORS[keys[0]]
+              : '#555555';
+            var count = cluster.count;
+            var size = count < 10 ? 36 : count < 100 ? 44 : 52;
+            var svg = window.btoa(
+              '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '">' +
+              '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + (size/2 - 2) + '" fill="' + color + '" opacity="0.85"/>' +
+              '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + (size/2 - 2) + '" fill="none" stroke="white" stroke-width="2"/>' +
+              '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="' + (size * 0.35) + '" font-weight="bold" font-family="sans-serif">' + count + '</text>' +
+              '</svg>'
+            );
+            return new google.maps.Marker({
+              position: cluster.position,
+              icon: {
+                url: 'data:image/svg+xml;base64,' + svg,
+                scaledSize: new google.maps.Size(size, size),
+                anchor: new google.maps.Point(size/2, size/2)
+              },
+              zIndex: 1000 + count
+            });
+          }
+        }
       });
     }
 
@@ -624,10 +660,24 @@
         if (listFiltered[i].place_id === placeId) { place = listFiltered[i]; break; }
       }
       if (!place) return;
-      map.panTo({ lat: place.lat, lng: place.lng });
-      map.setZoom(16);
-      var marker = markerMap.get(placeId);
-      if (marker) showInfo(place, marker);
+      // ズームが14未満の場合はまそumしてからクラスタ解除を待つ
+      var currentZoom = map.getZoom();
+      if (currentZoom < 15) {
+        map.setZoom(15);
+        google.maps.event.addListenerOnce(map, 'idle', function() {
+          map.panTo({ lat: place.lat, lng: place.lng });
+          google.maps.event.addListenerOnce(map, 'idle', function() {
+            var marker = markerMap.get(placeId);
+            if (marker) showInfo(place, marker);
+          });
+        });
+      } else {
+        map.panTo({ lat: place.lat, lng: place.lng });
+        google.maps.event.addListenerOnce(map, 'idle', function() {
+          var marker = markerMap.get(placeId);
+          if (marker) showInfo(place, marker);
+        });
+      }
     }
 
     function toggleList() {
