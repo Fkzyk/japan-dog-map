@@ -487,6 +487,7 @@
     var sc = null;
     var scMarkers = [];
     var renderTimer = null;
+    var _focusingLock = false;
     var svgCache = {};
     var placeById = {};
     var searchTimer = null;
@@ -631,6 +632,7 @@
     }
 
     function renderMarkers() {
+      if (_focusingLock) return;
       if (renderTimer) clearTimeout(renderTimer);
       renderTimer = setTimeout(_drawClusters, 120);
     }
@@ -690,6 +692,7 @@
             icon: { path: google.maps.SymbolPath.CIRCLE, scale: 7, fillColor: CAT_COLORS[p.category]||'#999', fillOpacity: 0.92, strokeColor: 'white', strokeWeight: 1.5 },
             map: map, zIndex: 1
           });
+          marker._placeId = p.place_id;
           marker.addListener('click', (function(pp, mm) { return function() { showInfo(pp, mm); }; })(p, marker));
         }
         scMarkers.push(marker);
@@ -774,28 +777,28 @@
     function focusPlace(placeId) {
       var place = placeById[placeId];
       if (!place) return;
-
       // リストパネルを閉じる（モバイルでマップが隠れないように）
       if (listOpen && window.innerWidth <= 600) { listOpen = false; document.getElementById('list-panel').classList.remove('open'); }
-
+      // フォーカス中はrenderMarkersを抑制して余計な再描画を防ぐ
+      _focusingLock = true;
+      if (renderTimer) { clearTimeout(renderTimer); renderTimer = null; }
+      infoWindow.close();
       map.setCenter({ lat: place.lat, lng: place.lng });
       map.setZoom(16);
-
-      // renderMarkersのデバウンス(120ms)完了後にinfoWindowを開く
-      // idleは複数回発火するため使用しない
+      // bounds_changedが落ち着いた後にクラスタを再描画してinfoWindowを開く
       setTimeout(function() {
+        _focusingLock = false;
+        _drawClusters();
         var found = null;
         for (var i = 0; i < scMarkers.length; i++) {
-          if (scMarkers[i].getTitle() === place.name) { found = scMarkers[i]; break; }
+          if (scMarkers[i]._placeId === placeId) { found = scMarkers[i]; break; }
         }
         if (!found) {
-          // マーカーが見つからない場合はダミーマーカーを使う
           found = new google.maps.Marker({ position: { lat: place.lat, lng: place.lng }, map: map, visible: false });
         }
         showInfo(place, found);
       }, 300);
     }
-
     function locateMe() {
       var btn = document.getElementById('locate-btn');
       var toast = document.getElementById('locate-toast');
