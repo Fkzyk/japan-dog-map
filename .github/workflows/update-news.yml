@@ -1,0 +1,64 @@
+name: Auto Update News
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+    # [news]タグがコミットメッセージに含まれる場合のみ実行
+    if: contains(github.event.head_commit.message, '[news]')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract news title from commit message
+        id: extract
+        run: |
+          # コミットメッセージから[news]以降のテキストを抽出
+          MSG="${{ github.event.head_commit.message }}"
+          TITLE=$(echo "$MSG" | sed 's/.*\[news\] *//' | head -1 | tr -d '\n\r')
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: Update news.json
+        run: |
+          TITLE="${{ steps.extract.outputs.title }}"
+          DATE="${{ steps.extract.outputs.date }}"
+
+          # 既存のnews.jsonを読み込み、先頭に新しいエントリを追加
+          python3 - <<EOF
+          import json, sys
+
+          with open('news.json', 'r', encoding='utf-8') as f:
+              items = json.load(f)
+
+          new_item = {
+              "date": "$DATE",
+              "title": "$TITLE",
+              "desc": ""
+          }
+
+          # 同じ日付・タイトルの重複チェック
+          if not any(i['title'] == new_item['title'] and i['date'] == new_item['date'] for i in items):
+              items.insert(0, new_item)
+              # 最大10件に制限
+              items = items[:10]
+              with open('news.json', 'w', encoding='utf-8') as f:
+                  json.dump(items, f, ensure_ascii=False, indent=2)
+              print(f"Added: {new_item['title']}")
+          else:
+              print("Duplicate entry, skipping.")
+          EOF
+
+      - name: Commit and push news.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add news.json
+          # news.jsonに変更がある場合のみコミット
+          git diff --cached --quiet || git commit -m "chore: auto update news.json [skip ci]"
+          git push
