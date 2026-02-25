@@ -480,8 +480,10 @@
     var PLACES_DATA = [], currentFilter = 'all', listOpen = false;
     var listFiltered = [], listOffset = 0;
     var LIST_PAGE = 100;
-    var markerMap = new Map();   // place_id -> marker（全件キャッシュ）
-    var renderTimer = null;      // デバウンス用タイマー
+    var markerMap = new Map();     // place_id -> marker（全件キャッシュ）
+    var activeIds = new Set();     // 現在クラスタに追加中のplace_id
+    var renderTimer = null;        // デバウンス用タイマー
+    var svgCache = {};             // SVGキャッシュ（color+size -> dataURL）
 
     var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ペット可飲食店', vet:'動物病院' };
     var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', vet:'#8e44ad' };
@@ -607,13 +609,64 @@
       renderTimer = setTimeout(function() { _doRenderMarkers(); }, 50);
     }
 
+    function _makeSvgIcon(color, size) {
+      var key = color + '_' + size;
+      if (svgCache[key]) return svgCache[key];
+      var svg = window.btoa(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '">' +
+        '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + (size/2 - 2) + '" fill="' + color + '" opacity="0.85"/>' +
+        '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + (size/2 - 2) + '" fill="none" stroke="white" stroke-width="2"/>' +
+        '</svg>'
+      );
+      svgCache[key] = 'data:image/svg+xml;base64,' + svg;
+      return svgCache[key];
+    }
+
+    function _initClusterer(initialMarkers) {
+      clusterer = new markerClusterer.MarkerClusterer({
+        map: map,
+        markers: initialMarkers,
+        algorithm: new markerClusterer.SuperClusterAlgorithm({ maxZoom: 14, radius: 60 }),
+        renderer: {
+          render: function(cluster) {
+            var cats = {};
+            (cluster.markers || []).forEach(function(m) {
+              var c = m._category || 'unknown';
+              cats[c] = (cats[c] || 0) + 1;
+            });
+            var keys = Object.keys(cats);
+            var color = (keys.length === 1 && CAT_COLORS[keys[0]])
+              ? CAT_COLORS[keys[0]] : '#555555';
+            var count = cluster.count;
+            var size = count < 10 ? 36 : count < 100 ? 44 : 52;
+            return new google.maps.Marker({
+              position: cluster.position,
+              label: {
+                text: String(count),
+                color: 'white',
+                fontSize: Math.round(size * 0.35) + 'px',
+                fontWeight: 'bold'
+              },
+              icon: {
+                url: _makeSvgIcon(color, size),
+                scaledSize: new google.maps.Size(size, size),
+                anchor: new google.maps.Point(size/2, size/2)
+              },
+              zIndex: 1000 + count
+            });
+          }
+        }
+      });
+    }
+
     function _doRenderMarkers() {
       if (!map) return;
 
       var filtered = getSearchFiltered();
       var filteredIds = new Set(filtered.map(function(p) { return p.place_id; }));
 
-      // 初回 or 未生成のマーカーだけ生成（キャッシュ活用）
+      // 未生成のマーカーを生成してキャッシュ
+      var toAdd = [];
       filtered.forEach(function(p) {
         if (!markerMap.has(p.place_id)) {
           var marker = new google.maps.Marker({
@@ -634,58 +687,30 @@
           })(p, marker));
           markerMap.set(p.place_id, marker);
         }
-      });
-
-      // フィルターに合うマーカーだけ表示、それ以外は非表示
-      var visibleMarkers = [];
-      markerMap.forEach(function(marker, id) {
-        if (filteredIds.has(id)) {
-          visibleMarkers.push(marker);
-        } else {
-          marker.setMap(null);
+        if (!activeIds.has(p.place_id)) {
+          toAdd.push(markerMap.get(p.place_id));
+          activeIds.add(p.place_id);
         }
       });
 
-      // クラスタを再構築
-      if (clusterer) { clusterer.clearMarkers(); }
-      clusterer = new markerClusterer.MarkerClusterer({
-        map: map,
-        markers: visibleMarkers,
-        algorithm: new markerClusterer.SuperClusterAlgorithm({ maxZoom: 14, radius: 60 }),
-        renderer: {
-          render: function(cluster, stats) {
-            // クラスタ内のカテゴリを集計
-            var cats = {};
-            (cluster.markers || []).forEach(function(m) {
-              var c = m._category || 'unknown';
-              cats[c] = (cats[c] || 0) + 1;
-            });
-            var keys = Object.keys(cats);
-            // 単一カテゴリならそのカテゴリ色、混在はグレー
-            var color = (keys.length === 1 && CAT_COLORS[keys[0]])
-              ? CAT_COLORS[keys[0]]
-              : '#555555';
-            var count = cluster.count;
-            var size = count < 10 ? 36 : count < 100 ? 44 : 52;
-            var svg = window.btoa(
-              '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '">' +
-              '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + (size/2 - 2) + '" fill="' + color + '" opacity="0.85"/>' +
-              '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + (size/2 - 2) + '" fill="none" stroke="white" stroke-width="2"/>' +
-              '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="' + (size * 0.35) + '" font-weight="bold" font-family="sans-serif">' + count + '</text>' +
-              '</svg>'
-            );
-            return new google.maps.Marker({
-              position: cluster.position,
-              icon: {
-                url: 'data:image/svg+xml;base64,' + svg,
-                scaledSize: new google.maps.Size(size, size),
-                anchor: new google.maps.Point(size/2, size/2)
-              },
-              zIndex: 1000 + count
-            });
-          }
+      // フィルターから外れたマーカーをクラスタから除去
+      var toRemove = [];
+      activeIds.forEach(function(id) {
+        if (!filteredIds.has(id)) {
+          toRemove.push(markerMap.get(id));
+          activeIds.delete(id);
         }
       });
+
+      if (!clusterer) {
+        // 初回: clustererを生成
+        _initClusterer(Array.from(filteredIds).map(function(id) { return markerMap.get(id); }).filter(Boolean));
+        activeIds = new Set(filteredIds);
+      } else {
+        // 差分更新のみ（clustererを作り直さない）
+        if (toRemove.length) clusterer.removeMarkers(toRemove, true);
+        if (toAdd.length)    clusterer.addMarkers(toAdd, false);
+      }
     }
 
     function showInfo(p, marker) {
