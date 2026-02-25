@@ -787,9 +787,8 @@
       var isRakuten = p.place_id && p.place_id.startsWith('rakuten_');
       var links = '';
       if (isRakuten) {
-        var hotelNo = p.place_id.replace('rakuten_', '');
-        var rakutenUrl = 'https://hotel.travel.rakuten.co.jp/hotelinfo/plan/detail.html?f_no=' + hotelNo + '&f_flg=PLAN&f_aff_id=51558f6d.09dab654.51558f6e.9d0fafa9';
-        links += '<a class="iw-link iw-link-rakuten" href="' + rakutenUrl + '" target="_blank">楽天トラベルで予約</a>';
+        var rakutenUrl = p.website || '';
+        if (rakutenUrl) links += '<a class="iw-link iw-link-rakuten" href="' + rakutenUrl + '" target="_blank">楽天トラベルで予約</a>';
       } else if (isHp) {
         if (p.website) links += '<a class="iw-link iw-link-hp" href="' + p.website + '" target="_blank">ホットペッパー</a>';
       } else {
