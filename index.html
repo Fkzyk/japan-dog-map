@@ -8,103 +8,154 @@
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <style>
-    html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif; }
+
+    /* ===== ヘッダー ===== */
     #header {
       position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
       background: #1a1a2e; color: white;
-      display: flex; align-items: center; gap: 12px;
-      padding: 8px 16px; height: 48px;
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 14px; height: 50px;
     }
-    #header img { width: 32px; height: 32px; border-radius: 50%; }
-    #header h1 { font-size: 16px; font-weight: 700; margin: 0; }
-    #count-display { margin-left: auto; font-size: 13px; color: #aaa; white-space: nowrap; }
+    #header-logo { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; }
+    #header h1 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: 0.3px; }
+    #count-display { margin-left: auto; font-size: 12px; color: rgba(255,255,255,0.55); white-space: nowrap; }
+    #user-email { font-size: 11px; color: rgba(255,255,255,0.55); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     #auth-btn {
-      background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.12); color: white;
+      border: 1px solid rgba(255,255,255,0.25);
       padding: 5px 12px; border-radius: 16px; font-size: 12px; cursor: pointer;
-      white-space: nowrap; transition: background 0.2s;
+      white-space: nowrap; transition: background 0.2s; flex-shrink: 0;
     }
-    #auth-btn:hover { background: rgba(255,255,255,0.25); }
-    #user-email {
-      font-size: 11px; color: #aaa; max-width: 120px;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    #auth-btn:hover { background: rgba(255,255,255,0.22); }
+
+    /* ===== ベルボタン ===== */
+    #bell-btn {
+      position: relative; background: none; border: none; color: white;
+      font-size: 19px; cursor: pointer; padding: 4px; line-height: 1; flex-shrink: 0;
     }
+    #bell-badge {
+      position: absolute; top: 0; right: 0;
+      background: #e74c3c; color: white; font-size: 8px; font-weight: 700;
+      width: 13px; height: 13px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; pointer-events: none;
+    }
+    #bell-badge.hidden { display: none; }
+
+    /* ===== フィルターバー ===== */
     #filter-bar {
-      position: fixed; top: 48px; left: 0; right: 0; z-index: 1000;
-      background: white; border-bottom: 1px solid #eee;
-      display: flex; gap: 6px; padding: 8px 12px;
-      overflow-x: auto;
+      position: fixed; top: 50px; left: 0; right: 0; z-index: 999;
+      background: white; border-bottom: 1px solid #e8e8e8;
+      display: flex; gap: 6px; padding: 7px 12px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
+    #filter-bar::-webkit-scrollbar { display: none; }
     .filter-btn {
-      padding: 5px 12px; border-radius: 20px; border: 1.5px solid #ccc;
+      padding: 5px 13px; border-radius: 20px; border: 1.5px solid #d0d0d0;
       background: white; font-size: 12px; cursor: pointer; white-space: nowrap;
-      transition: all 0.2s; color: #555;
+      transition: all 0.18s; color: #555; flex-shrink: 0;
     }
+    .filter-btn:active { transform: scale(0.96); }
     .filter-btn.active { color: white; border-color: transparent; }
     #btn-all.active    { background: #333; }
     #btn-dogrun.active { background: #27ae60; }
     #btn-dogcafe.active { background: #e74c3c; }
     #btn-vet.active    { background: #8e44ad; }
+
+    /* ===== 検索バー ===== */
     #search-bar {
-      position: fixed; top: 96px; left: 0; right: 0; z-index: 999;
-      background: #f8f8f8; border-bottom: 1px solid #e0e0e0;
+      position: fixed; top: 95px; left: 0; right: 0; z-index: 998;
+      background: #f5f5f7; border-bottom: 1px solid #e0e0e0;
       display: flex; gap: 6px; padding: 6px 12px; align-items: center;
     }
     #search-input {
-      flex: 1; padding: 7px 12px; border: 1px solid #ddd; border-radius: 8px;
-      font-size: 13px; outline: none;
+      flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 10px;
+      font-size: 13px; outline: none; background: white; transition: border-color 0.2s;
     }
-    #search-input:focus { border-color: #1a1a2e; }
+    #search-input:focus { border-color: #1a1a2e; box-shadow: 0 0 0 2px rgba(26,26,46,0.08); }
     #genre-select {
-      padding: 7px 8px; border: 1px solid #ddd; border-radius: 8px;
-      font-size: 12px; background: white; outline: none; max-width: 130px;
+      padding: 8px 8px; border: 1px solid #ddd; border-radius: 10px;
+      font-size: 12px; background: white; outline: none; max-width: 120px; cursor: pointer;
     }
     #search-clear {
-      padding: 6px 10px; border: none; background: #ddd; border-radius: 8px;
-      font-size: 12px; cursor: pointer; white-space: nowrap; color: #555;
+      padding: 7px 11px; border: none; background: #e0e0e0; border-radius: 10px;
+      font-size: 12px; cursor: pointer; color: #555; transition: background 0.15s; flex-shrink: 0;
     }
-    #map-container {
-      position: fixed; top: 140px; left: 0; right: 0; bottom: 0;
-    }
+    #search-clear:hover { background: #d0d0d0; }
+
+    /* ===== マップ ===== */
+    #map-container { position: fixed; top: 139px; left: 0; right: 0; bottom: 0; }
     #map { width: 100%; height: 100%; }
+
+    /* ===== ローディング ===== */
     #loading {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
-      z-index: 2000; background: white; padding: 20px 32px; border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15); font-size: 14px; color: #333;
+      z-index: 2000; background: white; padding: 24px 36px; border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12); font-size: 14px; color: #333;
+      display: flex; align-items: center; gap: 12px;
     }
+    #loading-spinner {
+      width: 20px; height: 20px; border: 3px solid #eee;
+      border-top-color: #1a1a2e; border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== 現在地ボタン ===== */
+    #locate-btn {
+      position: fixed; bottom: 80px; right: 14px; z-index: 1800;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: white; border: none; cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; transition: box-shadow 0.2s;
+    }
+    #locate-btn:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
+    #locate-btn:active { transform: scale(0.94); }
+
+    /* ===== リストボタン ===== */
     #list-toggle {
-      position: fixed; bottom: 24px; right: 16px; z-index: 2000;
+      position: fixed; bottom: 20px; right: 14px; z-index: 1800;
       background: #1a1a2e; color: white; border: none;
-      padding: 12px 20px; border-radius: 24px; font-size: 14px;
-      cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      padding: 11px 18px; border-radius: 22px; font-size: 13px; font-weight: 600;
+      cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+      transition: background 0.2s, box-shadow 0.2s;
     }
+    #list-toggle:hover { background: #2d2d4e; }
+    #list-toggle:active { transform: scale(0.96); }
+
+    /* ===== リストパネル ===== */
     #list-panel {
-      position: fixed; top: 140px; right: 0; bottom: 0; width: 300px;
+      position: fixed; top: 139px; right: 0; bottom: 0; width: 310px;
       background: white; z-index: 1500; overflow-y: auto;
-      box-shadow: -4px 0 16px rgba(0,0,0,0.1);
-      transform: translateX(100%); transition: transform 0.3s;
+      box-shadow: -3px 0 20px rgba(0,0,0,0.08);
+      transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
     }
     #list-panel.open { transform: translateX(0); }
     #list-header {
       padding: 12px 16px; background: #1a1a2e; color: white;
       display: flex; justify-content: space-between; align-items: center;
-      font-size: 14px; font-weight: 600; position: sticky; top: 0; z-index: 10;
+      font-size: 13px; font-weight: 600; position: sticky; top: 0; z-index: 10;
     }
-    #list-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+    #list-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0 2px; }
     .list-item {
-      padding: 10px 14px; border-bottom: 1px solid #f0f0f0;
-      cursor: pointer; transition: background 0.15s;
+      padding: 11px 14px; border-bottom: 1px solid #f2f2f2;
+      cursor: pointer; transition: background 0.12s;
     }
-    .list-item:hover { background: #f8f8f8; }
-    .list-item-name { font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 3px; }
-    .list-item-addr { font-size: 11px; color: #888; margin-bottom: 3px; }
-    .list-item-meta { font-size: 11px; color: #555; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .list-item:hover { background: #f7f7f9; }
+    .list-item:active { background: #eef0f5; }
+    .list-item-name { font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 3px; line-height: 1.3; }
+    .list-item-addr { font-size: 11px; color: #999; margin-bottom: 4px; }
+    .list-item-meta { font-size: 11px; color: #666; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
     .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; color: white; }
     .badge-dogrun  { background: #27ae60; }
     .badge-dogcafe { background: #e74c3c; }
     .badge-vet     { background: #8e44ad; }
     #list-more {
-      padding: 12px; text-align: center; font-size: 13px; color: #1a73e8;
-      cursor: pointer; border-top: 1px solid #eee;
+      padding: 13px; text-align: center; font-size: 13px; color: #1a73e8;
+      cursor: pointer; border-top: 1px solid #eee; transition: background 0.12s;
     }
     #list-more:hover { background: #f0f4ff; }
 
@@ -115,142 +166,132 @@
     }
     #auth-overlay.open { display: flex; }
     #auth-modal {
-      background: white; border-radius: 16px; padding: 32px 28px;
-      width: 340px; max-width: 90vw;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.2);
-      position: relative;
+      background: white; border-radius: 18px; padding: 32px 28px;
+      width: 340px; max-width: 92vw;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.2); position: relative;
     }
     #auth-modal h2 { margin: 0 0 20px; font-size: 18px; color: #1a1a2e; text-align: center; }
-    #auth-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #eee; }
+    #auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
     .auth-tab {
       flex: 1; padding: 8px; text-align: center; font-size: 13px; cursor: pointer;
-      color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px;
+      color: #999; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.15s;
     }
     .auth-tab.active { color: #1a1a2e; font-weight: 700; border-bottom-color: #1a1a2e; }
     #auth-form-area input {
-      width: 100%; box-sizing: border-box; padding: 10px 12px;
-      border: 1px solid #ddd; border-radius: 8px; font-size: 14px;
-      margin-bottom: 12px; outline: none;
+      width: 100%; padding: 10px 12px;
+      border: 1px solid #ddd; border-radius: 10px; font-size: 14px;
+      margin-bottom: 12px; outline: none; transition: border-color 0.2s;
     }
     #auth-form-area input:focus { border-color: #1a1a2e; }
     #auth-submit {
       width: 100%; padding: 11px; background: #1a1a2e; color: white;
-      border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
-      cursor: pointer; margin-bottom: 12px;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; margin-bottom: 12px; transition: background 0.2s;
     }
     #auth-submit:hover { background: #2d2d4e; }
     #auth-divider {
-      text-align: center; font-size: 12px; color: #aaa; margin: 4px 0 12px;
-      position: relative;
+      text-align: center; font-size: 12px; color: #bbb; margin: 4px 0 12px; position: relative;
     }
     #auth-divider::before, #auth-divider::after {
       content: ''; position: absolute; top: 50%; width: 38%; height: 1px; background: #eee;
     }
-    #auth-divider::before { left: 0; }
-    #auth-divider::after { right: 0; }
+    #auth-divider::before { left: 0; } #auth-divider::after { right: 0; }
     #google-btn {
       width: 100%; padding: 10px; background: white; color: #333;
-      border: 1px solid #ddd; border-radius: 8px; font-size: 14px;
+      border: 1px solid #ddd; border-radius: 10px; font-size: 14px;
       cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.15s;
     }
     #google-btn:hover { background: #f5f5f5; }
     #google-btn img { width: 18px; height: 18px; }
     #auth-msg { font-size: 12px; color: #e74c3c; margin-top: 8px; min-height: 16px; text-align: center; }
     #auth-close-btn {
       position: absolute; top: 12px; right: 16px;
-      background: none; border: none; font-size: 22px; cursor: pointer; color: #888;
+      background: none; border: none; font-size: 22px; cursor: pointer; color: #aaa;
     }
 
     /* ===== ログインウォール ===== */
     #login-wall {
-      display: none;
-      position: fixed; inset: 0; z-index: 8000;
+      display: none; position: fixed; inset: 0; z-index: 8000;
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       align-items: center; justify-content: center; flex-direction: column;
     }
     #login-wall.show { display: flex; }
-    #login-wall-inner {
-      text-align: center; color: white; padding: 40px 24px;
-    }
-    #login-wall-inner h2 { font-size: 24px; margin: 0 0 8px; }
-    #login-wall-inner p { font-size: 14px; color: rgba(255,255,255,0.7); margin: 0 0 32px; }
+    #login-wall-inner { text-align: center; color: white; padding: 40px 24px; }
+    #login-wall-inner h2 { font-size: 26px; margin: 0 0 10px; }
+    #login-wall-inner p { font-size: 14px; color: rgba(255,255,255,0.65); margin: 0 0 32px; line-height: 1.7; }
     #login-wall-btn {
       background: white; color: #1a1a2e; border: none;
-      padding: 14px 40px; border-radius: 24px; font-size: 15px; font-weight: 700;
-      cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      padding: 14px 44px; border-radius: 26px; font-size: 15px; font-weight: 700;
+      cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,0.3); transition: background 0.2s;
     }
     #login-wall-btn:hover { background: #f0f0f0; }
-    #login-wall-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 16px; }
-
-    @media (max-width: 600px) {
-      #list-panel { width: 100%; }
-      #genre-select { max-width: 100px; }
-      #user-email { display: none; }
-    }
-
-    /* ===== お知らせベル ===== */
-    #bell-btn {
-      position: relative;
-      background: none; border: none; color: white;
-      font-size: 20px; cursor: pointer; padding: 4px;
-      line-height: 1; flex-shrink: 0;
-    }
-    #bell-badge {
-      position: absolute; top: 0; right: 0;
-      background: #e74c3c; color: white;
-      font-size: 9px; font-weight: 700;
-      width: 14px; height: 14px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      pointer-events: none;
-    }
-    #bell-badge.hidden { display: none; }
+    #login-wall-sub { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 16px; }
 
     /* ===== お知らせモーダル ===== */
     #news-overlay {
       display: none; position: fixed; inset: 0; z-index: 9000;
-      background: rgba(0,0,0,0.5); align-items: flex-start; justify-content: center;
-      padding-top: 80px;
+      background: rgba(0,0,0,0.45); align-items: flex-start; justify-content: center;
+      padding-top: 70px;
     }
     #news-overlay.open { display: flex; }
     #news-modal {
-      background: white; border-radius: 16px; padding: 0;
-      width: 360px; max-width: 92vw; max-height: 70vh;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+      background: white; border-radius: 18px; padding: 0;
+      width: 360px; max-width: 92vw; max-height: 72vh;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
       display: flex; flex-direction: column; overflow: hidden;
     }
     #news-modal-header {
       background: #1a1a2e; color: white;
       padding: 14px 18px; font-size: 15px; font-weight: 700;
-      display: flex; justify-content: space-between; align-items: center;
-      flex-shrink: 0;
+      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
     }
-    #news-close-btn {
-      background: none; border: none; color: white;
-      font-size: 20px; cursor: pointer; line-height: 1;
-    }
-    #news-body {
-      overflow-y: auto; padding: 16px 18px;
-      flex: 1;
-    }
-    .news-item {
-      margin-bottom: 18px; padding-bottom: 18px;
-      border-bottom: 1px solid #f0f0f0;
-    }
+    #news-close-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+    #news-body { overflow-y: auto; padding: 16px 18px; flex: 1; }
+    .news-item { margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid #f0f0f0; }
     .news-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    .news-date { font-size: 11px; color: #aaa; margin-bottom: 4px; }
+    .news-date { font-size: 11px; color: #bbb; margin-bottom: 4px; }
     .news-title { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
-    .news-desc { font-size: 12px; color: #555; line-height: 1.6; }
+    .news-desc { font-size: 12px; color: #666; line-height: 1.65; }
+
+    /* ===== infoWindow カスタム ===== */
+    .iw-card { max-width: 260px; font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; }
+    .iw-name { font-weight: 700; font-size: 14px; color: #1a1a2e; margin-bottom: 3px; line-height: 1.35; }
+    .iw-addr { font-size: 11px; color: #999; margin-bottom: 7px; line-height: 1.4; }
+    .iw-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+    .iw-badge { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; color: white; }
+    .iw-rating { font-size: 12px; color: #f39c12; font-weight: 600; }
+    .iw-genre { font-size: 11px; color: #aaa; }
+    .iw-detail { font-size: 11px; color: #666; margin-bottom: 3px; }
+    .iw-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px solid #f0f0f0; }
+    .iw-link {
+      display: inline-block; padding: 4px 10px; border-radius: 8px;
+      font-size: 11px; font-weight: 600; text-decoration: none; white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    .iw-link:hover { opacity: 0.8; }
+    .iw-link-hp { background: #fff0f0; color: #e74c3c; }
+    .iw-link-web { background: #f0f4ff; color: #1a73e8; }
+    .iw-link-gmap { background: #f5f5f5; color: #555; }
+
+    /* ===== レスポンシブ ===== */
+    @media (max-width: 600px) {
+      #list-panel { width: 100%; }
+      #genre-select { max-width: 95px; }
+      #user-email { display: none; }
+      #count-display { display: none; }
+    }
   </style>
 </head>
 <body>
+  <!-- ヘッダー -->
   <div id="header">
-    <img src="favicon-32x32.png" alt="dog">
+    <img id="header-logo" src="favicon-32x32.png" alt="dog">
     <h1>Japan Dog Map</h1>
     <span id="count-display">読み込み中...</span>
     <span id="user-email"></span>
     <button id="bell-btn" onclick="openNewsModal()" title="お知らせ">
-      🔔
-      <span id="bell-badge">1</span>
+      🔔<span id="bell-badge" class="hidden">1</span>
     </button>
     <button id="auth-btn" onclick="openAuthModal()">ログイン</button>
   </div>
@@ -263,16 +304,20 @@
         <button id="news-close-btn" onclick="closeNewsModal()">×</button>
       </div>
       <div id="news-body">
-        <div style="padding:20px;text-align:center;color:#aaa;font-size:13px;">読み込み中...</div>
+        <div style="padding:20px;text-align:center;color:#bbb;font-size:13px;">読み込み中...</div>
       </div>
     </div>
   </div>
+
+  <!-- フィルターバー -->
   <div id="filter-bar">
     <button class="filter-btn active" id="btn-all"     onclick="setFilter('all',this)">すべて</button>
     <button class="filter-btn"        id="btn-dogrun"  onclick="setFilter('dogrun',this)">ドッグラン</button>
     <button class="filter-btn"        id="btn-dogcafe" onclick="setFilter('dogcafe',this)">ペット可飲食店</button>
     <button class="filter-btn"        id="btn-vet"     onclick="setFilter('vet',this)">動物病院</button>
   </div>
+
+  <!-- 検索バー -->
   <div id="search-bar">
     <input id="search-input" type="text" placeholder="店名・住所で検索" oninput="onSearchChange()">
     <select id="genre-select" onchange="onSearchChange()">
@@ -280,11 +325,23 @@
     </select>
     <button id="search-clear" onclick="clearSearch()">クリア</button>
   </div>
-  <div id="loading">地図を読み込み中...</div>
-  <div id="map-container">
-    <div id="map"></div>
+
+  <!-- ローディング -->
+  <div id="loading">
+    <div id="loading-spinner"></div>
+    <span>地図を読み込み中...</span>
   </div>
+
+  <!-- マップ -->
+  <div id="map-container"><div id="map"></div></div>
+
+  <!-- 現在地ボタン -->
+  <button id="locate-btn" onclick="locateMe()" title="現在地">📍</button>
+
+  <!-- リストトグル -->
   <button id="list-toggle" onclick="toggleList()">☰ リスト</button>
+
+  <!-- リストパネル -->
   <div id="list-panel">
     <div id="list-header">
       <span id="list-title">スポット一覧</span>
@@ -297,7 +354,7 @@
   <!-- 認証モーダル -->
   <div id="auth-overlay" onclick="onOverlayClick(event)">
     <div id="auth-modal">
-      <button id="auth-close-btn" id="auth-close-btn-inner" onclick="closeAuthModal()">×</button>
+      <button id="auth-close-btn" onclick="closeAuthModal()">×</button>
       <h2>Japan Dog Map</h2>
       <div id="auth-tabs">
         <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">ログイン</div>
@@ -317,97 +374,59 @@
     </div>
   </div>
 
-  <!-- ログインウォール（未ログイン時に表示） -->
+  <!-- ログインウォール -->
   <div id="login-wall">
     <div id="login-wall-inner">
       <div style="font-size:64px;margin-bottom:16px;">🐾</div>
       <h2>Japan Dog Map</h2>
-      <p>ドッグラン・ペット可飲食店・動物病院を地図で探せます。<br>ご利用にはログインが必要です。</p>
+      <p>ドッグラン・ペット可飲食店・動物病院を<br>地図で探せます。ご利用にはログインが必要です。</p>
       <button id="login-wall-btn" onclick="openAuthModal()">ログイン / 新規登録</button>
       <div id="login-wall-sub">登録は無料です</div>
     </div>
   </div>
 
-  <!-- Supabase SDK を先に同期読み込み -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&language=ja"></script>
   <script src="https://unpkg.com/supercluster@8/dist/supercluster.min.js"></script>
 
   <script>
-    // ===== Supabase 初期化 =====
+    // ===== Supabase =====
     var SUPABASE_URL = 'https://rfcfilhqkkjmkecxzijw.supabase.co';
     var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmY2ZpbGhxa2tqbWtlY3h6aWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NDI4MjQsImV4cCI6MjA4NzQxODgyNH0.xtjFtJaWFWeoGRs8O_g57mDHn6ElQlEMZJN8Q0Kn6xk';
-
-    // SDKはbody末尾で同期読み込みしているので即座に初期化可能
     var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ===== ログインウォール制御 =====
+    // ===== 認証 =====
     var appInitialized = false;
 
-    function showLoginWall() {
-      document.getElementById('login-wall').classList.add('show');
-    }
+    function showLoginWall() { document.getElementById('login-wall').classList.add('show'); }
+    function hideLoginWall() { document.getElementById('login-wall').classList.remove('show'); }
 
-    function hideLoginWall() {
-      document.getElementById('login-wall').classList.remove('show');
-    }
-
-    // 認証状態を確認してUIを制御
     supabase.auth.getSession().then(function(res) {
       var session = res.data && res.data.session;
-      if (session) {
-        hideLoginWall();
-        updateAuthUI(session.user);
-        if (!appInitialized) initApp();
-      } else {
-        showLoginWall();
-      }
+      if (session) { hideLoginWall(); updateAuthUI(session.user); if (!appInitialized) initApp(); }
+      else { showLoginWall(); }
     });
 
-    // 認証状態変化を監視
     supabase.auth.onAuthStateChange(function(event, session) {
-      if (session) {
-        hideLoginWall();
-        updateAuthUI(session.user);
-        closeAuthModal();
-        if (!appInitialized) initApp();
-      } else {
-        showLoginWall();
-        updateAuthUI(null);
-      }
+      if (session) { hideLoginWall(); updateAuthUI(session.user); closeAuthModal(); if (!appInitialized) initApp(); }
+      else { showLoginWall(); updateAuthUI(null); }
     });
 
     function updateAuthUI(user) {
       var btn = document.getElementById('auth-btn');
       var emailEl = document.getElementById('user-email');
       if (user) {
-        var display = user.email || (user.user_metadata && user.user_metadata.full_name) || 'ログイン中';
-        emailEl.textContent = display;
-        btn.textContent = 'ログアウト';
-        btn.onclick = signOut;
+        emailEl.textContent = user.email || (user.user_metadata && user.user_metadata.full_name) || 'ログイン中';
+        btn.textContent = 'ログアウト'; btn.onclick = signOut;
       } else {
-        emailEl.textContent = '';
-        btn.textContent = 'ログイン';
-        btn.onclick = openAuthModal;
+        emailEl.textContent = ''; btn.textContent = 'ログイン'; btn.onclick = openAuthModal;
       }
     }
 
-    // ===== 認証モーダル操作 =====
     var currentTab = 'login';
-
-    function openAuthModal() {
-      document.getElementById('auth-overlay').classList.add('open');
-      document.getElementById('auth-msg').textContent = '';
-    }
-
-    function closeAuthModal() {
-      document.getElementById('auth-overlay').classList.remove('open');
-    }
-
-    function onOverlayClick(e) {
-      if (e.target === document.getElementById('auth-overlay')) closeAuthModal();
-    }
-
+    function openAuthModal() { document.getElementById('auth-overlay').classList.add('open'); document.getElementById('auth-msg').textContent = ''; }
+    function closeAuthModal() { document.getElementById('auth-overlay').classList.remove('open'); }
+    function onOverlayClick(e) { if (e.target === document.getElementById('auth-overlay')) closeAuthModal(); }
     function switchTab(tab) {
       currentTab = tab;
       document.getElementById('tab-login').classList.toggle('active', tab === 'login');
@@ -415,57 +434,27 @@
       document.getElementById('auth-submit').textContent = tab === 'login' ? 'ログイン' : '新規登録';
       document.getElementById('auth-msg').textContent = '';
     }
-
     function submitAuth() {
       var email = document.getElementById('auth-email').value.trim();
       var password = document.getElementById('auth-password').value;
       if (!email || !password) { showAuthMsg('メールアドレスとパスワードを入力してください。'); return; }
-
       var submitBtn = document.getElementById('auth-submit');
-      submitBtn.textContent = '処理中...';
-      submitBtn.disabled = true;
-
+      submitBtn.textContent = '処理中...'; submitBtn.disabled = true;
       var promise = currentTab === 'login'
         ? supabase.auth.signInWithPassword({ email: email, password: password })
         : supabase.auth.signUp({ email: email, password: password });
-
       promise.then(function(res) {
         submitBtn.disabled = false;
         submitBtn.textContent = currentTab === 'login' ? 'ログイン' : '新規登録';
-        if (res.error) {
-          showAuthMsg(translateError(res.error.message));
-        } else if (currentTab === 'signup') {
-          if (res.data && res.data.session) {
-            // メール確認不要の設定の場合、即座にログイン
-            // onAuthStateChange が発火するので追加処理不要
-          } else {
-            showAuthMsg('確認メールを送信しました。メールのリンクをクリックして登録を完了してください。', '#27ae60');
-          }
+        if (res.error) { showAuthMsg(translateError(res.error.message)); }
+        else if (currentTab === 'signup' && !(res.data && res.data.session)) {
+          showAuthMsg('確認メールを送信しました。メールのリンクをクリックして登録を完了してください。', '#27ae60');
         }
-      }).catch(function(err) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = currentTab === 'login' ? 'ログイン' : '新規登録';
-        showAuthMsg('エラーが発生しました。再試行してください。');
-      });
+      }).catch(function() { submitBtn.disabled = false; submitBtn.textContent = currentTab === 'login' ? 'ログイン' : '新規登録'; showAuthMsg('エラーが発生しました。再試行してください。'); });
     }
-
-    function signInWithGoogle() {
-      supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: 'https://fkzyk.github.io/tokyo-dog-map/' }
-      });
-    }
-
-    function signOut() {
-      supabase.auth.signOut();
-    }
-
-    function showAuthMsg(msg, color) {
-      var el = document.getElementById('auth-msg');
-      el.textContent = msg;
-      el.style.color = color || '#e74c3c';
-    }
-
+    function signInWithGoogle() { supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://fkzyk.github.io/tokyo-dog-map/' } }); }
+    function signOut() { supabase.auth.signOut(); }
+    function showAuthMsg(msg, color) { var el = document.getElementById('auth-msg'); el.textContent = msg; el.style.color = color || '#e74c3c'; }
     function translateError(msg) {
       if (msg.indexOf('Invalid login credentials') >= 0) return 'メールアドレスまたはパスワードが正しくありません。';
       if (msg.indexOf('Email not confirmed') >= 0) return 'メールアドレスの確認が完了していません。';
@@ -480,11 +469,12 @@
     var PLACES_DATA = [], currentFilter = 'all', listOpen = false;
     var listFiltered = [], listOffset = 0;
     var LIST_PAGE = 100;
-    var sc = null;                 // Superclusterインスタンス
-    var scMarkers = [];           // 現在描画中のgoogle.maps.Marker配列
-    var renderTimer = null;        // デバウンス用タイマー
-    var svgCache = {};             // SVGキャッシュ（color+size -> dataURL）
-    var placeById = {};            // place_id -> placeデータ高速ルックアップ
+    var sc = null;
+    var scMarkers = [];
+    var renderTimer = null;
+    var svgCache = {};
+    var placeById = {};
+    var searchTimer = null;
 
     var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ペット可飲食店', vet:'動物病院' };
     var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', vet:'#8e44ad' };
@@ -492,46 +482,34 @@
 
     function initApp() {
       appInitialized = true;
-
       map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 36.5, lng: 136.0 },
         zoom: 5,
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
+        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER },
+        gestureHandling: 'greedy',
         styles: [{ featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }]
       });
-      infoWindow = new google.maps.InfoWindow();
-
-      // ビューポート変化時にクラスタを再描画
+      infoWindow = new google.maps.InfoWindow({ maxWidth: 280 });
       map.addListener('bounds_changed', function() { renderMarkers(); });
-
       loadAllPlaces();
     }
 
-    // Supabase DB から全件取得（1000件ずつページネーション）
     function loadAllPlaces() {
       var PAGE_SIZE = 1000;
       var allData = [];
-
       function fetchPage(from) {
-        supabase
-          .from('places')
+        supabase.from('places')
           .select('place_id,name,address,lat,lng,rating,user_ratings_total,website,phone,opening_hours,business_status,category,source,genre')
           .range(from, from + PAGE_SIZE - 1)
           .then(function(res) {
-            if (res.error) {
-              document.getElementById('loading').textContent = 'データ読み込みエラー: ' + res.error.message;
-              return;
-            }
+            if (res.error) { document.getElementById('loading').innerHTML = '<span>データ読み込みエラー</span>'; return; }
             allData = allData.concat(res.data);
-            if (res.data.length === PAGE_SIZE) {
-              // まだデータがある可能性があるので次ページを取得
-              fetchPage(from + PAGE_SIZE);
-            } else {
-              // 全件取得完了
+            if (res.data.length === PAGE_SIZE) { fetchPage(from + PAGE_SIZE); }
+            else {
               PLACES_DATA = allData;
-              // 高速ルックアップ用マップを構築
               PLACES_DATA.forEach(function(p) { placeById[p.place_id] = p; });
               buildGenreSelect();
               updateFilterLabels();
@@ -541,21 +519,15 @@
             }
           });
       }
-
       fetchPage(0);
     }
 
     function buildGenreSelect() {
       var genres = {};
-      PLACES_DATA.forEach(function(p) {
-        if (p.genre) genres[p.genre] = true;
-      });
+      PLACES_DATA.forEach(function(p) { if (p.genre) genres[p.genre] = true; });
       var sel = document.getElementById('genre-select');
       Object.keys(genres).sort().forEach(function(g) {
-        var opt = document.createElement('option');
-        opt.value = g;
-        opt.textContent = g;
-        sel.appendChild(opt);
+        var opt = document.createElement('option'); opt.value = g; opt.textContent = g; sel.appendChild(opt);
       });
     }
 
@@ -566,22 +538,20 @@
       document.getElementById('btn-dogrun').textContent  = 'ドッグラン（' + counts.dogrun + '件）';
       document.getElementById('btn-dogcafe').textContent = 'ペット可飲食店（' + counts.dogcafe + '件）';
       document.getElementById('btn-vet').textContent     = '動物病院（' + counts.vet + '件）';
-      document.getElementById('count-display').textContent = counts.all + '件';
+      document.getElementById('count-display').textContent = counts.all.toLocaleString() + '件';
     }
 
     function getBaseFiltered() {
-      if (currentFilter === 'all') return PLACES_DATA;
-      return PLACES_DATA.filter(function(p) { return p.category === currentFilter; });
+      return currentFilter === 'all' ? PLACES_DATA : PLACES_DATA.filter(function(p) { return p.category === currentFilter; });
     }
 
     function getSearchFiltered() {
       var base = getBaseFiltered();
       var q = document.getElementById('search-input').value.trim().toLowerCase();
       var genre = document.getElementById('genre-select').value;
+      if (!q && !genre) return base;
       return base.filter(function(p) {
-        var matchQ = !q ||
-          (p.name || '').toLowerCase().indexOf(q) >= 0 ||
-          (p.address || '').toLowerCase().indexOf(q) >= 0;
+        var matchQ = !q || (p.name||'').toLowerCase().indexOf(q) >= 0 || (p.address||'').toLowerCase().indexOf(q) >= 0;
         var matchGenre = !genre || p.genre === genre;
         return matchQ && matchGenre;
       });
@@ -598,8 +568,12 @@
     }
 
     function onSearchChange() {
-      _rebuildSupercluster();
-      refreshList();
+      // 検索入力にデバウンス（200ms）を適用
+      if (searchTimer) clearTimeout(searchTimer);
+      searchTimer = setTimeout(function() {
+        _rebuildSupercluster();
+        refreshList();
+      }, 200);
     }
 
     function clearSearch() {
@@ -609,7 +583,6 @@
       refreshList();
     }
 
-    // Superclusterをフィルター内容で再構築（フィルター変更時のみ呼び出す）
     function _rebuildSupercluster() {
       if (!PLACES_DATA.length) return;
       var filtered = getSearchFiltered();
@@ -620,16 +593,10 @@
           properties: { place_id: p.place_id, category: p.category }
         };
       });
-      // カテゴリ別のクラスタ色判定用にカテゴリセットを事前計算
-      // superclusterのクラスタプロパティにカテゴリ情報を埋め込むため、
-      // reduceオプションで集計する
       sc = new Supercluster({
-        radius: 60,
-        maxZoom: 16,
+        radius: 60, maxZoom: 16,
         map: function(props) { return { cat: props.category }; },
-        reduce: function(acc, props) {
-          if (acc.cat !== props.cat) acc.cat = 'mixed';
-        }
+        reduce: function(acc, props) { if (acc.cat !== props.cat) acc.cat = 'mixed'; }
       });
       sc.load(features);
       renderMarkers();
@@ -640,8 +607,8 @@
       if (svgCache[key]) return svgCache[key];
       var svg = window.btoa(
         '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '">' +
-        '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + (size/2 - 2) + '" fill="' + color + '" opacity="0.85"/>' +
-        '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + (size/2 - 2) + '" fill="none" stroke="white" stroke-width="2"/>' +
+        '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + (size/2-2) + '" fill="' + color + '" opacity="0.88"/>' +
+        '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + (size/2-2) + '" fill="none" stroke="white" stroke-width="2"/>' +
         '</svg>'
       );
       svgCache[key] = 'data:image/svg+xml;base64,' + svg;
@@ -649,147 +616,106 @@
     }
 
     function renderMarkers() {
-      // デバウンス: 80ms以内の連続呼び出しをまとめる
       if (renderTimer) clearTimeout(renderTimer);
-      renderTimer = setTimeout(_drawClusters, 80);
+      renderTimer = setTimeout(_drawClusters, 120);
     }
 
-    // マーカープール: 毎回 new Marker() するコストを削減
+    // マーカープール
     var _markerPool = [];
     var _poolIdx = 0;
 
     function _getPoolMarker() {
-      if (_poolIdx < _markerPool.length) {
-        return _markerPool[_poolIdx++];
-      }
+      if (_poolIdx < _markerPool.length) return _markerPool[_poolIdx++];
       var m = new google.maps.Marker();
-      _markerPool.push(m);
-      _poolIdx++;
+      _markerPool.push(m); _poolIdx++;
       return m;
     }
 
     function _drawClusters() {
       if (!map || !sc) return;
-
       var bounds = map.getBounds();
       if (!bounds) return;
       var zoom = map.getZoom();
-      var ne = bounds.getNorthEast();
-      var sw = bounds.getSouthWest();
+      var ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
       var bbox = [sw.lng(), sw.lat(), ne.lng(), ne.lat()];
-
       var clusters = sc.getClusters(bbox, zoom);
 
-      // 旧マーカーを非表示にする（プールに戻す）
+      // プールに戻す
       for (var i = 0; i < _poolIdx; i++) {
         _markerPool[i].setMap(null);
         google.maps.event.clearListeners(_markerPool[i], 'click');
       }
-      _poolIdx = 0;
-      scMarkers = [];
+      _poolIdx = 0; scMarkers = [];
 
       clusters.forEach(function(feature) {
         var coords = feature.geometry.coordinates;
         var props  = feature.properties;
-        var isCluster = props.cluster;
         var marker = _getPoolMarker();
 
-        if (isCluster) {
-          // クラスタマーカー
+        if (props.cluster) {
           var count = props.point_count;
           var size  = count < 10 ? 36 : count < 100 ? 44 : 52;
-          // reduceで集計した cat プロパティを使用（getLeaves不要）
-          var cat = props.cat;
-          var color = (cat && cat !== 'mixed' && CAT_COLORS[cat])
-            ? CAT_COLORS[cat] : '#555555';
-
+          var cat   = props.cat;
+          var color = (cat && cat !== 'mixed' && CAT_COLORS[cat]) ? CAT_COLORS[cat] : '#555555';
           marker.setOptions({
             position: { lat: coords[1], lng: coords[0] },
-            label: {
-              text: String(count),
-              color: 'white',
-              fontSize: Math.round(size * 0.35) + 'px',
-              fontWeight: 'bold'
-            },
-            icon: {
-              url: _makeSvgIcon(color, size),
-              scaledSize: new google.maps.Size(size, size),
-              anchor: new google.maps.Point(size/2, size/2)
-            },
-            title: '',
-            map: map,
-            zIndex: 1000 + count
+            label: { text: String(count), color: 'white', fontSize: Math.round(size*0.35)+'px', fontWeight: 'bold' },
+            icon: { url: _makeSvgIcon(color, size), scaledSize: new google.maps.Size(size,size), anchor: new google.maps.Point(size/2,size/2) },
+            title: '', map: map, zIndex: 1000 + count
           });
           marker.addListener('click', (function(cid, lat, lng) {
-            return function() {
-              var z = sc.getClusterExpansionZoom(cid);
-              map.setCenter({ lat: lat, lng: lng });
-              map.setZoom(Math.min(z, 18));
-            };
+            return function() { var z = sc.getClusterExpansionZoom(cid); map.setCenter({lat:lat,lng:lng}); map.setZoom(Math.min(z,18)); };
           })(props.cluster_id, coords[1], coords[0]));
-
         } else {
-          // 単一マーカー
           var p = placeById[props.place_id];
           if (!p) return;
           marker.setOptions({
             position: { lat: coords[1], lng: coords[0] },
-            title: p.name,
-            label: '',
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 7,
-              fillColor: CAT_COLORS[p.category] || '#999',
-              fillOpacity: 0.9,
-              strokeColor: 'white',
-              strokeWeight: 1.5
-            },
-            map: map,
-            zIndex: 1
+            title: p.name, label: '',
+            icon: { path: google.maps.SymbolPath.CIRCLE, scale: 7, fillColor: CAT_COLORS[p.category]||'#999', fillOpacity: 0.92, strokeColor: 'white', strokeWeight: 1.5 },
+            map: map, zIndex: 1
           });
-          marker.addListener('click', (function(pp, mm) {
-            return function() { showInfo(pp, mm); };
-          })(p, marker));
+          marker.addListener('click', (function(pp, mm) { return function() { showInfo(pp, mm); }; })(p, marker));
         }
         scMarkers.push(marker);
       });
     }
 
     function showInfo(p, marker) {
-      // 表示するリンクを複数生成
-      var links = [];
       var isHp = p.place_id && p.place_id.startsWith('hp_');
+      var links = '';
 
       if (isHp) {
-        // ホットペッパーデータ: websiteにホットペッパー URLが入っている
-        if (p.website) {
-          links.push('<a href="' + p.website + '" target="_blank" style="color:#e74c3c;font-size:12px;white-space:nowrap;">ホットペッパー</a>');
-        }
+        if (p.website) links += '<a class="iw-link iw-link-hp" href="' + p.website + '" target="_blank">ホットペッパー</a>';
       } else {
-        // 通常データ: websiteにホームページURLが入っている場合がある
-        if (p.website) {
-          links.push('<a href="' + p.website + '" target="_blank" style="color:#1a73e8;font-size:12px;white-space:nowrap;">ホームページ</a>');
-        }
-        // Googleマップリンクは常に生成可能
-        var gmapUrl = 'https://www.google.com/maps/place/?q=place_id:' + p.place_id;
-        links.push('<a href="' + gmapUrl + '" target="_blank" style="color:#555;font-size:12px;white-space:nowrap;">Googleマップ</a>');
+        if (p.website) links += '<a class="iw-link iw-link-web" href="' + p.website + '" target="_blank">ホームページ</a>';
+        links += '<a class="iw-link iw-link-gmap" href="https://www.google.com/maps/place/?q=place_id:' + p.place_id + '" target="_blank">Googleマップ</a>';
       }
 
-      var linksHtml = links.length
-        ? '<div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;">' + links.join('') + '</div>'
-        : '';
+      // 評価
+      var ratingHtml = '';
+      if (p.rating) {
+        var stars = Math.round(p.rating * 2) / 2;
+        ratingHtml = '<span class="iw-rating">★ ' + stars + '</span>';
+        if (p.user_ratings_total) ratingHtml += '<span style="font-size:10px;color:#bbb;">（' + p.user_ratings_total.toLocaleString() + '件）</span>';
+      }
+
+      // 電話番号
+      var phoneHtml = p.phone ? '<div class="iw-detail">📞 <a href="tel:' + p.phone + '" style="color:#1a73e8;text-decoration:none;">' + esc(p.phone) + '</a></div>' : '';
 
       var content =
-        '<div style="max-width:240px;font-family:sans-serif;">'
-        + '<div style="font-weight:700;font-size:14px;margin-bottom:4px;">' + esc(p.name) + '</div>'
-        + '<div style="font-size:11px;color:#888;margin-bottom:6px;">' + esc(p.address || '') + '</div>'
-        + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'
-        + '<span style="background:' + (CAT_COLORS[p.category] || '#999') + ';color:white;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;">' + (CAT_LABELS[p.category] || '') + '</span>'
-        + (p.rating ? '<span style="font-size:12px;">★ ' + p.rating + '</span>' : '')
-        + (p.genre ? '<span style="font-size:11px;color:#aaa;">' + esc(p.genre) + '</span>' : '')
+        '<div class="iw-card">'
+        + '<div class="iw-name">' + esc(p.name) + '</div>'
+        + '<div class="iw-addr">' + esc(p.address || '') + '</div>'
+        + '<div class="iw-meta">'
+        + '<span class="iw-badge" style="background:' + (CAT_COLORS[p.category]||'#999') + '">' + (CAT_LABELS[p.category]||'') + '</span>'
+        + ratingHtml
+        + (p.genre ? '<span class="iw-genre">' + esc(p.genre) + '</span>' : '')
         + '</div>'
-        + linksHtml
+        + phoneHtml
+        + (links ? '<div class="iw-links">' + links + '</div>' : '')
         + '</div>';
+
       infoWindow.setContent(content);
       infoWindow.open(map, marker);
     }
@@ -798,65 +724,59 @@
       listFiltered = getSearchFiltered();
       listOffset = 0;
       document.getElementById('list-body').innerHTML = '';
-      document.getElementById('list-title').textContent = 'スポット一覧（' + listFiltered.length + '件）';
+      document.getElementById('list-title').textContent = 'スポット一覧（' + listFiltered.length.toLocaleString() + '件）';
       appendListItems();
     }
 
     function appendListItems() {
       var end = Math.min(listOffset + LIST_PAGE, listFiltered.length);
-      var html = '';
+      var frag = document.createDocumentFragment();
       for (var i = listOffset; i < end; i++) {
         var p = listFiltered[i];
-        html += '<div class="list-item" onclick="focusPlace(\'' + esc(p.place_id) + '\')">' +
-          '<div class="list-item-name">' + esc(p.name) + '</div>' +
-          '<div class="list-item-addr">' + esc(p.address || '') + '</div>' +
-          '<div class="list-item-meta">' +
-          '<span class="badge ' + (CAT_BADGE[p.category] || '') + '">' + (CAT_LABELS[p.category] || '') + '</span>' +
-          (p.rating ? '<span>★ ' + p.rating + '</span>' : '') +
-          (p.genre ? '<span style="color:#aaa">' + esc(p.genre) + '</span>' : '') +
-          '</div></div>';
+        var div = document.createElement('div');
+        div.className = 'list-item';
+        div.setAttribute('data-pid', p.place_id);
+        div.innerHTML =
+          '<div class="list-item-name">' + esc(p.name) + '</div>'
+          + '<div class="list-item-addr">' + esc(p.address || '') + '</div>'
+          + '<div class="list-item-meta">'
+          + '<span class="badge ' + (CAT_BADGE[p.category]||'') + '">' + (CAT_LABELS[p.category]||'') + '</span>'
+          + (p.rating ? '<span>★ ' + p.rating + '</span>' : '')
+          + (p.genre ? '<span style="color:#bbb">' + esc(p.genre) + '</span>' : '')
+          + '</div>';
+        div.addEventListener('click', (function(pid) { return function() { focusPlace(pid); }; })(p.place_id));
+        frag.appendChild(div);
       }
-      document.getElementById('list-body').innerHTML += html;
+      document.getElementById('list-body').appendChild(frag);
       listOffset = end;
       var moreEl = document.getElementById('list-more');
       moreEl.style.display = listOffset < listFiltered.length ? 'block' : 'none';
-      if (listOffset < listFiltered.length) {
-        moreEl.textContent = 'さらに表示（残り' + (listFiltered.length - listOffset) + '件）';
-      }
+      if (listOffset < listFiltered.length) moreEl.textContent = 'さらに表示（残り' + (listFiltered.length - listOffset).toLocaleString() + '件）';
     }
 
-    function loadMore() {
-      appendListItems();
-    }
+    function loadMore() { appendListItems(); }
 
     function focusPlace(placeId) {
       var place = placeById[placeId];
       if (!place) return;
 
-      var TARGET_ZOOM = 16;
+      // リストパネルを閉じる（モバイルでマップが隠れないように）
+      if (listOpen && window.innerWidth <= 600) { listOpen = false; document.getElementById('list-panel').classList.remove('open'); }
 
-      // ズームとセンターを同時に設定
       map.setCenter({ lat: place.lat, lng: place.lng });
-      map.setZoom(TARGET_ZOOM);
+      map.setZoom(16);
 
-      // bounds_changedが発火され_drawClustersが実行されるのを待ってinfoWindowを開く
-      var attempts = 0;
-      var timer = setInterval(function() {
-        // scMarkersの中から対象place_idのマーカーを探す
+      // idle 1回だけ待ってinfoWindowを開く
+      google.maps.event.addListenerOnce(map, 'idle', function() {
         var found = null;
         for (var i = 0; i < scMarkers.length; i++) {
           if (scMarkers[i].getTitle() === place.name) { found = scMarkers[i]; break; }
         }
-        if (found) {
-          clearInterval(timer);
-          showInfo(place, found);
-        } else if (++attempts > 20) {
-          // マーカーが見つからなくてもinfoWindowを位置で開く
-          clearInterval(timer);
-          var dummy = new google.maps.Marker({ position: { lat: place.lat, lng: place.lng }, map: map });
-          showInfo(place, dummy);
+        if (!found) {
+          found = new google.maps.Marker({ position: { lat: place.lat, lng: place.lng }, map: map });
         }
-      }, 100);
+        showInfo(place, found);
+      });
     }
 
     function toggleList() {
@@ -864,28 +784,43 @@
       document.getElementById('list-panel').classList.toggle('open', listOpen);
     }
 
-    function esc(str) {
-      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    function locateMe() {
+      if (!navigator.geolocation) { alert('お使いのブラウザは現在地取得に対応していません。'); return; }
+      var btn = document.getElementById('locate-btn');
+      btn.textContent = '⏳'; btn.disabled = true;
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          btn.textContent = '📍'; btn.disabled = false;
+          map.setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          map.setZoom(14);
+        },
+        function() {
+          btn.textContent = '📍'; btn.disabled = false;
+          alert('現在地を取得できませんでした。位置情報の許可を確認してください。');
+        },
+        { timeout: 8000 }
+      );
     }
 
-    // ===== お知らせ機能 =====
-    // news.jsonをfetchしてモーダルに動的レンダリングする
+    function esc(str) {
+      return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ===== お知らせ =====
     var newsLoaded = false;
-    var newsLatestVersion = null; // スコープ外に展開してopenNewsModalから参照できるようにする
+    var newsLatestVersion = null;
 
     fetch('news.json?v=' + Date.now())
       .then(function(r) { return r.json(); })
       .then(function(items) {
-        // 最新記事の日付をバージョンとして使う
         newsLatestVersion = items.length ? items[0].date.replace(/-/g,'') : '0';
         var read = localStorage.getItem('news_read_version');
+        var badge = document.getElementById('bell-badge');
         if (read !== newsLatestVersion) {
-          document.getElementById('bell-badge').classList.remove('hidden');
-          document.getElementById('bell-badge').textContent = items.length;
+          badge.textContent = items.length; badge.classList.remove('hidden');
         } else {
-          document.getElementById('bell-badge').classList.add('hidden');
+          badge.classList.add('hidden');
         }
-        // モーダル本文を構築
         var html = items.map(function(item) {
           return '<div class="news-item">'
             + '<div class="news-date">' + esc(item.date) + '</div>'
@@ -893,48 +828,34 @@
             + (item.desc ? '<div class="news-desc">' + esc(item.desc) + '</div>' : '')
             + '</div>';
         }).join('');
-        document.getElementById('news-body').innerHTML = html || '<div style="padding:20px;text-align:center;color:#aaa;font-size:13px;">お知らせはありません</div>';
+        document.getElementById('news-body').innerHTML = html || '<div style="padding:20px;text-align:center;color:#bbb;font-size:13px;">お知らせはありません</div>';
         newsLoaded = true;
       })
       .catch(function() {
-        document.getElementById('news-body').innerHTML = '<div style="padding:20px;text-align:center;color:#aaa;font-size:13px;">読み込みに失敗しました</div>';
+        document.getElementById('news-body').innerHTML = '<div style="padding:20px;text-align:center;color:#bbb;font-size:13px;">読み込みに失敗しました</div>';
       });
 
     function openNewsModal() {
       document.getElementById('news-overlay').classList.add('open');
-      // 開いたら既読にする
-      if (newsLatestVersion) {
-        localStorage.setItem('news_read_version', newsLatestVersion);
-      }
+      if (newsLatestVersion) localStorage.setItem('news_read_version', newsLatestVersion);
       document.getElementById('bell-badge').classList.add('hidden');
     }
+    function closeNewsModal() { document.getElementById('news-overlay').classList.remove('open'); }
+    function onNewsOverlayClick(e) { if (e.target === document.getElementById('news-overlay')) closeNewsModal(); }
 
-    function closeNewsModal() {
-      document.getElementById('news-overlay').classList.remove('open');
-    }
-
-    function onNewsOverlayClick(e) {
-      if (e.target === document.getElementById('news-overlay')) closeNewsModal();
-    }
-
-    // ===== Service Worker 登録 =====
+    // ===== Service Worker =====
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/tokyo-dog-map/sw.js').then(function(reg) {
-        // 新しいSWが待機中ならそのまま有効化
         reg.addEventListener('updatefound', function() {
           var newWorker = reg.installing;
           newWorker.addEventListener('statechange', function() {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // 新バージョンが準備できたら自動リロード
               newWorker.postMessage({ action: 'skipWaiting' });
             }
           });
         });
       });
-      // SWが切り替わったらページをリロード
-      navigator.serviceWorker.addEventListener('controllerchange', function() {
-        window.location.reload();
-      });
+      navigator.serviceWorker.addEventListener('controllerchange', function() { window.location.reload(); });
     }
   </script>
 </body>
