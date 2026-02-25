@@ -768,24 +768,27 @@
         if (listFiltered[i].place_id === placeId) { place = listFiltered[i]; break; }
       }
       if (!place) return;
-      // ズームが14未満の場合はまそumしてからクラスタ解除を待つ
+
+      var TARGET_ZOOM = 16;
       var currentZoom = map.getZoom();
-      if (currentZoom < 15) {
-        map.setZoom(15);
-        google.maps.event.addListenerOnce(map, 'idle', function() {
-          map.panTo({ lat: place.lat, lng: place.lng });
-          google.maps.event.addListenerOnce(map, 'idle', function() {
-            var marker = markerMap.get(placeId);
-            if (marker) showInfo(place, marker);
-          });
-        });
-      } else {
-        map.panTo({ lat: place.lat, lng: place.lng });
-        google.maps.event.addListenerOnce(map, 'idle', function() {
-          var marker = markerMap.get(placeId);
-          if (marker) showInfo(place, marker);
-        });
+
+      // ズームとパンを同時に実行（setCenter+setZoom）
+      map.setCenter({ lat: place.lat, lng: place.lng });
+      if (currentZoom < TARGET_ZOOM) {
+        map.setZoom(TARGET_ZOOM);
       }
+
+      // マーカーが展開されるまで少待ちしてinfoWindowを開く
+      var attempts = 0;
+      var timer = setInterval(function() {
+        var marker = markerMap.get(placeId);
+        if (marker && marker.getMap()) {
+          clearInterval(timer);
+          showInfo(place, marker);
+        } else if (++attempts > 20) {
+          clearInterval(timer);
+        }
+      }, 100);
     }
 
     function toggleList() {
