@@ -63,6 +63,7 @@
     #btn-dogrun.active { background: #27ae60; }
     #btn-dogcafe.active { background: #e74c3c; }
     #btn-vet.active    { background: #8e44ad; }
+    #btn-hotel.active  { background: #2980b9; }
 
     /* ===== 検索バー ===== */
     #search-bar {
@@ -165,6 +166,7 @@
     .badge-dogrun  { background: #27ae60; }
     .badge-dogcafe { background: #e74c3c; }
     .badge-vet     { background: #8e44ad; }
+    .badge-hotel   { background: #2980b9; }
     #list-more {
       padding: 13px; text-align: center; font-size: 13px; color: #1a73e8;
       cursor: pointer; border-top: 1px solid #eee; transition: background 0.12s;
@@ -285,6 +287,7 @@
     .iw-link-hp { background: #fff0f0; color: #e74c3c; }
     .iw-link-web { background: #f0f4ff; color: #1a73e8; }
     .iw-link-gmap { background: #f5f5f5; color: #555; }
+    .iw-link-rakuten { background: #fff0e0; color: #bf0000; }
 
     /* ===== レスポンシブ ===== */
     @media (max-width: 600px) {
@@ -383,6 +386,7 @@
     <button class="filter-btn"        id="btn-dogrun"  onclick="setFilter('dogrun',this)">ドッグラン</button>
     <button class="filter-btn"        id="btn-dogcafe" onclick="setFilter('dogcafe',this)">ペット可飲食店</button>
     <button class="filter-btn"        id="btn-vet"     onclick="setFilter('vet',this)">動物病院</button>
+    <button class="filter-btn"        id="btn-hotel"   onclick="setFilter('hotel',this)">ペット可宿泊施設</button>
   </div>
 
   <!-- 検索バー -->
@@ -549,9 +553,9 @@
     var placeById = {};
     var searchTimer = null;
 
-    var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ペット可飲食店', cafe:'ペット可飲食店', vet:'動物病院' };
-    var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', cafe:'#e74c3c', vet:'#8e44ad' };
-    var CAT_BADGE  = { dogrun:'badge-dogrun', dogcafe:'badge-dogcafe', cafe:'badge-dogcafe', vet:'badge-vet' };
+    var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ペット可飲食店', cafe:'ペット可飲食店', vet:'動物病院', hotel:'ペット可宿泊施設' };
+    var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', cafe:'#e74c3c', vet:'#8e44ad', hotel:'#2980b9' };
+    var CAT_BADGE  = { dogrun:'badge-dogrun', dogcafe:'badge-dogcafe', cafe:'badge-dogcafe', vet:'badge-vet', hotel:'badge-hotel' };
 
     function initApp() {
       appInitialized = true;
@@ -607,7 +611,7 @@
     }
 
     function updateFilterLabels() {
-      var counts = { all: PLACES_DATA.length, dogrun:0, dogcafe:0, vet:0 };
+      var counts = { all: PLACES_DATA.length, dogrun:0, dogcafe:0, vet:0, hotel:0 };
       PLACES_DATA.forEach(function(p) {
         var cat = p.category === 'cafe' ? 'dogcafe' : p.category;
         if (counts[cat] !== undefined) counts[cat]++;
@@ -616,12 +620,14 @@
       document.getElementById('btn-dogrun').textContent  = 'ドッグラン（' + counts.dogrun + '件）';
       document.getElementById('btn-dogcafe').textContent = 'ペット可飲食店（' + counts.dogcafe + '件）';
       document.getElementById('btn-vet').textContent     = '動物病院（' + counts.vet + '件）';
+      document.getElementById('btn-hotel').textContent   = 'ペット可宿泊施設（' + counts.hotel + '件）';
       document.getElementById('count-display').textContent = counts.all.toLocaleString() + '件';
     }
 
     function getBaseFiltered() {
       return currentFilter === 'all' ? PLACES_DATA : PLACES_DATA.filter(function(p) {
         if (currentFilter === 'dogcafe') return p.category === 'dogcafe' || p.category === 'cafe';
+        if (currentFilter === 'hotel') return p.category === 'hotel';
         return p.category === currentFilter;
       });
     }
@@ -777,10 +783,14 @@
     }
 
     function showInfo(p, marker) {
-      var isHp = p.place_id && p.place_id.startsWith('hp_');
+       var isHp = p.place_id && p.place_id.startsWith('hp_');
+      var isRakuten = p.place_id && p.place_id.startsWith('rakuten_');
       var links = '';
-
-      if (isHp) {
+      if (isRakuten) {
+        var hotelNo = p.place_id.replace('rakuten_', '');
+        var rakutenUrl = 'https://hotel.travel.rakuten.co.jp/hotelinfo/plan/detail.html?f_no=' + hotelNo + '&f_flg=PLAN&f_aff_id=51558f6d.09dab654.51558f6e.9d0fafa9';
+        links += '<a class="iw-link iw-link-rakuten" href="' + rakutenUrl + '" target="_blank">楽天トラベルで予約</a>';
+      } else if (isHp) {
         if (p.website) links += '<a class="iw-link iw-link-hp" href="' + p.website + '" target="_blank">ホットペッパー</a>';
       } else {
         if (p.website) links += '<a class="iw-link iw-link-web" href="' + p.website + '" target="_blank">ホームページ</a>';
