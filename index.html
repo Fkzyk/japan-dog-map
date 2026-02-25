@@ -620,7 +620,17 @@
           properties: { place_id: p.place_id, category: p.category }
         };
       });
-      sc = new Supercluster({ radius: 60, maxZoom: 16 });
+      // カテゴリ別のクラスタ色判定用にカテゴリセットを事前計算
+      // superclusterのクラスタプロパティにカテゴリ情報を埋め込むため、
+      // reduceオプションで集計する
+      sc = new Supercluster({
+        radius: 60,
+        maxZoom: 16,
+        map: function(props) { return { cat: props.category }; },
+        reduce: function(acc, props) {
+          if (acc.cat !== props.cat) acc.cat = 'mixed';
+        }
+      });
       sc.load(features);
       renderMarkers();
     }
@@ -644,6 +654,20 @@
       renderTimer = setTimeout(_drawClusters, 80);
     }
 
+    // マーカープール: 毎回 new Marker() するコストを削減
+    var _markerPool = [];
+    var _poolIdx = 0;
+
+    function _getPoolMarker() {
+      if (_poolIdx < _markerPool.length) {
+        return _markerPool[_poolIdx++];
+      }
+      var m = new google.maps.Marker();
+      _markerPool.push(m);
+      _poolIdx++;
+      return m;
+    }
+
     function _drawClusters() {
       if (!map || !sc) return;
 
@@ -656,31 +680,30 @@
 
       var clusters = sc.getClusters(bbox, zoom);
 
-      // 旧マーカーを一括削除
-      scMarkers.forEach(function(m) { m.setMap(null); });
+      // 旧マーカーを非表示にする（プールに戻す）
+      for (var i = 0; i < _poolIdx; i++) {
+        _markerPool[i].setMap(null);
+        google.maps.event.clearListeners(_markerPool[i], 'click');
+      }
+      _poolIdx = 0;
       scMarkers = [];
 
       clusters.forEach(function(feature) {
         var coords = feature.geometry.coordinates;
         var props  = feature.properties;
         var isCluster = props.cluster;
+        var marker = _getPoolMarker();
 
         if (isCluster) {
           // クラスタマーカー
           var count = props.point_count;
           var size  = count < 10 ? 36 : count < 100 ? 44 : 52;
-          // クラスタ内の代表カテゴリを取得
-          var leaves = sc.getLeaves(props.cluster_id, 1);
-          var cat = leaves.length ? leaves[0].properties.category : null;
-          // 全子が同カテゴリかチェック（簡易判定）
-          var allLeaves = sc.getLeaves(props.cluster_id, Infinity);
-          var cats = {};
-          allLeaves.forEach(function(l) { cats[l.properties.category] = true; });
-          var catKeys = Object.keys(cats);
-          var color = (catKeys.length === 1 && CAT_COLORS[catKeys[0]])
-            ? CAT_COLORS[catKeys[0]] : '#555555';
+          // reduceで集計した cat プロパティを使用（getLeaves不要）
+          var cat = props.cat;
+          var color = (cat && cat !== 'mixed' && CAT_COLORS[cat])
+            ? CAT_COLORS[cat] : '#555555';
 
-          var marker = new google.maps.Marker({
+          marker.setOptions({
             position: { lat: coords[1], lng: coords[0] },
             label: {
               text: String(count),
@@ -693,10 +716,10 @@
               scaledSize: new google.maps.Size(size, size),
               anchor: new google.maps.Point(size/2, size/2)
             },
+            title: '',
             map: map,
             zIndex: 1000 + count
           });
-          // クラスタクリックでズームイン
           marker.addListener('click', (function(cid, lat, lng) {
             return function() {
               var z = sc.getClusterExpansionZoom(cid);
@@ -704,15 +727,15 @@
               map.setZoom(Math.min(z, 18));
             };
           })(props.cluster_id, coords[1], coords[0]));
-          scMarkers.push(marker);
 
         } else {
           // 単一マーカー
           var p = placeById[props.place_id];
           if (!p) return;
-          var marker = new google.maps.Marker({
+          marker.setOptions({
             position: { lat: coords[1], lng: coords[0] },
             title: p.name,
+            label: '',
             icon: {
               path: google.maps.SymbolPath.CIRCLE,
               scale: 7,
@@ -721,13 +744,14 @@
               strokeColor: 'white',
               strokeWeight: 1.5
             },
-            map: map
+            map: map,
+            zIndex: 1
           });
           marker.addListener('click', (function(pp, mm) {
             return function() { showInfo(pp, mm); };
           })(p, marker));
-          scMarkers.push(marker);
         }
+        scMarkers.push(marker);
       });
     }
 
