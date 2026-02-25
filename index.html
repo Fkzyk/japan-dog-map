@@ -488,6 +488,7 @@
     var scMarkers = [];
     var renderTimer = null;
     var _focusingLock = false;
+    var _activeInfoMarker = null; // infoWindowが開いているマーカーオブジェクト（プール再利用から除外）
     var svgCache = {};
     var placeById = {};
     var searchTimer = null;
@@ -509,6 +510,7 @@
         styles: [{ featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }]
       });
       infoWindow = new google.maps.InfoWindow({ maxWidth: 280 });
+      infoWindow.addListener('closeclick', function() { _activeInfoMarker = null; });
       map.addListener('bounds_changed', function() { renderMarkers(); });
       loadAllPlaces();
     }
@@ -657,12 +659,24 @@
       var bbox = [sw.lng(), sw.lat(), ne.lng(), ne.lat()];
       var clusters = sc.getClusters(bbox, zoom);
 
-      // プールに戻す
+      // プールに戻す（_activeInfoMarkerは除外して再利用させない）
       for (var i = 0; i < _poolIdx; i++) {
+        if (_markerPool[i] === _activeInfoMarker) continue;
         _markerPool[i].setMap(null);
         google.maps.event.clearListeners(_markerPool[i], 'click');
       }
-      _poolIdx = 0; scMarkers = [];
+      // _activeInfoMarkerをプール先頭に移動し、インデックス1から再利用開始
+      if (_activeInfoMarker) {
+        var aidx = _markerPool.indexOf(_activeInfoMarker);
+        if (aidx > 0) {
+          _markerPool.splice(aidx, 1);
+          _markerPool.unshift(_activeInfoMarker);
+        }
+        _poolIdx = 1; // インデックス0（_activeInfoMarker）はスキップ
+      } else {
+        _poolIdx = 0;
+      }
+      scMarkers = [];
 
       clusters.forEach(function(feature) {
         var coords = feature.geometry.coordinates;
@@ -735,6 +749,7 @@
         + '</div>';
 
       infoWindow.setContent(content);
+      _activeInfoMarker = marker;
       // shouldFocus:false で infoWindow表示時の自動パンを無効化
       infoWindow.open({ map: map, anchor: marker, shouldFocus: false });
     }
