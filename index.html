@@ -735,7 +735,8 @@
         + '</div>';
 
       infoWindow.setContent(content);
-      infoWindow.open(map, marker);
+      // shouldFocus:false で infoWindow表示時の自動パンを無効化
+      infoWindow.open({ map: map, anchor: marker, shouldFocus: false });
     }
 
     function refreshList() {
