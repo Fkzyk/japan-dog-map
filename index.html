@@ -331,7 +331,7 @@
   <!-- Supabase SDK を先に同期読み込み -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnuKUnr6GNYY1QbiL_evpkNv60TvLeGU4&language=ja"></script>
-  <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+  <script src="https://unpkg.com/supercluster@8/dist/supercluster.min.js"></script>
 
   <script>
     // ===== Supabase 初期化 =====
@@ -476,14 +476,15 @@
     }
 
     // ===== 地図・スポット =====
-    var map, infoWindow, clusterer;
+    var map, infoWindow;
     var PLACES_DATA = [], currentFilter = 'all', listOpen = false;
     var listFiltered = [], listOffset = 0;
     var LIST_PAGE = 100;
-    var markerMap = new Map();     // place_id -> marker（全件キャッシュ）
-    var activeIds = new Set();     // 現在クラスタに追加中のplace_id
+    var sc = null;                 // Superclusterインスタンス
+    var scMarkers = [];           // 現在描画中のgoogle.maps.Marker配列
     var renderTimer = null;        // デバウンス用タイマー
     var svgCache = {};             // SVGキャッシュ（color+size -> dataURL）
+    var placeById = {};            // place_id -> placeデータ高速ルックアップ
 
     var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ペット可飲食店', vet:'動物病院' };
     var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', vet:'#8e44ad' };
@@ -501,6 +502,9 @@
         styles: [{ featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }]
       });
       infoWindow = new google.maps.InfoWindow();
+
+      // ビューポート変化時にクラスタを再描画
+      map.addListener('bounds_changed', function() { renderMarkers(); });
 
       loadAllPlaces();
     }
@@ -527,9 +531,11 @@
             } else {
               // 全件取得完了
               PLACES_DATA = allData;
+              // 高速ルックアップ用マップを構築
+              PLACES_DATA.forEach(function(p) { placeById[p.place_id] = p; });
               buildGenreSelect();
               updateFilterLabels();
-              renderMarkers();
+              _rebuildSupercluster();
               refreshList();
               document.getElementById('loading').style.display = 'none';
             }
@@ -587,26 +593,36 @@
       btn.classList.add('active');
       document.getElementById('search-input').value = '';
       document.getElementById('genre-select').value = '';
-      renderMarkers();
+      _rebuildSupercluster();
       refreshList();
     }
 
     function onSearchChange() {
-      renderMarkers();
+      _rebuildSupercluster();
       refreshList();
     }
 
     function clearSearch() {
       document.getElementById('search-input').value = '';
       document.getElementById('genre-select').value = '';
-      renderMarkers();
+      _rebuildSupercluster();
       refreshList();
     }
 
-    function renderMarkers() {
-      // デバウンス: 50ms以内の連続呼び出しをまとめる
-      if (renderTimer) clearTimeout(renderTimer);
-      renderTimer = setTimeout(function() { _doRenderMarkers(); }, 50);
+    // Superclusterをフィルター内容で再構築（フィルター変更時のみ呼び出す）
+    function _rebuildSupercluster() {
+      if (!PLACES_DATA.length) return;
+      var filtered = getSearchFiltered();
+      var features = filtered.map(function(p) {
+        return {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
+          properties: { place_id: p.place_id, category: p.category }
+        };
+      });
+      sc = new Supercluster({ radius: 60, maxZoom: 16 });
+      sc.load(features);
+      renderMarkers();
     }
 
     function _makeSvgIcon(color, size) {
@@ -622,55 +638,80 @@
       return svgCache[key];
     }
 
-    function _initClusterer(initialMarkers) {
-      clusterer = new markerClusterer.MarkerClusterer({
-        map: map,
-        markers: initialMarkers,
-        algorithm: new markerClusterer.SuperClusterAlgorithm({ maxZoom: 14, radius: 60 }),
-        renderer: {
-          render: function(cluster) {
-            var cats = {};
-            (cluster.markers || []).forEach(function(m) {
-              var c = m._category || 'unknown';
-              cats[c] = (cats[c] || 0) + 1;
-            });
-            var keys = Object.keys(cats);
-            var color = (keys.length === 1 && CAT_COLORS[keys[0]])
-              ? CAT_COLORS[keys[0]] : '#555555';
-            var count = cluster.count;
-            var size = count < 10 ? 36 : count < 100 ? 44 : 52;
-            return new google.maps.Marker({
-              position: cluster.position,
-              label: {
-                text: String(count),
-                color: 'white',
-                fontSize: Math.round(size * 0.35) + 'px',
-                fontWeight: 'bold'
-              },
-              icon: {
-                url: _makeSvgIcon(color, size),
-                scaledSize: new google.maps.Size(size, size),
-                anchor: new google.maps.Point(size/2, size/2)
-              },
-              zIndex: 1000 + count
-            });
-          }
-        }
-      });
+    function renderMarkers() {
+      // デバウンス: 80ms以内の連続呼び出しをまとめる
+      if (renderTimer) clearTimeout(renderTimer);
+      renderTimer = setTimeout(_drawClusters, 80);
     }
 
-    function _doRenderMarkers() {
-      if (!map) return;
+    function _drawClusters() {
+      if (!map || !sc) return;
 
-      var filtered = getSearchFiltered();
-      var filteredIds = new Set(filtered.map(function(p) { return p.place_id; }));
+      var bounds = map.getBounds();
+      if (!bounds) return;
+      var zoom = map.getZoom();
+      var ne = bounds.getNorthEast();
+      var sw = bounds.getSouthWest();
+      var bbox = [sw.lng(), sw.lat(), ne.lng(), ne.lat()];
 
-      // 未生成のマーカーを生成してキャッシュ
-      var toAdd = [];
-      filtered.forEach(function(p) {
-        if (!markerMap.has(p.place_id)) {
+      var clusters = sc.getClusters(bbox, zoom);
+
+      // 旧マーカーを一括削除
+      scMarkers.forEach(function(m) { m.setMap(null); });
+      scMarkers = [];
+
+      clusters.forEach(function(feature) {
+        var coords = feature.geometry.coordinates;
+        var props  = feature.properties;
+        var isCluster = props.cluster;
+
+        if (isCluster) {
+          // クラスタマーカー
+          var count = props.point_count;
+          var size  = count < 10 ? 36 : count < 100 ? 44 : 52;
+          // クラスタ内の代表カテゴリを取得
+          var leaves = sc.getLeaves(props.cluster_id, 1);
+          var cat = leaves.length ? leaves[0].properties.category : null;
+          // 全子が同カテゴリかチェック（簡易判定）
+          var allLeaves = sc.getLeaves(props.cluster_id, Infinity);
+          var cats = {};
+          allLeaves.forEach(function(l) { cats[l.properties.category] = true; });
+          var catKeys = Object.keys(cats);
+          var color = (catKeys.length === 1 && CAT_COLORS[catKeys[0]])
+            ? CAT_COLORS[catKeys[0]] : '#555555';
+
           var marker = new google.maps.Marker({
-            position: { lat: p.lat, lng: p.lng },
+            position: { lat: coords[1], lng: coords[0] },
+            label: {
+              text: String(count),
+              color: 'white',
+              fontSize: Math.round(size * 0.35) + 'px',
+              fontWeight: 'bold'
+            },
+            icon: {
+              url: _makeSvgIcon(color, size),
+              scaledSize: new google.maps.Size(size, size),
+              anchor: new google.maps.Point(size/2, size/2)
+            },
+            map: map,
+            zIndex: 1000 + count
+          });
+          // クラスタクリックでズームイン
+          marker.addListener('click', (function(cid, lat, lng) {
+            return function() {
+              var z = sc.getClusterExpansionZoom(cid);
+              map.setCenter({ lat: lat, lng: lng });
+              map.setZoom(Math.min(z, 18));
+            };
+          })(props.cluster_id, coords[1], coords[0]));
+          scMarkers.push(marker);
+
+        } else {
+          // 単一マーカー
+          var p = placeById[props.place_id];
+          if (!p) return;
+          var marker = new google.maps.Marker({
+            position: { lat: coords[1], lng: coords[0] },
             title: p.name,
             icon: {
               path: google.maps.SymbolPath.CIRCLE,
@@ -679,38 +720,15 @@
               fillOpacity: 0.9,
               strokeColor: 'white',
               strokeWeight: 1.5
-            }
+            },
+            map: map
           });
-          marker._category = p.category;
           marker.addListener('click', (function(pp, mm) {
             return function() { showInfo(pp, mm); };
           })(p, marker));
-          markerMap.set(p.place_id, marker);
-        }
-        if (!activeIds.has(p.place_id)) {
-          toAdd.push(markerMap.get(p.place_id));
-          activeIds.add(p.place_id);
+          scMarkers.push(marker);
         }
       });
-
-      // フィルターから外れたマーカーをクラスタから除去
-      var toRemove = [];
-      activeIds.forEach(function(id) {
-        if (!filteredIds.has(id)) {
-          toRemove.push(markerMap.get(id));
-          activeIds.delete(id);
-        }
-      });
-
-      if (!clusterer) {
-        // 初回: clustererを生成
-        _initClusterer(Array.from(filteredIds).map(function(id) { return markerMap.get(id); }).filter(Boolean));
-        activeIds = new Set(filteredIds);
-      } else {
-        // 差分更新のみ（clustererを作り直さない）
-        if (toRemove.length) clusterer.removeMarkers(toRemove, true);
-        if (toAdd.length)    clusterer.addMarkers(toAdd, false);
-      }
     }
 
     function showInfo(p, marker) {
@@ -788,30 +806,31 @@
     }
 
     function focusPlace(placeId) {
-      var place = null;
-      for (var i = 0; i < listFiltered.length; i++) {
-        if (listFiltered[i].place_id === placeId) { place = listFiltered[i]; break; }
-      }
+      var place = placeById[placeId];
       if (!place) return;
 
       var TARGET_ZOOM = 16;
-      var currentZoom = map.getZoom();
 
-      // ズームとパンを同時に実行（setCenter+setZoom）
+      // ズームとセンターを同時に設定
       map.setCenter({ lat: place.lat, lng: place.lng });
-      if (currentZoom < TARGET_ZOOM) {
-        map.setZoom(TARGET_ZOOM);
-      }
+      map.setZoom(TARGET_ZOOM);
 
-      // マーカーが展開されるまで少待ちしてinfoWindowを開く
+      // bounds_changedが発火され_drawClustersが実行されるのを待ってinfoWindowを開く
       var attempts = 0;
       var timer = setInterval(function() {
-        var marker = markerMap.get(placeId);
-        if (marker && marker.getMap()) {
+        // scMarkersの中から対象place_idのマーカーを探す
+        var found = null;
+        for (var i = 0; i < scMarkers.length; i++) {
+          if (scMarkers[i].getTitle() === place.name) { found = scMarkers[i]; break; }
+        }
+        if (found) {
           clearInterval(timer);
-          showInfo(place, marker);
+          showInfo(place, found);
         } else if (++attempts > 20) {
+          // マーカーが見つからなくてもinfoWindowを位置で開く
           clearInterval(timer);
+          var dummy = new google.maps.Marker({ position: { lat: place.lat, lng: place.lng }, map: map });
+          showInfo(place, dummy);
         }
       }, 100);
     }
@@ -872,6 +891,26 @@
 
     function onNewsOverlayClick(e) {
       if (e.target === document.getElementById('news-overlay')) closeNewsModal();
+    }
+
+    // ===== Service Worker 登録 =====
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/tokyo-dog-map/sw.js').then(function(reg) {
+        // 新しいSWが待機中ならそのまま有効化
+        reg.addEventListener('updatefound', function() {
+          var newWorker = reg.installing;
+          newWorker.addEventListener('statechange', function() {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // 新バージョンが準備できたら自動リロード
+              newWorker.postMessage({ action: 'skipWaiting' });
+            }
+          });
+        });
+      });
+      // SWが切り替わったらページをリロード
+      navigator.serviceWorker.addEventListener('controllerchange', function() {
+        window.location.reload();
+      });
     }
   </script>
 </body>
