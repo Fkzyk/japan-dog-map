@@ -549,9 +549,9 @@
     var placeById = {};
     var searchTimer = null;
 
-    var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ペット可飲食店', vet:'動物病院' };
-    var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', vet:'#8e44ad' };
-    var CAT_BADGE  = { dogrun:'badge-dogrun', dogcafe:'badge-dogcafe', vet:'badge-vet' };
+    var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ペット可飲食店', cafe:'ペット可飲食店', vet:'動物病院' };
+    var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', cafe:'#e74c3c', vet:'#8e44ad' };
+    var CAT_BADGE  = { dogrun:'badge-dogrun', dogcafe:'badge-dogcafe', cafe:'badge-dogcafe', vet:'badge-vet' };
 
     function initApp() {
       appInitialized = true;
@@ -608,7 +608,10 @@
 
     function updateFilterLabels() {
       var counts = { all: PLACES_DATA.length, dogrun:0, dogcafe:0, vet:0 };
-      PLACES_DATA.forEach(function(p) { if (counts[p.category] !== undefined) counts[p.category]++; });
+      PLACES_DATA.forEach(function(p) {
+        var cat = p.category === 'cafe' ? 'dogcafe' : p.category;
+        if (counts[cat] !== undefined) counts[cat]++;
+      });
       document.getElementById('btn-all').textContent     = 'すべて（' + counts.all + '件）';
       document.getElementById('btn-dogrun').textContent  = 'ドッグラン（' + counts.dogrun + '件）';
       document.getElementById('btn-dogcafe').textContent = 'ペット可飲食店（' + counts.dogcafe + '件）';
@@ -617,7 +620,10 @@
     }
 
     function getBaseFiltered() {
-      return currentFilter === 'all' ? PLACES_DATA : PLACES_DATA.filter(function(p) { return p.category === currentFilter; });
+      return currentFilter === 'all' ? PLACES_DATA : PLACES_DATA.filter(function(p) {
+        if (currentFilter === 'dogcafe') return p.category === 'dogcafe' || p.category === 'cafe';
+        return p.category === currentFilter;
+      });
     }
 
     function getSearchFiltered() {
