@@ -12,7 +12,7 @@ jobs:
       - name: Query Supabase DB to prevent auto-pause
         run: |
           RESPONSE=$(curl -s -w "\n%{http_code}" \
-            "https://rfcfilhqkkjmkecxzijw.supabase.co/rest/v1/spots?select=id&limit=1" \
+            "https://rfcfilhqkkjmkecxzijw.supabase.co/rest/v1/places?select=place_id&limit=1" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
           STATUS=$(echo "$RESPONSE" | tail -1)
