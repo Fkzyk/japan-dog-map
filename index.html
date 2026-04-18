@@ -481,6 +481,15 @@
     #btn-fav.active { background: #f39c12; }
 
     /* ===== チュートリアル（スポットライト型） ===== */
+    .tut-preview { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .tut-btn-demo {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+    }
+    .tut-btn-helpful { background: #fff0f5; color: #e84393; border: 1.5px solid #f5a0c8; }
+    .tut-btn-fav     { background: #fffbe6; color: #e67e22; border: 1.5px solid #ffd080; }
+    .tut-btn-review  { background: #fffbe6; color: #f39c12; border: 1.5px solid #ffd080; }
+    .tut-btn-report  { background: #fff5f5; color: #e74c3c; border: 1.5px solid #f5c0c0; }
     #tutorial-overlay {
       display: none; position: fixed; inset: 0; z-index: 10000;
     }
@@ -647,8 +656,9 @@
   <div id="tutorial-overlay">
     <div id="tutorial-spotlight"></div>
     <div id="tutorial-tooltip">
-      <div id="tut-step-label">1 / 4</div>
+      <div id="tut-step-label">1 / 9</div>
       <h3 id="tut-title"></h3>
+      <div id="tut-preview"></div>
       <p id="tut-desc"></p>
       <div class="tut-footer">
         <button id="tut-skip-btn" onclick="closeTutorial()">スキップ</button>
@@ -1699,33 +1709,118 @@
     var TUTORIAL_INTERVAL_DAYS = 30;        // 30日に1回表示
     var _tutStep = 0;
 
+    // 緯度経度 → スクリーン座標に変換（マーカースポットライト用）
+    function _latLngToScreenRect(lat, lng, halfSize) {
+      var projection = map.getProjection();
+      var bounds = map.getBounds();
+      if (!projection || !bounds) {
+        var mc = document.getElementById('map-container').getBoundingClientRect();
+        var cx = mc.left + mc.width / 2, cy = mc.top + mc.height / 2;
+        return { left: cx - halfSize, top: cy - halfSize, width: halfSize * 2, height: halfSize * 2 };
+      }
+      var ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
+      var neW = projection.fromLatLngToPoint(ne), swW = projection.fromLatLngToPoint(sw);
+      var ptW = projection.fromLatLngToPoint(new google.maps.LatLng(lat, lng));
+      var mr = document.getElementById('map-container').getBoundingClientRect();
+      var fx = (ptW.x - swW.x) / (neW.x - swW.x);
+      var fy = (ptW.y - neW.y) / (swW.y - neW.y);
+      return { left: mr.left + fx * mr.width - halfSize, top: mr.top + fy * mr.height - halfSize,
+               width: halfSize * 2, height: halfSize * 2 };
+    }
+
     var TUTORIAL_STEPS = [
       {
+        // Step 1: フィルターバー
         getRect: function() { return document.getElementById('filter-bar').getBoundingClientRect(); },
         pad: 4, radius: '8px',
         title: 'カテゴリで絞り込もう',
-        desc: 'ドッグラン・動物病院・カフェなど、見たい種類だけ表示できます。気になるカテゴリを押してみてください。',
+        desc: 'ドッグラン・動物病院・ペット可カフェ・宿泊施設など種類別に絞り込めます。「★ お気に入り」でお気に入り登録済みのスポットだけ表示することもできます。',
         pos: 'below'
       },
       {
+        // Step 2: 検索
+        getRect: function() { return document.getElementById('search-input').getBoundingClientRect(); },
+        pad: 6, radius: '10px',
+        title: '店名・住所で検索',
+        desc: '検索ボックスに入力すると、スポット名や住所でリアルタイムに絞り込めます。行きたいエリアや施設名を入れてみてください。',
+        pos: 'below'
+      },
+      {
+        // Step 3: マーカー（実際のスポットへズームイン）
+        beforeShow: function(done) {
+          var p = PLACES_DATA[0];
+          if (!p) { done(); return; }
+          map.panTo({ lat: p.lat, lng: p.lng });
+          map.setZoom(16);
+          setTimeout(done, 750);
+        },
         getRect: function() {
-          var mc = document.getElementById('map-container').getBoundingClientRect();
-          var cx = mc.left + mc.width / 2, cy = mc.top + mc.height / 2;
-          return { left: cx - 38, top: cy - 38, width: 76, height: 76 };
+          var p = PLACES_DATA[0];
+          if (!p) {
+            var mc = document.getElementById('map-container').getBoundingClientRect();
+            return { left: mc.left + mc.width/2 - 28, top: mc.top + mc.height/2 - 28, width: 56, height: 56 };
+          }
+          return _latLngToScreenRect(p.lat, p.lng, 28);
         },
         pad: 0, radius: '50%',
         title: 'マーカーをタップしよう',
-        desc: '地図上の丸いマーカーをタップすると詳細が表示されます。口コミや「🐾 行ったよ！」ボタンも使えます。',
+        desc: '地図上のマーカーをタップするとスポットの詳細（住所・ウェブサイト・口コミなど）が表示されます。',
         pos: 'above-center'
       },
       {
-        getRect: function() { return document.getElementById('add-spot-btn').getBoundingClientRect(); },
-        pad: 8, radius: '24px',
-        title: 'スポットを追加しよう！',
-        desc: '犬と行けるお気に入りの場所を追加してください。みんなのマップが育ちます 🐾',
+        // Step 4: 行ったよ！ボタン
+        getRect: function() {
+          var mc = document.getElementById('map-container').getBoundingClientRect();
+          return { left: mc.left + 20, top: mc.top + mc.height * 0.4, width: mc.width - 40, height: 60 };
+        },
+        pad: 0, radius: '12px',
+        title: '🐾 行ったよ！ボタン',
+        preview: '<div class="tut-btn-demo tut-btn-helpful">🐾 行ったよ！ <span>5</span></div>',
+        desc: 'スポットに訪問したら押してください。同じ犬連れ仲間への参考になります。押した後、口コミを書く画面に誘導されます。',
+        pos: 'above-center'
+      },
+      {
+        // Step 5: お気に入り
+        getRect: function() {
+          var mc = document.getElementById('map-container').getBoundingClientRect();
+          return { left: mc.left + 20, top: mc.top + mc.height * 0.4, width: mc.width - 40, height: 60 };
+        },
+        pad: 0, radius: '12px',
+        title: '☆ お気に入り登録',
+        preview: '<div class="tut-btn-demo tut-btn-fav">☆ お気に入り</div>',
+        desc: 'タップするとスポットをお気に入り登録できます。登録後はフィルターバーの「★ お気に入り」で一覧表示できます。',
+        pos: 'above-center'
+      },
+      {
+        // Step 6: 口コミ・報告
+        getRect: function() {
+          var mc = document.getElementById('map-container').getBoundingClientRect();
+          return { left: mc.left + 20, top: mc.top + mc.height * 0.4, width: mc.width - 40, height: 60 };
+        },
+        pad: 0, radius: '12px',
+        title: '★ 口コミ ／ 🚩 問題報告',
+        preview: '<div class="tut-btn-demo tut-btn-review">★ 口コミ</div><div class="tut-btn-demo tut-btn-report">🚩 問題を報告</div>',
+        desc: '「★口コミ」では星1〜5とコメントで感想を投稿できます（管理者承認後に公開）。「🚩報告」は閉店・情報が古い場合にお知らせください。',
+        pos: 'above-center'
+      },
+      {
+        // Step 7: 現在地ボタン
+        getRect: function() { return document.getElementById('locate-btn').getBoundingClientRect(); },
+        pad: 8, radius: '50%',
+        title: '現在地に移動',
+        desc: 'このボタンを押すと、今いる場所に地図が移動します。近くの犬連れスポットを探すときに使ってください。',
         pos: 'above-left'
       },
       {
+        // Step 8: スポット追加
+        getRect: function() { return document.getElementById('add-spot-btn').getBoundingClientRect(); },
+        pad: 8, radius: '24px',
+        title: 'スポットを追加しよう！',
+        desc: '知っているお気に入りの場所を追加してください。管理者が確認後、全員の地図に表示されます。みんなのマップが育ちます 🐾',
+        pos: 'above-left'
+      },
+      {
+        // Step 9: お知らせ
         getRect: function() { return document.getElementById('bell-btn').getBoundingClientRect(); },
         pad: 6, radius: '50%',
         title: 'お知らせをチェック',
@@ -1750,22 +1845,33 @@
       setTimeout(function() { showTutStep(0); }, 50);
     }
 
+    // beforeShowコールバック対応版
     function showTutStep(idx) {
+      var step = TUTORIAL_STEPS[idx];
+      if (step.beforeShow) {
+        step.beforeShow(function() { _renderTutStep(idx); });
+      } else {
+        _renderTutStep(idx);
+      }
+    }
+
+    function _renderTutStep(idx) {
       var step = TUTORIAL_STEPS[idx];
       var r = step.getRect();
       var pad = step.pad || 0;
 
       // スポットライト位置設定
       var sl = document.getElementById('tutorial-spotlight');
-      sl.style.left   = (r.left - pad) + 'px';
-      sl.style.top    = (r.top - pad) + 'px';
-      sl.style.width  = (r.width + pad * 2) + 'px';
-      sl.style.height = (r.height + pad * 2) + 'px';
+      sl.style.left         = (r.left - pad) + 'px';
+      sl.style.top          = (r.top - pad) + 'px';
+      sl.style.width        = (r.width + pad * 2) + 'px';
+      sl.style.height       = (r.height + pad * 2) + 'px';
       sl.style.borderRadius = step.radius;
 
       // ツールチップ内容
       document.getElementById('tut-step-label').textContent = (idx + 1) + ' / ' + TUTORIAL_STEPS.length;
       document.getElementById('tut-title').textContent = step.title;
+      document.getElementById('tut-preview').innerHTML = step.preview || '';
       document.getElementById('tut-desc').textContent  = step.desc;
       document.getElementById('tut-next-btn').textContent =
         idx === TUTORIAL_STEPS.length - 1 ? 'はじめる！' : '次へ →';
@@ -1790,11 +1896,11 @@
         tTop  = sTop + sH + 14;
       } else if (step.pos === 'above-center') {
         tLeft = (window.innerWidth - tw) / 2;
-        tTop  = sTop - 200;
+        tTop  = sTop - 220;
         if (tTop < 60) tTop = sTop + sH + 14;
       } else if (step.pos === 'above-left') {
         tLeft = Math.max(margin, sLeft + sW - tw);
-        tTop  = sTop - 200;
+        tTop  = sTop - 220;
         if (tTop < 60) tTop = sTop + sH + 14;
       } else if (step.pos === 'below-left') {
         tLeft = Math.max(margin, sLeft + sW - tw);
