@@ -1026,7 +1026,7 @@
         + (links ? '<div class="iw-links">' + links + '</div>' : '')
         + '<div class="iw-actions">'
         + '<div class="iw-action-row">'
-        + '<button class="iw-action-btn iw-fav-btn" id="iw-fav-' + pid + '" onclick="toggleFavorite(\'' + pid + '\')">'
+        + '<button class="iw-action-btn iw-fav-btn' + (isFavorite(p.place_id) ? ' active' : '') + '" id="iw-fav-' + pid + '" onclick="toggleFavorite(\'' + pid + '\')">'
         + (isFavorite(p.place_id) ? '★ お気に入り済み' : '☆ お気に入り')
         + '</button>'
         + '<button class="iw-action-btn iw-helpful-btn" id="iw-helpful-' + pid + '" onclick="handleHelpful(\'' + pid + '\',\'' + pname + '\')">'
@@ -1080,6 +1080,14 @@
           + '</div>';
         div.addEventListener('click', (function(pid) { return function() { focusPlace(pid); }; })(p.place_id));
         frag.appendChild(div);
+        // 広告枠②: 5件ごとにネイティブ広告枠を挿入（Phase 3で display:none を外して有効化）
+        // if ((i - listOffset + 1) % 5 === 0) {
+        //   var adDiv = document.createElement('div');
+        //   adDiv.className = 'ad-slot-list-item';
+        //   adDiv.style.display = 'none';
+        //   adDiv.textContent = 'PR';
+        //   frag.appendChild(adDiv);
+        // }
       }
       document.getElementById('list-body').appendChild(frag);
       listOffset = end;

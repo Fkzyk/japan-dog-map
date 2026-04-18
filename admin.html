@@ -229,7 +229,7 @@
       sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       // セッション内でのパスワード保持（ページリロード時に再ログイン不要）
       var saved = sessionStorage.getItem('jdm_admin_pw');
-      if (saved) { adminPassword = saved; showAdminSection(); loadSubmissions(); }
+      if (saved) { adminPassword = saved; showAdminSection(); loadSubmissions(); loadRequestsBadge(); }
     });
 
     // ===== ログイン =====
@@ -250,6 +250,7 @@
         sessionStorage.setItem('jdm_admin_pw', pw);
         showAdminSection();
         loadSubmissions();
+        loadRequestsBadge();
       });
     }
 
@@ -266,6 +267,18 @@
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('admin-section').style.display = 'block';
       document.getElementById('logout-btn').style.display = 'block';
+    }
+
+    // ===== 削除依頼バッジをログイン直後に取得 =====
+    function loadRequestsBadge() {
+      sb.rpc('admin_get_deletion_requests', { input_password: adminPassword })
+        .then(function(result) {
+          if (result.error || !result.data) return;
+          var pending = result.data.filter(function(r) { return r.status === 'pending'; }).length;
+          var badge = document.getElementById('badge-requests');
+          badge.textContent = pending;
+          badge.style.display = pending > 0 ? 'inline-block' : 'none';
+        });
     }
 
     // ===== 投稿データ読み込み =====
