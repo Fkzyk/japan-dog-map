@@ -1476,47 +1476,44 @@
       document.getElementById('submit-overlay').classList.add('open');
     }
 
-    // Nominatimで座標→住所（逆ジオコーディング）
+    // Google Maps Geocoderで座標→住所（逆ジオコーディング）
     function _reverseGeocodePin(lat, lng) {
       var gr = document.getElementById('geocode-result');
       gr.textContent = '住所を取得中...'; gr.className = ''; gr.style.display = 'block';
-      var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat
-              + '&lon=' + lng + '&accept-language=ja&addressdetails=1';
-      fetch(url, { headers: { 'User-Agent': 'JapanDogMap/1.0' } })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          gr.style.display = 'block';
-          if (data && data.address) {
-            var addr = _formatJapaneseAddress(data.address);
-            document.getElementById('sf-address').value = addr;
-            gr.className = '';
-            gr.textContent = '✓ 住所を自動入力しました（編集できます）';
-            var link = document.getElementById('pin-verify-link');
-            link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
-            link.style.display = 'block';
-            _updateSubmitBtn();
-          } else {
-            gr.className = 'error';
-            gr.textContent = '住所の自動取得に失敗しました。手動で入力してください。';
-          }
-        })
-        .catch(function() {
-          gr.style.display = 'block';
+      var geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ location: { lat: lat, lng: lng }, language: 'ja' }, function(results, status) {
+        gr.style.display = 'block';
+        if (status === 'OK' && results && results.length > 0) {
+          var best = _pickBestGeoResult(results);
+          var addr = best.formatted_address.replace(/^日本、〒\d{3}-\d{4}\s*/, '');
+          document.getElementById('sf-address').value = addr;
+          gr.className = '';
+          gr.textContent = '✓ 住所を自動入力しました（編集できます）';
+          var link = document.getElementById('pin-verify-link');
+          link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+          link.style.display = 'block';
+          _updateSubmitBtn();
+        } else {
           gr.className = 'error';
           gr.textContent = '住所の自動取得に失敗しました。手動で入力してください。';
-        });
+        }
+      });
     }
 
-    // Nominatim addressオブジェクトを日本語順に整形（都道府県→市区町村→丁目番地）
-    function _formatJapaneseAddress(a) {
-      var parts = [];
-      if (a.province || a.state) parts.push(a.province || a.state);
-      if (a.city || a.county || a.town) parts.push(a.city || a.county || a.town);
-      if (a.suburb || a.neighbourhood) parts.push(a.suburb || a.neighbourhood);
-      if (a.quarter) parts.push(a.quarter);
-      if (a.road) parts.push(a.road);
-      if (a.house_number) parts.push(a.house_number);
-      return parts.join('');
+    // plus_codeをスキップして番地レベルの住所を優先選択
+    function _pickBestGeoResult(results) {
+      var priority = ['premise', 'street_address', 'subpremise',
+                      'sublocality_level_4', 'sublocality_level_3', 'sublocality_level_2'];
+      var fallback = null;
+      for (var i = 0; i < results.length; i++) {
+        var r = results[i];
+        if (r.types.indexOf('plus_code') >= 0) continue;
+        if (!fallback) fallback = r;
+        for (var j = 0; j < priority.length; j++) {
+          if (r.types.indexOf(priority[j]) >= 0) return r;
+        }
+      }
+      return fallback || results[0];
     }
 
     // 投稿ボタンの活性化チェック（名前・カテゴリ・座標が揃ったら有効）
