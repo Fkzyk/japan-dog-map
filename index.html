@@ -480,50 +480,45 @@
     /* ===== お気に入りフィルタースタイル ===== */
     #btn-fav.active { background: #f39c12; }
 
-    /* ===== チュートリアル（スポットライト型） ===== */
-    /* z-index順序: overlay(10000) < demo-card(10001) < spotlight(10002) < tooltip(10003) */
-    /* デモカードステップ: overlay暗色+spotlight非表示→カード全体が見える */
-    /* 通常ステップ: spotlight box-shadowで地図を暗くし穴でハイライト */
+    /* ===== チュートリアル（ボトムシート型） ===== */
+    /* z-index: overlay(10000) / demo-card・spotlight(10001) / sheet(10002) */
+    /* ステップ1,2,7-9: spotlightで穴あき暗転 */
+    /* ステップ3: overlay暗色のみ */
+    /* ステップ4-6: overlay暗色 + demo-card表示 */
     #tut-demo-card {
       display: none; position: fixed; z-index: 10001;
-      left: 50%; transform: translateX(-50%); top: 190px;
-      width: 300px; background: white; border-radius: 14px;
-      padding: 14px 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.22);
+      left: 50%; transform: translateX(-50%); top: 185px;
+      width: 300px; background: #fff; border-radius: 14px;
+      padding: 14px 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.22);
     }
-    /* iw-cardのmax-widthとbox-shadowを無効化（デモカード内では不要） */
-    #tut-demo-card .iw-card { max-width: none; box-shadow: none; }
-    .tut-dim { opacity: 0.25; }
-    .tut-highlight-btn {
-      box-shadow: 0 0 0 3px #f39c12 !important;
-      animation: tut-pulse 1.1s ease-in-out infinite;
+    .tut-btn-highlight {
+      border-color: #f39c12 !important; background: #fff8ee !important;
+      animation: tut-btn-pulse 1.1s ease-in-out infinite;
     }
-    @keyframes tut-pulse {
-      0%, 100% { box-shadow: 0 0 0 3px #f39c12 !important; }
-      50% { box-shadow: 0 0 0 7px rgba(243,156,18,0.35) !important; }
+    @keyframes tut-btn-pulse {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(243,156,18,0.5); }
+      50% { box-shadow: 0 0 0 5px rgba(243,156,18,0.2); }
     }
+    .tut-btn-dim { opacity: 0.28; }
     #tutorial-overlay {
-      display: none; position: fixed; inset: 0; z-index: 10000;
+      display: none; position: fixed; inset: 0; z-index: 10000; pointer-events: all;
     }
     #tutorial-spotlight {
-      position: fixed; z-index: 10002; pointer-events: none;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.74);
-      transition: left 0.32s cubic-bezier(0.4,0,0.2,1),
-                  top 0.32s cubic-bezier(0.4,0,0.2,1),
-                  width 0.32s cubic-bezier(0.4,0,0.2,1),
-                  height 0.32s cubic-bezier(0.4,0,0.2,1),
-                  border-radius 0.32s;
+      position: fixed; z-index: 10001; pointer-events: none;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.72);
+      transition: left 0.3s ease, top 0.3s ease, width 0.3s ease, height 0.3s ease, border-radius 0.3s;
     }
-    #tutorial-tooltip {
-      position: fixed; z-index: 10003; background: white;
-      border-radius: 16px; padding: 20px 22px; width: 272px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.28);
-      transition: left 0.32s cubic-bezier(0.4,0,0.2,1), top 0.32s cubic-bezier(0.4,0,0.2,1);
+    #tutorial-sheet {
+      display: none; position: fixed; z-index: 10002;
+      bottom: 0; left: 0; right: 0;
+      background: #fff; border-radius: 20px 20px 0 0;
+      padding: 22px 20px 40px;
+      box-shadow: 0 -4px 30px rgba(0,0,0,0.18);
       pointer-events: all;
     }
-    #tut-step-label { font-size: 11px; color: #bbb; font-weight: 600; margin-bottom: 6px; }
-    #tut-title { font-size: 16px; font-weight: 700; color: #1a1a2e; margin: 0 0 8px; }
-    #tut-desc { font-size: 13px; color: #666; line-height: 1.75; margin: 0 0 18px; }
+    #tut-step-label { font-size: 11px; color: #bbb; font-weight: 600; margin-bottom: 8px; }
+    #tut-title { font-size: 17px; font-weight: 700; color: #1a1a2e; margin: 0 0 10px; }
+    #tut-desc { font-size: 13px; color: #666; line-height: 1.75; margin: 0 0 20px; }
     .tut-footer { display: flex; align-items: center; }
     #tut-skip-btn { background: none; border: none; font-size: 12px; color: #ccc; cursor: pointer; padding: 0; flex-shrink: 0; }
     #tut-skip-btn:hover { color: #aaa; }
@@ -531,8 +526,8 @@
     .tut-dot { width: 6px; height: 6px; border-radius: 50%; background: #ddd; transition: all 0.2s; }
     .tut-dot.active { width: 18px; border-radius: 3px; background: #1a1a2e; }
     #tut-next-btn {
-      padding: 8px 16px; background: #1a1a2e; color: white;
-      border: none; border-radius: 8px; font-size: 13px; font-weight: 700;
+      padding: 10px 20px; background: #1a1a2e; color: #fff;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
       cursor: pointer; flex-shrink: 0; transition: background 0.15s;
     }
     #tut-next-btn:hover { background: #2d2d4e; }
@@ -664,44 +659,41 @@
   <!-- スポット追加ボタン -->
   <button id="add-spot-btn" onclick="openSubmitModal()" title="スポットを追加する">＋ 追加</button>
 
-  <!-- チュートリアルデモカード（z-index:10001、dark overlayの上に表示） -->
+  <!-- チュートリアルデモカード（完全インラインスタイル、z-index:10001） -->
   <div id="tut-demo-card">
-    <div class="iw-card">
-      <div class="iw-name">例：代々木公園ドッグラン</div>
-      <div class="iw-addr">東京都渋谷区代々木神園町2-1</div>
-      <div class="iw-meta">
-        <span class="iw-badge" style="background:#27ae60;">ドッグラン</span>
-        <span class="iw-rating">★ 4.2</span>
-      </div>
-      <div class="iw-links">
-        <a class="iw-link iw-link-gmap" href="#" onclick="return false;">Googleマップ</a>
-      </div>
-      <div class="iw-actions">
-        <div class="iw-action-row">
-          <button class="iw-action-btn iw-fav-btn" id="tut-fav-btn">☆ お気に入り</button>
-          <button class="iw-action-btn iw-helpful-btn" id="tut-helpful-btn">🐾 行ったよ！ 5</button>
-        </div>
-        <div class="iw-action-row">
-          <button class="iw-action-btn" id="tut-review-btn">★ 口コミ 3件</button>
-          <button class="iw-action-btn iw-report-btn" id="tut-report-btn">🚩 報告</button>
-        </div>
-      </div>
+    <div style="font-weight:700;font-size:15px;color:#1a1a2e;margin-bottom:4px;line-height:1.35;">例：代々木公園ドッグラン</div>
+    <div style="font-size:11px;color:#999;margin-bottom:8px;">東京都渋谷区代々木神園町2-1</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <span style="background:#27ae60;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;">ドッグラン</span>
+      <span style="font-size:12px;color:#f39c12;font-weight:600;">★ 4.2</span>
+    </div>
+    <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f0f0f0;">
+      <span style="display:inline-block;background:#f5f5f5;color:#555;font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;">📍 Googleマップ</span>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:6px;">
+      <button id="tut-fav-btn" style="flex:1;padding:8px 4px;border:1.5px solid #e8e8e8;border-radius:8px;background:#fff;font-size:11px;font-weight:600;cursor:default;">☆ お気に入り</button>
+      <button id="tut-helpful-btn" style="flex:1;padding:8px 4px;border:1.5px solid #e8e8e8;border-radius:8px;background:#fff;font-size:11px;font-weight:600;cursor:default;">🐾 行ったよ！5</button>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button id="tut-review-btn" style="flex:1;padding:8px 4px;border:1.5px solid #e8e8e8;border-radius:8px;background:#fff;font-size:11px;font-weight:600;cursor:default;">★ 口コミ 3件</button>
+      <button id="tut-report-btn" style="flex:0 0 auto;padding:8px 8px;border:1.5px solid #eee;border-radius:8px;background:#fff;font-size:10px;font-weight:600;color:#aaa;cursor:default;">🚩 報告</button>
     </div>
   </div>
 
-  <!-- チュートリアルオーバーレイ -->
+  <!-- チュートリアルオーバーレイ（暗転） -->
   <div id="tutorial-overlay">
     <div id="tutorial-spotlight"></div>
-    <div id="tutorial-tooltip">
-      <div id="tut-step-label">1 / 9</div>
-      <h3 id="tut-title"></h3>
-      <div id="tut-preview"></div>
-      <p id="tut-desc"></p>
-      <div class="tut-footer">
-        <button id="tut-skip-btn" onclick="closeTutorial()">スキップ</button>
-        <div class="tut-dots" id="tut-dots"></div>
-        <button id="tut-next-btn" onclick="nextTutStep()">次へ →</button>
-      </div>
+  </div>
+
+  <!-- チュートリアルボトムシート（常に画面下部、z-index:10002） -->
+  <div id="tutorial-sheet">
+    <div id="tut-step-label">1 / 9</div>
+    <h3 id="tut-title"></h3>
+    <p id="tut-desc"></p>
+    <div class="tut-footer">
+      <button id="tut-skip-btn" onclick="closeTutorial()">スキップ</button>
+      <div class="tut-dots" id="tut-dots"></div>
+      <button id="tut-next-btn" onclick="nextTutStep()">次へ →</button>
     </div>
   </div>
 
@@ -1746,163 +1738,61 @@
     }
 
     // ===== チュートリアル（スポットライト型コーチマーク） =====
-    var TUTORIAL_KEY = 'jdm-tutorial-date'; // 最終表示日を保存
-    var TUTORIAL_INTERVAL_DAYS = 30;        // 30日に1回表示
+    // ===== チュートリアル =====
+    var TUTORIAL_KEY = 'jdm-tutorial-date';
+    var TUTORIAL_INTERVAL_DAYS = 30;
     var _tutStep = 0;
 
-    // 緯度経度 → スクリーン座標に変換（マーカースポットライト用）
-    function _latLngToScreenRect(lat, lng, halfSize) {
-      var projection = map.getProjection();
-      var bounds = map.getBounds();
-      if (!projection || !bounds) {
-        var mc = document.getElementById('map-container').getBoundingClientRect();
-        var cx = mc.left + mc.width / 2, cy = mc.top + mc.height / 2;
-        return { left: cx - halfSize, top: cy - halfSize, width: halfSize * 2, height: halfSize * 2 };
-      }
-      var ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
-      var neW = projection.fromLatLngToPoint(ne), swW = projection.fromLatLngToPoint(sw);
-      var ptW = projection.fromLatLngToPoint(new google.maps.LatLng(lat, lng));
-      var mr = document.getElementById('map-container').getBoundingClientRect();
-      var fx = (ptW.x - swW.x) / (neW.x - swW.x);
-      var fy = (ptW.y - neW.y) / (swW.y - neW.y);
-      return { left: mr.left + fx * mr.width - halfSize, top: mr.top + fy * mr.height - halfSize,
-               width: halfSize * 2, height: halfSize * 2 };
-    }
-
-    // チュートリアル用: infoWindowを開いてボタン要素をスポットライト
-    function _openTutInfoWindow(done) {
-      var p = PLACES_DATA[0];
-      if (!p) { done(); return; }
-      var target = null;
-      for (var i = 0; i < scMarkers.length; i++) {
-        if (scMarkers[i]._placeId === p.place_id) { target = scMarkers[i]; break; }
-      }
-      showInfo(p, target);
-      setTimeout(done, 600);
-    }
-
-    // infoWindow内のボタン群のBoundingRectを合算して返す（フォールバック付き）
-    function _getIwBtnRect(ids) {
-      var rects = ids.map(function(id) {
-        var el = document.getElementById(id);
-        return el ? el.getBoundingClientRect() : null;
-      }).filter(Boolean);
-      if (!rects.length) {
-        var mc = document.getElementById('map-container').getBoundingClientRect();
-        return { left: mc.left + 10, top: mc.top + mc.height * 0.3, width: mc.width - 20, height: 44 };
-      }
-      var left = Math.min.apply(null, rects.map(function(r) { return r.left; }));
-      var top  = Math.min.apply(null, rects.map(function(r) { return r.top; }));
-      var right= Math.max.apply(null, rects.map(function(r) { return r.right; }));
-      var bot  = Math.max.apply(null, rects.map(function(r) { return r.bottom; }));
-      return { left: left, top: top, width: right - left, height: bot - top };
-    }
-
+    // ステップ定義: spotlightEl指定→穴あきスポットライト / showCard:true→デモカード表示
     var TUTORIAL_STEPS = [
       {
-        // Step 1: フィルターバー
-        getRect: function() { return document.getElementById('filter-bar').getBoundingClientRect(); },
-        pad: 4, radius: '8px',
+        spotlightEl: 'filter-bar', pad: 4, radius: '8px',
         title: 'カテゴリで絞り込もう',
-        desc: 'ドッグラン・動物病院・ペット可カフェ・宿泊施設など種類別に絞り込めます。「★ お気に入り」でお気に入り登録済みスポットだけ表示することもできます。',
-        pos: 'below'
+        desc: 'ドッグラン・動物病院・ペット可カフェ・宿泊施設など種類別に絞り込めます。「★ お気に入り」でお気に入り済みスポットだけ表示もできます。',
       },
       {
-        // Step 2: 検索
-        getRect: function() { return document.getElementById('search-input').getBoundingClientRect(); },
-        pad: 6, radius: '10px',
+        spotlightEl: 'search-input', pad: 6, radius: '10px',
         title: '店名・住所で検索',
         desc: '検索ボックスに入力すると、スポット名や住所でリアルタイムに絞り込めます。行きたいエリアや施設名を入れてみてください。',
-        pos: 'below'
       },
       {
-        // Step 3: マーカー説明（暗転＋ツールチップのみ、マーカー位置に依存しない）
-        isDemoCard: true,
-        showDemoCard: false,
+        // スポットライトなし・デモカードなし・画面暗転のみ
         title: 'マーカーをタップしよう',
-        desc: '地図上のアイコンをタップするとスポットの詳細カードが開きます。次のステップで実際のカードの各ボタンを説明します。',
+        desc: '地図上のアイコンをタップするとスポットの詳細カードが開きます。次のステップで実際のカードの使い方を説明します。',
       },
       {
-        // Step 4: 行ったよ！（デモカード表示・isDemoCard:true）
-        isDemoCard: true,
-        beforeShow: function(done) {
-          document.getElementById('tut-demo-card').style.display = 'block';
-          // 全ボタンクラスリセット
-          ['tut-helpful-btn','tut-fav-btn','tut-review-btn','tut-report-btn'].forEach(function(id) {
-            var el = document.getElementById(id);
-            el.classList.remove('tut-highlight-btn', 'tut-dim');
-          });
-          document.getElementById('tut-helpful-btn').classList.add('tut-highlight-btn');
-          document.getElementById('tut-fav-btn').classList.add('tut-dim');
-          document.getElementById('tut-review-btn').classList.add('tut-dim');
-          document.getElementById('tut-report-btn').classList.add('tut-dim');
-          done();
-        },
+        showCard: true, highlightBtns: ['tut-helpful-btn'],
         title: '🐾 行ったよ！ボタン',
-        desc: '訪問したら押してください。同じ犬連れ仲間への参考になります。押すと口コミを書く画面に誘導されます。もう一度押すと取り消しにもなります。',
+        desc: '訪問したら押してください。同じ犬連れ仲間への参考になります。もう一度押すと取り消しにもなります。',
       },
       {
-        // Step 5: お気に入り（デモカード表示・isDemoCard:true）
-        isDemoCard: true,
-        beforeShow: function(done) {
-          ['tut-helpful-btn','tut-fav-btn','tut-review-btn','tut-report-btn'].forEach(function(id) {
-            var el = document.getElementById(id);
-            el.classList.remove('tut-highlight-btn', 'tut-dim');
-          });
-          document.getElementById('tut-fav-btn').classList.add('tut-highlight-btn');
-          document.getElementById('tut-helpful-btn').classList.add('tut-dim');
-          document.getElementById('tut-review-btn').classList.add('tut-dim');
-          document.getElementById('tut-report-btn').classList.add('tut-dim');
-          done();
-        },
+        showCard: true, highlightBtns: ['tut-fav-btn'],
         title: '☆ お気に入り登録',
         desc: '押すとスポットをお気に入り登録できます。フィルターバーの「★ お気に入り」でいつでも一覧表示できます。アカウント不要で端末に保存されます。',
       },
       {
-        // Step 6: 口コミ・報告（デモカード表示・isDemoCard:true）
-        isDemoCard: true,
-        beforeShow: function(done) {
-          ['tut-helpful-btn','tut-fav-btn','tut-review-btn','tut-report-btn'].forEach(function(id) {
-            var el = document.getElementById(id);
-            el.classList.remove('tut-highlight-btn', 'tut-dim');
-          });
-          document.getElementById('tut-review-btn').classList.add('tut-highlight-btn');
-          document.getElementById('tut-report-btn').classList.add('tut-highlight-btn');
-          document.getElementById('tut-helpful-btn').classList.add('tut-dim');
-          document.getElementById('tut-fav-btn').classList.add('tut-dim');
-          done();
-        },
+        showCard: true, highlightBtns: ['tut-review-btn', 'tut-report-btn'],
         title: '★ 口コミ ／ 🚩 問題報告',
-        desc: '「★口コミ」では星1〜5＋コメントで感想を投稿できます（管理者確認後に公開）。「🚩報告」は閉店・情報が古いときにお知らせください。',
+        desc: '「★口コミ」では星1〜5＋コメントで感想を投稿できます（審査後に公開）。「🚩報告」は閉店・情報が古いときにお知らせください。',
       },
       {
-        // Step 7: 現在地ボタン（_renderTutStepでデモカードを自動的に隠す）
-        getRect: function() { return document.getElementById('locate-btn').getBoundingClientRect(); },
-        pad: 8, radius: '50%',
+        spotlightEl: 'locate-btn', pad: 8, radius: '50%',
         title: '現在地に移動',
         desc: 'このボタンを押すと、今いる場所に地図が移動します。近くの犬連れスポットを探すときに使ってください。',
-        pos: 'above-left'
       },
       {
-        // Step 8: スポット追加
-        getRect: function() { return document.getElementById('add-spot-btn').getBoundingClientRect(); },
-        pad: 8, radius: '24px',
+        spotlightEl: 'add-spot-btn', pad: 8, radius: '24px',
         title: 'スポットを追加しよう！',
         desc: '知っているお気に入りの場所を追加してください。管理者が確認後、全員の地図に表示されます。みんなのマップが育ちます 🐾',
-        pos: 'above-left'
       },
       {
-        // Step 9: お知らせ
-        getRect: function() { return document.getElementById('bell-btn').getBoundingClientRect(); },
-        pad: 6, radius: '50%',
+        spotlightEl: 'bell-btn', pad: 6, radius: '50%',
         title: 'お知らせをチェック',
         desc: '新機能やメンテナンス情報はここに届きます。赤いバッジが付いたら確認してみてください。',
-        pos: 'below-left'
-      }
+      },
     ];
 
     function startTutorial(force) {
-      // URLに ?tutorial がある場合は強制表示（確認・デバッグ用）
       var forceByUrl = location.search.indexOf('tutorial') >= 0;
       if (!force && !forceByUrl) {
         var last = localStorage.getItem(TUTORIAL_KEY);
@@ -1913,18 +1803,8 @@
       }
       _tutStep = 0;
       document.getElementById('tutorial-overlay').style.display = 'block';
-      // 初回は少し遅らせてアニメーション開始
-      setTimeout(function() { showTutStep(0); }, 50);
-    }
-
-    // beforeShowコールバック対応版
-    function showTutStep(idx) {
-      var step = TUTORIAL_STEPS[idx];
-      if (step.beforeShow) {
-        step.beforeShow(function() { _renderTutStep(idx); });
-      } else {
-        _renderTutStep(idx);
-      }
+      document.getElementById('tutorial-sheet').style.display = 'block';
+      setTimeout(function() { _renderTutStep(0); }, 50);
     }
 
     function _renderTutStep(idx) {
@@ -1932,60 +1812,45 @@
       var sl = document.getElementById('tutorial-spotlight');
       var overlay = document.getElementById('tutorial-overlay');
       var demoCard = document.getElementById('tut-demo-card');
-      var tw = 272, margin = 12;
-      var tLeft, tTop;
 
-      if (step.isDemoCard) {
-        // isDemoCardステップ: spotlight非表示・overlay暗色・デモカード表示制御
-        sl.style.display = 'none';
-        overlay.style.background = 'rgba(0,0,0,0.74)';
-        demoCard.style.display = step.showDemoCard ? 'block' : 'none';
-        if (step.showDemoCard) {
-          // デモカード真下にツールチップ配置
-          var cr = demoCard.getBoundingClientRect();
-          tLeft = (window.innerWidth - tw) / 2;
-          tTop  = cr.bottom + 14;
-          if (tTop + 240 > window.innerHeight) tTop = cr.top - 240;
-        } else {
-          // デモカードなし→画面中央よりやや上
-          tLeft = (window.innerWidth - tw) / 2;
-          tTop  = Math.round(window.innerHeight * 0.35);
-        }
-      } else {
-        // 通常ステップ: spotlight表示・overlay透明・デモカード非表示
-        sl.style.display = '';
-        overlay.style.background = '';
-        demoCard.style.display = 'none';
-        var r = step.getRect();
+      // スポットライト制御
+      if (step.spotlightEl) {
+        var el = document.getElementById(step.spotlightEl);
+        var r = el.getBoundingClientRect();
         var pad = step.pad || 0;
-        sl.style.left         = (r.left - pad) + 'px';
-        sl.style.top          = (r.top - pad) + 'px';
-        sl.style.width        = (r.width + pad * 2) + 'px';
-        sl.style.height       = (r.height + pad * 2) + 'px';
-        sl.style.borderRadius = step.radius;
-        var sLeft = r.left - pad, sTop = r.top - pad;
-        var sW = r.width + pad * 2, sH = r.height + pad * 2;
-        if (step.pos === 'below') {
-          tLeft = Math.max(margin, Math.min(window.innerWidth - tw - margin, sLeft));
-          tTop  = sTop + sH + 14;
-        } else if (step.pos === 'above-left') {
-          tLeft = Math.max(margin, sLeft + sW - tw);
-          tTop  = sTop - 220;
-          if (tTop < 60) tTop = sTop + sH + 14;
-        } else if (step.pos === 'below-left') {
-          tLeft = Math.max(margin, sLeft + sW - tw);
-          tTop  = sTop + sH + 14;
-        } else {
-          tLeft = (window.innerWidth - tw) / 2;
-          tTop  = sTop + sH + 14;
-        }
+        sl.style.display = '';
+        sl.style.left = (r.left - pad) + 'px';
+        sl.style.top  = (r.top - pad) + 'px';
+        sl.style.width  = (r.width + pad * 2) + 'px';
+        sl.style.height = (r.height + pad * 2) + 'px';
+        sl.style.borderRadius = step.radius || '8px';
+        overlay.style.background = '';
+      } else {
+        // スポットライトなし→overlay自体を暗くする
+        sl.style.display = 'none';
+        overlay.style.background = 'rgba(0,0,0,0.72)';
       }
 
-      // ツールチップ内容
+      // デモカード制御
+      demoCard.style.display = step.showCard ? 'block' : 'none';
+      if (step.showCard) {
+        var allBtns = ['tut-fav-btn','tut-helpful-btn','tut-review-btn','tut-report-btn'];
+        var hilight = step.highlightBtns || [];
+        allBtns.forEach(function(id) {
+          var btn = document.getElementById(id);
+          btn.classList.remove('tut-btn-highlight', 'tut-btn-dim');
+          if (hilight.indexOf(id) >= 0) {
+            btn.classList.add('tut-btn-highlight');
+          } else {
+            btn.classList.add('tut-btn-dim');
+          }
+        });
+      }
+
+      // ボトムシート内容更新
       document.getElementById('tut-step-label').textContent = (idx + 1) + ' / ' + TUTORIAL_STEPS.length;
       document.getElementById('tut-title').textContent = step.title;
-      document.getElementById('tut-preview').innerHTML = step.preview || '';
-      document.getElementById('tut-desc').textContent  = step.desc;
+      document.getElementById('tut-desc').textContent = step.desc;
       document.getElementById('tut-next-btn').textContent =
         idx === TUTORIAL_STEPS.length - 1 ? 'はじめる！' : '次へ →';
 
@@ -1997,21 +1862,18 @@
         d.className = 'tut-dot' + (i === idx ? ' active' : '');
         dots.appendChild(d);
       }
-
-      var tt = document.getElementById('tutorial-tooltip');
-      tt.style.left = Math.max(margin, tLeft) + 'px';
-      tt.style.top  = Math.max(60, tTop) + 'px';
     }
 
     function nextTutStep() {
       if (_tutStep >= TUTORIAL_STEPS.length - 1) { closeTutorial(); return; }
       _tutStep++;
-      showTutStep(_tutStep);
+      _renderTutStep(_tutStep);
     }
 
     function closeTutorial() {
-      localStorage.setItem(TUTORIAL_KEY, String(Date.now())); // 表示日時を保存
+      localStorage.setItem(TUTORIAL_KEY, String(Date.now()));
       document.getElementById('tutorial-overlay').style.display = 'none';
+      document.getElementById('tutorial-sheet').style.display = 'none';
       document.getElementById('tut-demo-card').style.display = 'none';
     }
 
