@@ -1471,7 +1471,7 @@
       document.getElementById('geocode-btn').style.display = 'none';
       document.getElementById('pin-mode-hint').style.display = 'block';
       document.getElementById('pin-verify-link').style.display = 'none';
-      document.getElementById('geocode-result').style.display = 'none';
+      // geocode-resultはジオコーディング中のため非表示にしない（_reverseGeocodePinが管理）
       document.getElementById('submit-confirm-btn').disabled = true;
       document.getElementById('submit-overlay').classList.add('open');
     }
@@ -1483,10 +1483,12 @@
       gr.textContent = '住所を取得中...'; gr.className = ''; gr.style.display = 'block';
       var geocoder = new google.maps.Geocoder();
       geocoder.geocode({ location: { lat: lat, lng: lng }, language: 'ja' }, function(results, status) {
+        gr.style.display = 'block'; // コールバック時に必ず表示
         if (status === 'OK' && results && results.length > 0) {
           var best = _pickBestGeoResult(results);
           var addr = best.formatted_address.replace(/^日本、〒\d{3}-\d{4}\s*/, '');
           document.getElementById('sf-address').value = addr;
+          gr.className = '';
           gr.textContent = '✓ 住所を自動入力しました（編集できます）';
           var link = document.getElementById('pin-verify-link');
           link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
@@ -1494,7 +1496,7 @@
           _updateSubmitBtn();
         } else {
           gr.className = 'error';
-          gr.textContent = '住所の取得に失敗しました。手動で入力してください。';
+          gr.textContent = '住所の取得に失敗しました（' + status + '）。手動で入力してください。';
         }
       });
     }
