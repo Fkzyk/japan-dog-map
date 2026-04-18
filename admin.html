@@ -24,36 +24,6 @@
     }
     #logout-btn:hover { background: rgba(255,255,255,0.2); }
 
-    /* ログイン画面 */
-    #login-section {
-      display: flex; align-items: center; justify-content: center;
-      min-height: calc(100vh - 52px); padding: 20px;
-    }
-    #login-card {
-      background: white; border-radius: 18px; padding: 32px 28px;
-      width: 100%; max-width: 360px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
-    }
-    #login-card h2 { font-size: 18px; color: #1a1a2e; margin: 0 0 6px; }
-    #login-card p { font-size: 13px; color: #888; margin: 0 0 20px; }
-    #admin-password {
-      width: 100%; padding: 11px 14px; border: 1.5px solid #ddd; border-radius: 10px;
-      font-size: 14px; outline: none; margin-bottom: 12px; transition: border-color 0.2s;
-    }
-    #admin-password:focus { border-color: #1a1a2e; }
-    #login-btn {
-      width: 100%; padding: 12px; background: #1a1a2e; color: white;
-      border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
-      cursor: pointer; transition: background 0.2s;
-    }
-    #login-btn:hover { background: #2d2d4e; }
-    #login-btn:disabled { background: #aaa; cursor: default; }
-    #login-error {
-      display: none; margin-top: 10px; padding: 8px 12px;
-      background: #fff0f0; border: 1px solid #f5c0c0; border-radius: 8px;
-      font-size: 12px; color: #c0392b;
-    }
-
     /* 管理画面 */
     #admin-section { display: none; }
 
@@ -178,18 +148,6 @@
   <div id="admin-header">
     <h1>🐕 Japan Dog Map 管理画面</h1>
     <button id="logout-btn" onclick="logout()" style="display:none;">ログアウト</button>
-  </div>
-
-  <!-- ログイン画面 -->
-  <div id="login-section">
-    <div id="login-card">
-      <h2>管理者ログイン</h2>
-      <p>Japan Dog Map の管理者専用ページです。</p>
-      <input type="password" id="admin-password" placeholder="管理者パスワード"
-             onkeydown="if(event.key==='Enter')adminLogin()">
-      <button id="login-btn" onclick="adminLogin()">ログイン</button>
-      <div id="login-error">パスワードが正しくありません。</div>
-    </div>
   </div>
 
   <!-- 管理画面 -->
@@ -338,58 +296,49 @@
     var SUPABASE_URL = 'https://rfcfilhqkkjmkecxzijw.supabase.co';
     var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmY2ZpbGhxa2tqbWtlY3h6aWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NDI4MjQsImV4cCI6MjA4NzQxODgyNH0.xtjFtJaWFWeoGRs8O_g57mDHn6ElQlEMZJN8Q0Kn6xk';
     var sb = null;
-    var adminPassword = '';
     var allSubmissions = [];
     var currentTab = 'pending';
     var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ペット可飲食店', vet:'動物病院', hotel:'ペット可宿泊施設' };
 
     window.addEventListener('load', function() {
       sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      // セッション内でのパスワード保持（ページリロード時に再ログイン不要）
-      var saved = sessionStorage.getItem('jdm_admin_pw');
-      if (saved) { adminPassword = saved; showAdminSection(); loadSubmissions(); loadRequestsBadge(); }
-    });
-
-    // ===== ログイン =====
-    function adminLogin() {
-      var pw = document.getElementById('admin-password').value;
-      if (!pw) { alert('パスワードを入力してください。'); return; }
-      var btn = document.getElementById('login-btn');
-      btn.disabled = true; btn.textContent = '確認中...';
-      document.getElementById('login-error').style.display = 'none';
-
-      sb.rpc('admin_login', { input_password: pw }).then(function(result) {
-        btn.disabled = false; btn.textContent = 'ログイン';
-        if (result.error || !result.data) {
-          document.getElementById('login-error').style.display = 'block';
+      // OAuthセッション確認 → なければログインページへ
+      sb.auth.getSession().then(function(result) {
+        if (!result.data.session) {
+          window.location.href = '/admin-login.html';
           return;
         }
-        adminPassword = pw;
-        sessionStorage.setItem('jdm_admin_pw', pw);
-        showAdminSection();
-        loadSubmissions();
-        loadRequestsBadge();
+        // 管理者権限チェック
+        sb.rpc('is_admin').then(function(r) {
+          if (r.error || !r.data) {
+            alert('管理者権限がありません。');
+            sb.auth.signOut().then(function() {
+              window.location.href = '/admin-login.html';
+            });
+            return;
+          }
+          showAdminSection();
+          loadSubmissions();
+          loadRequestsBadge();
+        });
+      });
+    });
+
+    // ===== ログアウト =====
+    function logout() {
+      sb.auth.signOut().then(function() {
+        window.location.href = '/admin-login.html';
       });
     }
 
-    function logout() {
-      adminPassword = '';
-      sessionStorage.removeItem('jdm_admin_pw');
-      document.getElementById('admin-section').style.display = 'none';
-      document.getElementById('login-section').style.display = 'flex';
-      document.getElementById('logout-btn').style.display = 'none';
-      document.getElementById('admin-password').value = '';
-    }
-
     function showAdminSection() {
-      document.getElementById('login-section').style.display = 'none';
       document.getElementById('admin-section').style.display = 'block';
       document.getElementById('logout-btn').style.display = 'block';
     }
 
     // ===== 削除依頼バッジをログイン直後に取得 =====
     function loadRequestsBadge() {
-      sb.rpc('admin_get_deletion_requests', { input_password: adminPassword })
+      sb.rpc('admin_get_deletion_requests_v2', {})
         .then(function(result) {
           if (result.error || !result.data) return;
           var pending = result.data.filter(function(r) { return r.status === 'pending'; }).length;
@@ -405,7 +354,7 @@
       document.getElementById('submission-list').innerHTML =
         '<div id="loading-indicator" style="text-align:center;padding:40px;color:#aaa;font-size:14px;">読み込み中...</div>';
 
-      sb.rpc('admin_get_submissions', { input_password: adminPassword })
+      sb.rpc('admin_get_submissions_v2', {})
         .then(function(result) {
           if (result.error) {
             document.getElementById('submission-list').innerHTML =
@@ -533,8 +482,7 @@
       var comment = document.getElementById('edit-comment-' + id).value.trim();
       if (!name || !address) { showToast('スポット名と住所は必須です'); return; }
 
-      sb.rpc('admin_update_submission', {
-        input_password: adminPassword,
+      sb.rpc('admin_update_submission_v2', {
         submission_id: id,
         new_name: name, new_address: address,
         new_category: cat, new_comment: comment || null
@@ -553,8 +501,7 @@
 
     // ===== 承認・却下 =====
     function updateStatus(id, newStatus) {
-      sb.rpc('admin_update_status', {
-        input_password: adminPassword,
+      sb.rpc('admin_update_status_v2', {
         submission_id: id,
         new_status: newStatus
       }).then(function(result) {
@@ -572,8 +519,7 @@
     // ===== 削除（管理者） =====
     function deleteSubmission(id, name) {
       if (!confirm('「' + name + '」を削除しますか？\nこの操作は元に戻せません。')) return;
-      sb.rpc('admin_delete_submission', {
-        input_password: adminPassword,
+      sb.rpc('admin_delete_submission_v2', {
         submission_id: id
       }).then(function(result) {
         if (result.error) { showToast('削除に失敗しました'); return; }
@@ -588,7 +534,7 @@
     function loadAdminReviews() {
       document.getElementById('reviews-loading').style.display = 'block';
       document.getElementById('reviews-admin-list').innerHTML = '';
-      sb.rpc('admin_get_reviews', { input_password: adminPassword })
+      sb.rpc('admin_get_reviews_v2', {})
         .then(function(result) {
           document.getElementById('reviews-loading').style.display = 'none';
           if (result.error) {
@@ -631,8 +577,8 @@
     }
 
     function updateReviewStatus(id, newStatus) {
-      sb.rpc('admin_update_review_status', {
-        input_password: adminPassword, review_id: id, new_status: newStatus
+      sb.rpc('admin_update_review_status_v2', {
+        review_id: id, new_status: newStatus
       }).then(function(result) {
         if (result.error) { showToast('操作に失敗しました'); return; }
         var label = newStatus === 'approved' ? '承認' : '却下';
@@ -645,7 +591,7 @@
     function loadAdminRequests() {
       document.getElementById('requests-loading').style.display = 'block';
       document.getElementById('requests-admin-list').innerHTML = '';
-      sb.rpc('admin_get_deletion_requests', { input_password: adminPassword })
+      sb.rpc('admin_get_deletion_requests_v2', {})
         .then(function(result) {
           document.getElementById('requests-loading').style.display = 'none';
           if (result.error) {
@@ -693,8 +639,8 @@
     }
 
     function updateRequestStatus(id, newStatus) {
-      sb.rpc('admin_update_request', {
-        input_password: adminPassword, request_id: id, new_status: newStatus
+      sb.rpc('admin_update_request_v2', {
+        request_id: id, new_status: newStatus
       }).then(function(result) {
         if (result.error) { showToast('操作に失敗しました'); return; }
         var label = newStatus === 'handled' ? '対応済みにしました' : '却下しました';
@@ -825,7 +771,6 @@
       if (!spotId) { showToast('スポットIDは必須です'); return; }
 
       var params = {
-        input_password: adminPassword,
         p_spot_id:  spotId,
         p_name:     document.getElementById('ov-name').value.trim()    || null,
         p_address:  document.getElementById('ov-address').value.trim() || null,
@@ -836,7 +781,7 @@
         p_note:     document.getElementById('ov-note').value.trim()    || null
       };
 
-      sb.rpc('admin_upsert_override', params).then(function(result) {
+      sb.rpc('admin_upsert_override_v2', params).then(function(result) {
         if (result.error) { showToast('保存に失敗しました: ' + result.error.message); return; }
         closeOverrideModal();
         showToast('スポット修正を保存しました');
@@ -848,7 +793,7 @@
     function loadAdminOverrides() {
       document.getElementById('overrides-loading').style.display = 'block';
       document.getElementById('overrides-admin-list').innerHTML = '';
-      sb.rpc('admin_get_overrides', { input_password: adminPassword })
+      sb.rpc('admin_get_overrides_v2', {})
         .then(function(result) {
           document.getElementById('overrides-loading').style.display = 'none';
           if (result.error) {
@@ -903,8 +848,8 @@
 
     function deleteOverride(spotId) {
       if (!confirm('「' + spotId + '」の修正データを削除しますか？\nスポット情報がplaces.jsonの元データに戻ります。')) return;
-      sb.rpc('admin_delete_override', {
-        input_password: adminPassword, p_spot_id: spotId
+      sb.rpc('admin_delete_override_v2', {
+        p_spot_id: spotId
       }).then(function(result) {
         if (result.error) { showToast('削除に失敗しました'); return; }
         showToast('修正データを削除しました');

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理者ログイン — Japan Dog Map</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      background: white;
+      border-radius: 18px;
+      padding: 40px 32px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .login-card .logo { font-size: 40px; margin-bottom: 12px; }
+    .login-card h1 { font-size: 20px; color: #1a1a2e; margin: 0 0 6px; }
+    .login-card p { font-size: 13px; color: #888; margin: 0 0 28px; line-height: 1.7; }
+    .google-btn {
+      width: 100%;
+      padding: 13px 16px;
+      background: white;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .google-btn:hover { background: #f8f8f8; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .google-btn:disabled { opacity: 0.6; cursor: default; }
+    .google-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .error-msg {
+      display: none;
+      margin-top: 16px;
+      padding: 10px 14px;
+      background: #fff0f0;
+      border: 1px solid #f5c0c0;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #c0392b;
+    }
+    .loading-msg { display: none; margin-top: 16px; font-size: 12px; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo">🐕</div>
+    <h1>Japan Dog Map</h1>
+    <p>管理者専用ページです。<br>管理者権限のあるGoogleアカウントでログインしてください。</p>
+
+    <button class="google-btn" id="google-btn" onclick="loginWithGoogle()">
+      <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        <path fill="none" d="M0 0h48v48H0z"/>
+      </svg>
+      Googleでログイン
+    </button>
+    <div class="error-msg" id="error-msg"></div>
+    <div class="loading-msg" id="loading-msg">確認中...</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    var SUPABASE_URL      = 'https://rfcfilhqkkjmkecxzijw.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmY2ZpbGhxa2tqbWtlY3h6aWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NDI4MjQsImV4cCI6MjA4NzQxODgyNH0.xtjFtJaWFWeoGRs8O_g57mDHn6ElQlEMZJN8Q0Kn6xk';
+    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ページ読み込み時：ログイン済みなら管理画面へリダイレクト
+    window.addEventListener('load', function() {
+      document.getElementById('loading-msg').style.display = 'block';
+      sb.auth.getSession().then(function(result) {
+        if (!result.data.session) {
+          document.getElementById('loading-msg').style.display = 'none';
+          return;
+        }
+        // ログイン済みなら管理者権限を確認
+        sb.rpc('is_admin').then(function(r) {
+          if (r.data === true) {
+            window.location.href = '/admin.html';
+          } else {
+            sb.auth.signOut().then(function() {
+              document.getElementById('loading-msg').style.display = 'none';
+              showError('管理者権限がありません。');
+            });
+          }
+        });
+      });
+    });
+
+    // Googleログイン
+    function loginWithGoogle() {
+      document.getElementById('google-btn').disabled = true;
+      document.getElementById('error-msg').style.display = 'none';
+      sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + '/admin.html' }
+      }).then(function(result) {
+        if (result.error) {
+          document.getElementById('google-btn').disabled = false;
+          showError('ログインに失敗しました。再度お試しください。');
+        }
+        // 成功時はGoogleページへ自動リダイレクト
+      });
+    }
+
+    function showError(msg) {
+      var el = document.getElementById('error-msg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
