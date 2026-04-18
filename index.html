@@ -508,17 +508,16 @@
       box-shadow: 0 0 0 9999px rgba(0,0,0,0.72);
       transition: left 0.3s ease, top 0.3s ease, width 0.3s ease, height 0.3s ease, border-radius 0.3s;
     }
-    #tutorial-sheet {
+    /* ツールチップ: overlay外・z-index 10002 でスタッキング問題なし */
+    #tutorial-tooltip {
       display: none; position: fixed; z-index: 10002;
-      bottom: 0; left: 0; right: 0;
-      background: #fff; border-radius: 20px 20px 0 0;
-      padding: 22px 20px 40px;
-      box-shadow: 0 -4px 30px rgba(0,0,0,0.18);
+      width: 280px; background: #fff; border-radius: 14px;
+      padding: 16px 18px 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.22);
       pointer-events: all;
     }
-    #tut-step-label { font-size: 11px; color: #bbb; font-weight: 600; margin-bottom: 8px; }
-    #tut-title { font-size: 17px; font-weight: 700; color: #1a1a2e; margin: 0 0 10px; }
-    #tut-desc { font-size: 13px; color: #666; line-height: 1.75; margin: 0 0 20px; }
+    #tut-step-label { font-size: 11px; color: #bbb; font-weight: 600; margin-bottom: 6px; }
+    #tut-title { font-size: 15px; font-weight: 700; color: #1a1a2e; margin: 0 0 6px; }
+    #tut-desc { font-size: 12px; color: #666; line-height: 1.7; margin: 0 0 14px; }
     .tut-footer { display: flex; align-items: center; }
     #tut-skip-btn { background: none; border: none; font-size: 12px; color: #ccc; cursor: pointer; padding: 0; flex-shrink: 0; }
     #tut-skip-btn:hover { color: #aaa; }
@@ -526,8 +525,8 @@
     .tut-dot { width: 6px; height: 6px; border-radius: 50%; background: #ddd; transition: all 0.2s; }
     .tut-dot.active { width: 18px; border-radius: 3px; background: #1a1a2e; }
     #tut-next-btn {
-      padding: 10px 20px; background: #1a1a2e; color: #fff;
-      border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+      padding: 8px 16px; background: #1a1a2e; color: #fff;
+      border: none; border-radius: 10px; font-size: 13px; font-weight: 700;
       cursor: pointer; flex-shrink: 0; transition: background 0.15s;
     }
     #tut-next-btn:hover { background: #2d2d4e; }
@@ -685,8 +684,8 @@
     <div id="tutorial-spotlight"></div>
   </div>
 
-  <!-- チュートリアルボトムシート（常に画面下部、z-index:10002） -->
-  <div id="tutorial-sheet">
+  <!-- チュートリアルツールチップ（要素の近くに表示、z-index:10002） -->
+  <div id="tutorial-tooltip">
     <div id="tut-step-label">1 / 9</div>
     <h3 id="tut-title"></h3>
     <p id="tut-desc"></p>
@@ -1803,8 +1802,43 @@
       }
       _tutStep = 0;
       document.getElementById('tutorial-overlay').style.display = 'block';
-      document.getElementById('tutorial-sheet').style.display = 'block';
+      document.getElementById('tutorial-tooltip').style.display = 'block';
       setTimeout(function() { _renderTutStep(0); }, 50);
+    }
+
+    // ツールチップをハイライト要素の近くに配置する
+    function _positionTooltip(step) {
+      var tt = document.getElementById('tutorial-tooltip');
+      var vw = window.innerWidth;
+      var vh = window.innerHeight;
+      var ttW = 280;
+      var ttH = tt.offsetHeight || 160;
+      var margin = 12;
+      var left, top;
+
+      if (step.spotlightEl) {
+        // 要素の下に出す（はみ出す場合は上）
+        var el = document.getElementById(step.spotlightEl);
+        var r = el.getBoundingClientRect();
+        var pad = step.pad || 0;
+        left = Math.max(8, Math.min(r.left, vw - ttW - 8));
+        top = r.bottom + pad + margin;
+        if (top + ttH > vh - 16) { top = r.top - pad - ttH - margin; }
+      } else if (step.showCard) {
+        // デモカードの下に出す
+        var card = document.getElementById('tut-demo-card');
+        var cr = card.getBoundingClientRect();
+        left = Math.max(8, (vw - ttW) / 2);
+        top = cr.bottom + margin;
+        if (top + ttH > vh - 16) { top = cr.top - ttH - margin; }
+      } else {
+        // 画面中央（マーカー説明ステップ等）
+        left = Math.max(8, (vw - ttW) / 2);
+        top = Math.max(8, (vh - ttH) / 2);
+      }
+
+      tt.style.left = left + 'px';
+      tt.style.top = top + 'px';
     }
 
     function _renderTutStep(idx) {
@@ -1819,14 +1853,13 @@
         var r = el.getBoundingClientRect();
         var pad = step.pad || 0;
         sl.style.display = '';
-        sl.style.left = (r.left - pad) + 'px';
-        sl.style.top  = (r.top - pad) + 'px';
-        sl.style.width  = (r.width + pad * 2) + 'px';
+        sl.style.left   = (r.left - pad) + 'px';
+        sl.style.top    = (r.top  - pad) + 'px';
+        sl.style.width  = (r.width  + pad * 2) + 'px';
         sl.style.height = (r.height + pad * 2) + 'px';
         sl.style.borderRadius = step.radius || '8px';
         overlay.style.background = '';
       } else {
-        // スポットライトなし→overlay自体を暗くする
         sl.style.display = 'none';
         overlay.style.background = 'rgba(0,0,0,0.72)';
       }
@@ -1839,15 +1872,11 @@
         allBtns.forEach(function(id) {
           var btn = document.getElementById(id);
           btn.classList.remove('tut-btn-highlight', 'tut-btn-dim');
-          if (hilight.indexOf(id) >= 0) {
-            btn.classList.add('tut-btn-highlight');
-          } else {
-            btn.classList.add('tut-btn-dim');
-          }
+          btn.classList.add(hilight.indexOf(id) >= 0 ? 'tut-btn-highlight' : 'tut-btn-dim');
         });
       }
 
-      // ボトムシート内容更新
+      // テキスト更新
       document.getElementById('tut-step-label').textContent = (idx + 1) + ' / ' + TUTORIAL_STEPS.length;
       document.getElementById('tut-title').textContent = step.title;
       document.getElementById('tut-desc').textContent = step.desc;
@@ -1862,6 +1891,9 @@
         d.className = 'tut-dot' + (i === idx ? ' active' : '');
         dots.appendChild(d);
       }
+
+      // ツールチップ位置を要素の近くに配置
+      _positionTooltip(step);
     }
 
     function nextTutStep() {
@@ -1873,7 +1905,7 @@
     function closeTutorial() {
       localStorage.setItem(TUTORIAL_KEY, String(Date.now()));
       document.getElementById('tutorial-overlay').style.display = 'none';
-      document.getElementById('tutorial-sheet').style.display = 'none';
+      document.getElementById('tutorial-tooltip').style.display = 'none';
       document.getElementById('tut-demo-card').style.display = 'none';
     }
 
