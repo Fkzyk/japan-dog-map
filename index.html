@@ -1755,9 +1755,17 @@
         desc: '検索ボックスに入力すると、スポット名や住所でリアルタイムに絞り込めます。行きたいエリアや施設名を入れてみてください。',
       },
       {
-        // スポットライトなし・デモカードなし・画面暗転のみ
+        // スポットライトなし・地図ズームイン・画面暗転
         title: 'マーカーをタップしよう',
         desc: '地図上のアイコンをタップするとスポットの詳細カードが開きます。次のステップで実際のカードの使い方を説明します。',
+        beforeShow: function() {
+          // PLACES_DATAの最初のスポットにズームイン
+          if (typeof map !== 'undefined' && PLACES_DATA && PLACES_DATA.length > 0) {
+            var spot = PLACES_DATA[0];
+            map.panTo({ lat: spot.lat, lng: spot.lng });
+            map.setZoom(15);
+          }
+        },
       },
       {
         showCard: true, highlightBtns: ['tut-helpful-btn'],
@@ -1846,6 +1854,9 @@
       var sl = document.getElementById('tutorial-spotlight');
       var overlay = document.getElementById('tutorial-overlay');
       var demoCard = document.getElementById('tut-demo-card');
+
+      // ステップ固有の前処理（ズームイン等）
+      if (step.beforeShow) { step.beforeShow(); }
 
       // スポットライト制御
       if (step.spotlightEl) {
