@@ -21,14 +21,6 @@
     #header-logo { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; }
     #header h1 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: 0.3px; }
     #count-display { margin-left: auto; font-size: 12px; color: rgba(255,255,255,0.55); white-space: nowrap; }
-    #user-email { font-size: 11px; color: rgba(255,255,255,0.55); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    #auth-btn {
-      background: rgba(255,255,255,0.12); color: white;
-      border: 1px solid rgba(255,255,255,0.25);
-      padding: 5px 12px; border-radius: 16px; font-size: 12px; cursor: pointer;
-      white-space: nowrap; transition: background 0.2s; flex-shrink: 0;
-    }
-    #auth-btn:hover { background: rgba(255,255,255,0.22); }
 
     /* ===== ベルボタン ===== */
     #bell-btn {
@@ -173,74 +165,6 @@
     }
     #list-more:hover { background: #f0f4ff; }
 
-    /* ===== 認証モーダル ===== */
-    #auth-overlay {
-      display: none; position: fixed; inset: 0; z-index: 9000;
-      background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
-    }
-    #auth-overlay.open { display: flex; }
-    #auth-modal {
-      background: white; border-radius: 18px; padding: 32px 28px;
-      width: 340px; max-width: 92vw;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.2); position: relative;
-    }
-    #auth-modal h2 { margin: 0 0 20px; font-size: 18px; color: #1a1a2e; text-align: center; }
-    #auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
-    .auth-tab {
-      flex: 1; padding: 8px; text-align: center; font-size: 13px; cursor: pointer;
-      color: #999; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.15s;
-    }
-    .auth-tab.active { color: #1a1a2e; font-weight: 700; border-bottom-color: #1a1a2e; }
-    #auth-form-area input {
-      width: 100%; padding: 10px 12px;
-      border: 1px solid #ddd; border-radius: 10px; font-size: 14px;
-      margin-bottom: 12px; outline: none; transition: border-color 0.2s;
-    }
-    #auth-form-area input:focus { border-color: #1a1a2e; }
-    #auth-submit {
-      width: 100%; padding: 11px; background: #1a1a2e; color: white;
-      border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
-      cursor: pointer; margin-bottom: 12px; transition: background 0.2s;
-    }
-    #auth-submit:hover { background: #2d2d4e; }
-    #auth-divider {
-      text-align: center; font-size: 12px; color: #bbb; margin: 4px 0 12px; position: relative;
-    }
-    #auth-divider::before, #auth-divider::after {
-      content: ''; position: absolute; top: 50%; width: 38%; height: 1px; background: #eee;
-    }
-    #auth-divider::before { left: 0; } #auth-divider::after { right: 0; }
-    #google-btn {
-      width: 100%; padding: 10px; background: white; color: #333;
-      border: 1px solid #ddd; border-radius: 10px; font-size: 14px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: background 0.15s;
-    }
-    #google-btn:hover { background: #f5f5f5; }
-    #google-btn img { width: 18px; height: 18px; }
-    #auth-msg { font-size: 12px; color: #e74c3c; margin-top: 8px; min-height: 16px; text-align: center; }
-    #auth-close-btn {
-      position: absolute; top: 12px; right: 16px;
-      background: none; border: none; font-size: 22px; cursor: pointer; color: #aaa;
-    }
-
-    /* ===== ログインウォール ===== */
-    #login-wall {
-      display: none; position: fixed; inset: 0; z-index: 8000;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      align-items: center; justify-content: center; flex-direction: column;
-    }
-    #login-wall.show { display: flex; }
-    #login-wall-inner { text-align: center; color: white; padding: 40px 24px; }
-    #login-wall-inner h2 { font-size: 26px; margin: 0 0 10px; }
-    #login-wall-inner p { font-size: 14px; color: rgba(255,255,255,0.65); margin: 0 0 32px; line-height: 1.7; }
-    #login-wall-btn {
-      background: white; color: #1a1a2e; border: none;
-      padding: 14px 44px; border-radius: 26px; font-size: 15px; font-weight: 700;
-      cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,0.3); transition: background 0.2s;
-    }
-    #login-wall-btn:hover { background: #f0f0f0; }
-    #login-wall-sub { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 16px; }
 
     /* ===== お知らせモーダル ===== */
     #news-overlay {
@@ -293,7 +217,6 @@
     @media (max-width: 600px) {
       #list-panel { width: 100%; }
       #genre-select { max-width: 95px; }
-      #user-email { display: none; }
       #count-display { display: none; }
     }
 
@@ -343,11 +266,9 @@
     <img id="header-logo" src="favicon-32x32.png" alt="dog">
     <h1>Japan Dog Map</h1>
     <span id="count-display">読み込み中...</span>
-    <span id="user-email"></span>
     <button id="bell-btn" onclick="openNewsModal()" title="お知らせ">
       🔔<span id="bell-badge" class="hidden">1</span>
     </button>
-    <button id="auth-btn" onclick="openAuthModal()">ログイン</button>
   </div>
 
   <!-- 注意喚起モーダル -->
@@ -448,119 +369,11 @@
     <div id="list-more" style="display:none" onclick="loadMore()">さらに表示</div>
   </div>
 
-  <!-- 認証モーダル -->
-  <div id="auth-overlay" onclick="onOverlayClick(event)">
-    <div id="auth-modal">
-      <button id="auth-close-btn" onclick="closeAuthModal()">×</button>
-      <h2>Japan Dog Map</h2>
-      <div id="auth-tabs">
-        <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">ログイン</div>
-        <div class="auth-tab" id="tab-signup" onclick="switchTab('signup')">新規登録</div>
-      </div>
-      <div id="auth-form-area">
-        <input type="email" id="auth-email" placeholder="メールアドレス">
-        <input type="password" id="auth-password" placeholder="パスワード（6文字以上）">
-        <button id="auth-submit" onclick="submitAuth()">ログイン</button>
-        <div id="auth-divider">または</div>
-        <button id="google-btn" onclick="signInWithGoogle()">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-          Googleでログイン
-        </button>
-        <div id="auth-msg"></div>
-      </div>
-    </div>
-  </div>
 
-  <!-- ログインウォール -->
-  <div id="login-wall">
-    <div id="login-wall-inner">
-      <div style="font-size:64px;margin-bottom:16px;">🐾</div>
-      <h2>Japan Dog Map</h2>
-      <p>ドッグラン・ペット可飲食店・動物病院を<br>地図で探せます。ご利用にはログインが必要です。</p>
-      <button id="login-wall-btn" onclick="openAuthModal()">ログイン / 新規登録</button>
-      <div id="login-wall-sub">登録は無料です</div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXlAvPbRMehbFLaBeckPctko2cHnPq_n0&language=ja"></script>
   <script src="https://unpkg.com/supercluster@8/dist/supercluster.min.js"></script>
 
   <script>
-    // ===== Supabase =====
-    var SUPABASE_URL = 'https://rfcfilhqkkjmkecxzijw.supabase.co';
-    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmY2ZpbGhxa2tqbWtlY3h6aWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NDI4MjQsImV4cCI6MjA4NzQxODgyNH0.xtjFtJaWFWeoGRs8O_g57mDHn6ElQlEMZJN8Q0Kn6xk';
-    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // ===== 認証 =====
-    var appInitialized = false;
-
-    function showLoginWall() { document.getElementById('login-wall').classList.add('show'); }
-    function hideLoginWall() { document.getElementById('login-wall').classList.remove('show'); }
-
-    supabase.auth.getSession().then(function(res) {
-      var session = res.data && res.data.session;
-      if (session) { hideLoginWall(); updateAuthUI(session.user); if (!appInitialized) initApp(); }
-      else { showLoginWall(); }
-    });
-
-    supabase.auth.onAuthStateChange(function(event, session) {
-      if (session) { hideLoginWall(); updateAuthUI(session.user); closeAuthModal(); if (!appInitialized) initApp(); }
-      else { showLoginWall(); updateAuthUI(null); }
-    });
-
-    function updateAuthUI(user) {
-      var btn = document.getElementById('auth-btn');
-      var emailEl = document.getElementById('user-email');
-      if (user) {
-        emailEl.textContent = user.email || (user.user_metadata && user.user_metadata.full_name) || 'ログイン中';
-        btn.textContent = 'ログアウト'; btn.onclick = signOut;
-      } else {
-        emailEl.textContent = ''; btn.textContent = 'ログイン'; btn.onclick = openAuthModal;
-      }
-    }
-
-    var currentTab = 'login';
-    function openAuthModal() { document.getElementById('auth-overlay').classList.add('open'); document.getElementById('auth-msg').textContent = ''; }
-    function closeAuthModal() { document.getElementById('auth-overlay').classList.remove('open'); }
-    function onOverlayClick(e) { if (e.target === document.getElementById('auth-overlay')) closeAuthModal(); }
-    function switchTab(tab) {
-      currentTab = tab;
-      document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-      document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
-      document.getElementById('auth-submit').textContent = tab === 'login' ? 'ログイン' : '新規登録';
-      document.getElementById('auth-msg').textContent = '';
-    }
-    function submitAuth() {
-      var email = document.getElementById('auth-email').value.trim();
-      var password = document.getElementById('auth-password').value;
-      if (!email || !password) { showAuthMsg('メールアドレスとパスワードを入力してください。'); return; }
-      var submitBtn = document.getElementById('auth-submit');
-      submitBtn.textContent = '処理中...'; submitBtn.disabled = true;
-      var promise = currentTab === 'login'
-        ? supabase.auth.signInWithPassword({ email: email, password: password })
-        : supabase.auth.signUp({ email: email, password: password });
-      promise.then(function(res) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = currentTab === 'login' ? 'ログイン' : '新規登録';
-        if (res.error) { showAuthMsg(translateError(res.error.message)); }
-        else if (currentTab === 'signup' && !(res.data && res.data.session)) {
-          showAuthMsg('確認メールを送信しました。メールのリンクをクリックして登録を完了してください。', '#27ae60');
-        }
-      }).catch(function() { submitBtn.disabled = false; submitBtn.textContent = currentTab === 'login' ? 'ログイン' : '新規登録'; showAuthMsg('エラーが発生しました。再試行してください。'); });
-    }
-    function signInWithGoogle() { supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://fkzyk.github.io/tokyo-dog-map/' } }); }
-    function signOut() { supabase.auth.signOut(); }
-    function showAuthMsg(msg, color) { var el = document.getElementById('auth-msg'); el.textContent = msg; el.style.color = color || '#e74c3c'; }
-    function translateError(msg) {
-      if (msg.indexOf('Invalid login credentials') >= 0) return 'メールアドレスまたはパスワードが正しくありません。';
-      if (msg.indexOf('Email not confirmed') >= 0) return 'メールアドレスの確認が完了していません。';
-      if (msg.indexOf('User already registered') >= 0) return 'このメールアドレスはすでに登録されています。';
-      if (msg.indexOf('Password should be at least') >= 0) return 'パスワードは6文字以上で入力してください。';
-      if (msg.indexOf('signup is disabled') >= 0) return '現在新規登録を受け付けていません。';
-      return msg;
-    }
-
     // ===== 地図・スポット =====
     var map, infoWindow;
     var PLACES_DATA = [], currentFilter = 'all', listOpen = false;
@@ -579,8 +392,10 @@
     var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', cafe:'#e74c3c', vet:'#8e44ad', hotel:'#2980b9' };
     var CAT_BADGE  = { dogrun:'badge-dogrun', dogcafe:'badge-dogcafe', cafe:'badge-dogcafe', vet:'badge-vet', hotel:'badge-hotel' };
 
+    // ページロード時にアプリを起動
+    window.addEventListener('load', function() { initApp(); });
+
     function initApp() {
-      appInitialized = true;
       map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 36.5, lng: 136.0 },
         zoom: 5,
@@ -598,29 +413,27 @@
     }
 
     function loadAllPlaces() {
-      var PAGE_SIZE = 1000;
-      var allData = [];
-      function fetchPage(from) {
-        supabase.from('places')
-          .select('place_id,name,address,lat,lng,rating,user_ratings_total,website,phone,opening_hours,business_status,category,source,genre')
-          .range(from, from + PAGE_SIZE - 1)
-          .then(function(res) {
-            if (res.error) { document.getElementById('loading').innerHTML = '<span>データ読み込みエラー</span>'; return; }
-            allData = allData.concat(res.data);
-            if (res.data.length === PAGE_SIZE) { fetchPage(from + PAGE_SIZE); }
-            else {
-              PLACES_DATA = allData;
-              PLACES_DATA.forEach(function(p) { placeById[p.place_id] = p; });
-              buildGenreSelect();
-              updateFilterLabels();
-              _rebuildSupercluster();
-              refreshList();
-              document.getElementById('loading').style.display = 'none';
-              showCautionIfNeeded();
-            }
-          });
-      }
-      fetchPage(0);
+      // places.jsonから静的データを読み込む
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'places.json', true);
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          PLACES_DATA = JSON.parse(xhr.responseText);
+          PLACES_DATA.forEach(function(p) { placeById[p.place_id] = p; });
+          buildGenreSelect();
+          updateFilterLabels();
+          _rebuildSupercluster();
+          refreshList();
+          document.getElementById('loading').style.display = 'none';
+          showCautionIfNeeded();
+        } else {
+          document.getElementById('loading').innerHTML = '<span>データ読み込みエラー</span>';
+        }
+      };
+      xhr.onerror = function() {
+        document.getElementById('loading').innerHTML = '<span>データ読み込みエラー</span>';
+      };
+      xhr.send();
     }
 
     function buildGenreSelect() {
