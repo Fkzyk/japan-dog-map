@@ -1734,11 +1734,15 @@
       }
     ];
 
-    function startTutorial() {
-      var last = localStorage.getItem(TUTORIAL_KEY);
-      if (last) {
-        var daysSince = (Date.now() - parseInt(last)) / (1000 * 60 * 60 * 24);
-        if (daysSince < TUTORIAL_INTERVAL_DAYS) return;
+    function startTutorial(force) {
+      // URLに ?tutorial がある場合は強制表示（確認・デバッグ用）
+      var forceByUrl = location.search.indexOf('tutorial') >= 0;
+      if (!force && !forceByUrl) {
+        var last = localStorage.getItem(TUTORIAL_KEY);
+        if (last) {
+          var daysSince = (Date.now() - parseInt(last)) / (1000 * 60 * 60 * 24);
+          if (daysSince < TUTORIAL_INTERVAL_DAYS) return;
+        }
       }
       _tutStep = 0;
       document.getElementById('tutorial-overlay').style.display = 'block';
