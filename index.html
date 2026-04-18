@@ -1432,12 +1432,14 @@
         alert('地図の読み込みに失敗しました。ページを再読み込みしてください。');
         return;
       }
+      map.setOptions({ draggableCursor: 'crosshair' });
       var banner = document.getElementById('pin-drop-banner');
       banner.style.display = 'flex';
       _pinDropListener = map.addListener('click', function(e) { _onPinDrop(e.latLng); });
     }
 
     function _exitPinDropMode() {
+      map.setOptions({ draggableCursor: '' });
       document.getElementById('pin-drop-banner').style.display = 'none';
       if (_pinDropListener) { google.maps.event.removeListener(_pinDropListener); _pinDropListener = null; }
     }
