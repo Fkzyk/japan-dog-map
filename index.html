@@ -1099,10 +1099,10 @@
         + '</button>'
         + '</div>'
         + '<div class="iw-action-row">'
-        + '<button class="iw-action-btn" onclick="openReviewsModal(\'' + pid + '\',\'' + pname + '\')">'
+        + '<button class="iw-action-btn" id="iw-review-' + pid + '" onclick="openReviewsModal(\'' + pid + '\',\'' + pname + '\')">'
         + '★ 口コミ <span id="iw-review-cnt-' + pid + '">…</span>'
         + '</button>'
-        + '<button class="iw-action-btn iw-report-btn" onclick="openReportModal(\'' + pid + '\',\'' + pname + '\')">'
+        + '<button class="iw-action-btn iw-report-btn" id="iw-report-' + pid + '" onclick="openReportModal(\'' + pid + '\',\'' + pname + '\')">'
         + '🚩 報告'
         + '</button>'
         + '</div>'
@@ -1115,7 +1115,11 @@
       infoWindow.setContent(content);
       _activeInfoMarker = marker;
       // shouldFocus:false で infoWindow表示時の自動パンを無効化
-      infoWindow.open({ map: map, anchor: marker, shouldFocus: false });
+      if (marker) {
+        infoWindow.open({ map: map, anchor: marker, shouldFocus: false });
+      } else {
+        infoWindow.open({ map: map, position: { lat: p.lat, lng: p.lng }, shouldFocus: false });
+      }
       // 参考になったカウントと口コミ数を非同期で取得
       loadHelpfulCount(p.place_id);
       loadReviewCount(p.place_id);
@@ -1728,13 +1732,42 @@
                width: halfSize * 2, height: halfSize * 2 };
     }
 
+    // チュートリアル用: infoWindowを開いてボタン要素をスポットライト
+    function _openTutInfoWindow(done) {
+      var p = PLACES_DATA[0];
+      if (!p) { done(); return; }
+      var target = null;
+      for (var i = 0; i < scMarkers.length; i++) {
+        if (scMarkers[i]._placeId === p.place_id) { target = scMarkers[i]; break; }
+      }
+      showInfo(p, target);
+      setTimeout(done, 600);
+    }
+
+    // infoWindow内のボタン群のBoundingRectを合算して返す（フォールバック付き）
+    function _getIwBtnRect(ids) {
+      var rects = ids.map(function(id) {
+        var el = document.getElementById(id);
+        return el ? el.getBoundingClientRect() : null;
+      }).filter(Boolean);
+      if (!rects.length) {
+        var mc = document.getElementById('map-container').getBoundingClientRect();
+        return { left: mc.left + 10, top: mc.top + mc.height * 0.3, width: mc.width - 20, height: 44 };
+      }
+      var left = Math.min.apply(null, rects.map(function(r) { return r.left; }));
+      var top  = Math.min.apply(null, rects.map(function(r) { return r.top; }));
+      var right= Math.max.apply(null, rects.map(function(r) { return r.right; }));
+      var bot  = Math.max.apply(null, rects.map(function(r) { return r.bottom; }));
+      return { left: left, top: top, width: right - left, height: bot - top };
+    }
+
     var TUTORIAL_STEPS = [
       {
         // Step 1: フィルターバー
         getRect: function() { return document.getElementById('filter-bar').getBoundingClientRect(); },
         pad: 4, radius: '8px',
         title: 'カテゴリで絞り込もう',
-        desc: 'ドッグラン・動物病院・ペット可カフェ・宿泊施設など種類別に絞り込めます。「★ お気に入り」でお気に入り登録済みのスポットだけ表示することもできます。',
+        desc: 'ドッグラン・動物病院・ペット可カフェ・宿泊施設など種類別に絞り込めます。「★ お気に入り」でお気に入り登録済みスポットだけ表示することもできます。',
         pos: 'below'
       },
       {
@@ -1746,13 +1779,13 @@
         pos: 'below'
       },
       {
-        // Step 3: マーカー（実際のスポットへズームイン）
+        // Step 3: マーカー（ズームイン＋infoWindow自動オープン）
         beforeShow: function(done) {
           var p = PLACES_DATA[0];
           if (!p) { done(); return; }
           map.panTo({ lat: p.lat, lng: p.lng });
           map.setZoom(16);
-          setTimeout(done, 750);
+          setTimeout(function() { _openTutInfoWindow(done); }, 800);
         },
         getRect: function() {
           var p = PLACES_DATA[0];
@@ -1764,47 +1797,45 @@
         },
         pad: 0, radius: '50%',
         title: 'マーカーをタップしよう',
-        desc: '地図上のマーカーをタップするとスポットの詳細（住所・ウェブサイト・口コミなど）が表示されます。',
+        desc: '地図上のマーカーをタップするとスポットの詳細カードが開きます。「次へ」でカード内の各ボタンの使い方を説明します。',
         pos: 'above-center'
       },
       {
-        // Step 4: 行ったよ！ボタン
+        // Step 4: 行ったよ！（infoWindow内の実ボタンをスポットライト）
         getRect: function() {
-          var mc = document.getElementById('map-container').getBoundingClientRect();
-          return { left: mc.left + 20, top: mc.top + mc.height * 0.4, width: mc.width - 40, height: 60 };
+          var p = PLACES_DATA[0];
+          return _getIwBtnRect(p ? ['iw-helpful-' + p.place_id] : []);
         },
-        pad: 0, radius: '12px',
+        pad: 6, radius: '10px',
         title: '🐾 行ったよ！ボタン',
-        preview: '<div class="tut-btn-demo tut-btn-helpful">🐾 行ったよ！ <span>5</span></div>',
-        desc: 'スポットに訪問したら押してください。同じ犬連れ仲間への参考になります。押した後、口コミを書く画面に誘導されます。',
+        desc: '訪問したら押してください。同じ犬連れ仲間への参考になります。押すと口コミを書く画面に誘導されます。もう一度押すと取り消しにもなります。',
         pos: 'above-center'
       },
       {
-        // Step 5: お気に入り
+        // Step 5: お気に入り（infoWindow内の実ボタンをスポットライト）
         getRect: function() {
-          var mc = document.getElementById('map-container').getBoundingClientRect();
-          return { left: mc.left + 20, top: mc.top + mc.height * 0.4, width: mc.width - 40, height: 60 };
+          var p = PLACES_DATA[0];
+          return _getIwBtnRect(p ? ['iw-fav-' + p.place_id] : []);
         },
-        pad: 0, radius: '12px',
+        pad: 6, radius: '10px',
         title: '☆ お気に入り登録',
-        preview: '<div class="tut-btn-demo tut-btn-fav">☆ お気に入り</div>',
-        desc: 'タップするとスポットをお気に入り登録できます。登録後はフィルターバーの「★ お気に入り」で一覧表示できます。',
+        desc: '押すとスポットをお気に入り登録できます。フィルターバーの「★ お気に入り」でいつでも一覧表示できます。アカウント不要で端末に保存されます。',
         pos: 'above-center'
       },
       {
-        // Step 6: 口コミ・報告
+        // Step 6: 口コミ・報告（2ボタンをまとめてスポットライト）
         getRect: function() {
-          var mc = document.getElementById('map-container').getBoundingClientRect();
-          return { left: mc.left + 20, top: mc.top + mc.height * 0.4, width: mc.width - 40, height: 60 };
+          var p = PLACES_DATA[0];
+          return _getIwBtnRect(p ? ['iw-review-' + p.place_id, 'iw-report-' + p.place_id] : []);
         },
-        pad: 0, radius: '12px',
+        pad: 6, radius: '10px',
         title: '★ 口コミ ／ 🚩 問題報告',
-        preview: '<div class="tut-btn-demo tut-btn-review">★ 口コミ</div><div class="tut-btn-demo tut-btn-report">🚩 問題を報告</div>',
-        desc: '「★口コミ」では星1〜5とコメントで感想を投稿できます（管理者承認後に公開）。「🚩報告」は閉店・情報が古い場合にお知らせください。',
+        desc: '「★口コミ」では星1〜5＋コメントで感想を投稿できます（管理者確認後に公開）。「🚩報告」は閉店・情報が古いときにお知らせください。',
         pos: 'above-center'
       },
       {
-        // Step 7: 現在地ボタン
+        // Step 7: 現在地ボタン（infoWindowを閉じてから）
+        beforeShow: function(done) { infoWindow.close(); done(); },
         getRect: function() { return document.getElementById('locate-btn').getBoundingClientRect(); },
         pad: 8, radius: '50%',
         title: '現在地に移動',
