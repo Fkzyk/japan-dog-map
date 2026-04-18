@@ -488,7 +488,8 @@
       width: 280px; background: white; border-radius: 14px;
       padding: 14px 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.22);
     }
-    #tut-demo-name { font-size: 14px; font-weight: 700; color: #1a1a2e; margin-bottom: 10px; }
+    /* #tut-demo-card内はiw-cardクラスを使うため .iw-card のスタイルが適用される */
+    #tut-demo-card .iw-card { box-shadow: none; padding: 0; }
     .tut-dim { opacity: 0.25; }
     .tut-highlight-btn {
       box-shadow: 0 0 0 3px #1a1a2e;
@@ -662,15 +663,26 @@
 
   <!-- チュートリアルデモカード（スポットライトの穴から見える、z-index:9999） -->
   <div id="tut-demo-card">
-    <div id="tut-demo-name">例：代々木公園ドッグラン 🐕</div>
-    <div class="iw-actions">
-      <div class="iw-action-row">
-        <button class="iw-action-btn iw-fav-btn" id="tut-fav-btn">☆ お気に入り</button>
-        <button class="iw-action-btn iw-helpful-btn" id="tut-helpful-btn">🐾 行ったよ！ 5</button>
+    <div class="iw-card">
+      <div class="iw-name">代々木公園ドッグラン</div>
+      <div class="iw-addr">東京都渋谷区代々木神園町2-1</div>
+      <div class="iw-meta">
+        <span class="iw-badge" style="background:#27ae60;">ドッグラン</span>
+        <span class="iw-rating">★ 4.2 <span style="color:#aaa;font-size:11px;">(12件)</span></span>
       </div>
-      <div class="iw-action-row">
-        <button class="iw-action-btn" id="tut-review-btn">★ 口コミ 3件</button>
-        <button class="iw-action-btn iw-report-btn" id="tut-report-btn">🚩 報告</button>
+      <div class="iw-hint">💡 🐾行ったよ！で訪問記録＆口コミ投稿へ ／ ☆でお気に入り保存</div>
+      <div class="iw-links">
+        <a class="iw-link iw-link-gmap" href="#" onclick="return false;">Googleマップ</a>
+      </div>
+      <div class="iw-actions">
+        <div class="iw-action-row">
+          <button class="iw-action-btn iw-fav-btn" id="tut-fav-btn">☆ お気に入り</button>
+          <button class="iw-action-btn iw-helpful-btn" id="tut-helpful-btn">🐾 行ったよ！ 5</button>
+        </div>
+        <div class="iw-action-row">
+          <button class="iw-action-btn" id="tut-review-btn">★ 口コミ 3件</button>
+          <button class="iw-action-btn iw-report-btn" id="tut-report-btn">🚩 報告</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1821,7 +1833,7 @@
         pad: 0, radius: '50%',
         title: 'マーカーをタップしよう',
         desc: '地図上のマーカーをタップするとスポットの詳細カードが開きます。「次へ」でカード内の各ボタンの使い方を説明します。',
-        pos: 'above-center'
+        pos: 'below'
       },
       {
         // Step 4: 行ったよ！
