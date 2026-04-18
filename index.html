@@ -1245,19 +1245,25 @@
           if (isIOS) {
             guide = '<br>iPhoneの設定アプリ → 「プライバシーとセキュリティ」 → 「位置情報サービス」 → 「Safari」または「Chrome」 → 「使用中のみ許可」に変更してください。';
           } else if (isAndroid) {
-            guide = '<br>ブラウザの設定 → サイトの設定 → 位置情報 → 許可 に変更してください。';
+            guide = 'ブラウザの設定 → サイトの設定 → 位置情報 → 許可 に変更してください。';
           } else {
-            guide = '<br>ブラウザのアドレスバー左のアイコンをクリックし、位置情報を「許可」に変更してください。';
+            guide = 'ブラウザのアドレスバー左のアイコンをクリックし、位置情報を「許可」に変更してください。';
           }
-          showLocateToast('位置情報の取得に失敗しました。' + guide);
+          showLocateToast('位置情報の取得に失敗しました。', guide);
         },
         { timeout: 8000 }
       );
     }
 
-    function showLocateToast(msg) {
+    // innerHTML を避け、テキストノードとDOM操作で組み立てる
+    function showLocateToast(line1, line2) {
       var toast = document.getElementById('locate-toast');
-      toast.innerHTML = msg;
+      toast.textContent = '';
+      toast.appendChild(document.createTextNode(line1));
+      if (line2) {
+        toast.appendChild(document.createElement('br'));
+        toast.appendChild(document.createTextNode(line2));
+      }
       toast.style.display = 'block';
       clearTimeout(window._toastTimer);
       window._toastTimer = setTimeout(function() { toast.style.display = 'none'; }, 7000);
@@ -1762,7 +1768,7 @@
           // PLACES_DATAの最初のスポットにズームイン
           if (typeof map !== 'undefined' && PLACES_DATA && PLACES_DATA.length > 0) {
             var spot = PLACES_DATA[0];
-            map.panTo({ lat: spot.lat, lng: spot.lng });
+            map.setCenter({ lat: spot.lat, lng: spot.lng });
             map.setZoom(15);
           }
         },
@@ -1802,9 +1808,9 @@
     function startTutorial(force) {
       var forceByUrl = location.search.indexOf('tutorial') >= 0;
       if (!force && !forceByUrl) {
-        var last = localStorage.getItem(TUTORIAL_KEY);
-        if (last) {
-          var daysSince = (Date.now() - parseInt(last)) / (1000 * 60 * 60 * 24);
+        var last = parseInt(localStorage.getItem(TUTORIAL_KEY), 10);
+        if (!isNaN(last)) {
+          var daysSince = (Date.now() - last) / (1000 * 60 * 60 * 24);
           if (daysSince < TUTORIAL_INTERVAL_DAYS) return;
         }
       }
@@ -1849,52 +1855,53 @@
       tt.style.top = top + 'px';
     }
 
-    function _renderTutStep(idx) {
-      var step = TUTORIAL_STEPS[idx];
+    // スポットライト表示制御（nullガード付き）
+    function _setSpotlight(step) {
       var sl = document.getElementById('tutorial-spotlight');
       var overlay = document.getElementById('tutorial-overlay');
-      var demoCard = document.getElementById('tut-demo-card');
-
-      // ステップ固有の前処理（ズームイン等）
-      if (step.beforeShow) { step.beforeShow(); }
-
-      // スポットライト制御
-      if (step.spotlightEl) {
-        var el = document.getElementById(step.spotlightEl);
-        var r = el.getBoundingClientRect();
-        var pad = step.pad || 0;
-        sl.style.display = '';
-        sl.style.left   = (r.left - pad) + 'px';
-        sl.style.top    = (r.top  - pad) + 'px';
-        sl.style.width  = (r.width  + pad * 2) + 'px';
-        sl.style.height = (r.height + pad * 2) + 'px';
-        sl.style.borderRadius = step.radius || '8px';
-        overlay.style.background = '';
-      } else {
+      if (!step.spotlightEl) {
         sl.style.display = 'none';
         overlay.style.background = 'rgba(0,0,0,0.72)';
+        return;
       }
+      var el = document.getElementById(step.spotlightEl);
+      if (!el) { sl.style.display = 'none'; overlay.style.background = 'rgba(0,0,0,0.72)'; return; }
+      var r = el.getBoundingClientRect(), pad = step.pad || 0;
+      sl.style.display = '';
+      sl.style.left   = (r.left - pad) + 'px';
+      sl.style.top    = (r.top  - pad) + 'px';
+      sl.style.width  = (r.width  + pad * 2) + 'px';
+      sl.style.height = (r.height + pad * 2) + 'px';
+      sl.style.borderRadius = step.radius || '8px';
+      overlay.style.background = '';
+    }
 
-      // デモカード制御
+    // デモカードのボタンハイライト制御
+    function _setDemoCard(step) {
+      var demoCard = document.getElementById('tut-demo-card');
       demoCard.style.display = step.showCard ? 'block' : 'none';
-      if (step.showCard) {
-        var allBtns = ['tut-fav-btn','tut-helpful-btn','tut-review-btn','tut-report-btn'];
-        var hilight = step.highlightBtns || [];
-        allBtns.forEach(function(id) {
-          var btn = document.getElementById(id);
-          btn.classList.remove('tut-btn-highlight', 'tut-btn-dim');
-          btn.classList.add(hilight.indexOf(id) >= 0 ? 'tut-btn-highlight' : 'tut-btn-dim');
-        });
-      }
+      if (!step.showCard) { return; }
+      var allBtns = ['tut-fav-btn','tut-helpful-btn','tut-review-btn','tut-report-btn'];
+      var hilight = step.highlightBtns || [];
+      allBtns.forEach(function(id) {
+        var btn = document.getElementById(id);
+        if (!btn) { return; }
+        btn.classList.remove('tut-btn-highlight', 'tut-btn-dim');
+        btn.classList.add(hilight.indexOf(id) >= 0 ? 'tut-btn-highlight' : 'tut-btn-dim');
+      });
+    }
 
-      // テキスト更新
+    // ツールチップのテキスト更新
+    function _setTooltipText(step, idx) {
       document.getElementById('tut-step-label').textContent = (idx + 1) + ' / ' + TUTORIAL_STEPS.length;
       document.getElementById('tut-title').textContent = step.title;
-      document.getElementById('tut-desc').textContent = step.desc;
+      document.getElementById('tut-desc').textContent  = step.desc;
       document.getElementById('tut-next-btn').textContent =
         idx === TUTORIAL_STEPS.length - 1 ? 'はじめる！' : '次へ →';
+    }
 
-      // ドット更新
+    // 進捗ドット更新
+    function _setDots(idx) {
       var dots = document.getElementById('tut-dots');
       dots.innerHTML = '';
       for (var i = 0; i < TUTORIAL_STEPS.length; i++) {
@@ -1902,8 +1909,15 @@
         d.className = 'tut-dot' + (i === idx ? ' active' : '');
         dots.appendChild(d);
       }
+    }
 
-      // ツールチップ位置を要素の近くに配置
+    function _renderTutStep(idx) {
+      var step = TUTORIAL_STEPS[idx];
+      if (step.beforeShow) { step.beforeShow(); }
+      _setSpotlight(step);
+      _setDemoCard(step);
+      _setTooltipText(step, idx);
+      _setDots(idx);
       _positionTooltip(step);
     }
 
