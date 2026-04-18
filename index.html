@@ -348,6 +348,30 @@
       border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
     }
 
+    /* ===== 行ったよ！プロンプト ===== */
+    #helpful-prompt-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9600;
+      background: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 20px;
+    }
+    #helpful-prompt-overlay.open { display: flex; }
+    #helpful-prompt-modal {
+      background: white; border-radius: 18px; padding: 28px 24px;
+      width: 100%; max-width: 320px; text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+    }
+    #helpful-prompt-modal .prompt-icon { font-size: 36px; margin-bottom: 12px; }
+    #helpful-prompt-modal h3 { font-size: 16px; color: #1a1a2e; margin: 0 0 8px; }
+    #helpful-prompt-modal p { font-size: 13px; color: #777; margin: 0 0 20px; line-height: 1.7; }
+    .prompt-btn-row { display: flex; gap: 10px; }
+    #prompt-write-btn {
+      flex: 2; padding: 11px; background: #1a1a2e; color: white;
+      border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+    }
+    #prompt-later-btn {
+      flex: 1; padding: 11px; background: #f0f0f0; color: #888;
+      border: none; border-radius: 10px; font-size: 13px; cursor: pointer;
+    }
+
     /* ===== infoWindowのアクション行 ===== */
     .iw-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0f0; }
     .iw-action-row { display: flex; gap: 6px; }
@@ -633,6 +657,19 @@
       <h3>投稿ありがとうございます！</h3>
       <p>管理者が確認後、地図に公開されます<br>（通常1〜3日）。</p>
       <button id="submit-success-close" onclick="closeSubmitSuccess()">閉じる</button>
+    </div>
+  </div>
+
+  <!-- 行ったよ！口コミ誘導プロンプト -->
+  <div id="helpful-prompt-overlay">
+    <div id="helpful-prompt-modal">
+      <div class="prompt-icon">🐾</div>
+      <h3>訪問を記録しました！</h3>
+      <p>ありがとうございます。同じ犬連れの人のために、ひと言感想を残してみませんか？</p>
+      <div class="prompt-btn-row">
+        <button id="prompt-write-btn" onclick="onPromptWriteReview()">口コミを書く</button>
+        <button id="prompt-later-btn" onclick="closeHelpfulPrompt()">あとで</button>
+      </div>
     </div>
   </div>
 
@@ -992,8 +1029,8 @@
         + '<button class="iw-action-btn iw-fav-btn" id="iw-fav-' + pid + '" onclick="toggleFavorite(\'' + pid + '\')">'
         + (isFavorite(p.place_id) ? '★ お気に入り済み' : '☆ お気に入り')
         + '</button>'
-        + '<button class="iw-action-btn iw-helpful-btn" id="iw-helpful-' + pid + '" onclick="handleHelpful(\'' + pid + '\')">'
-        + '❤️ 参考になった <span id="iw-helpful-cnt-' + pid + '">…</span>'
+        + '<button class="iw-action-btn iw-helpful-btn" id="iw-helpful-' + pid + '" onclick="handleHelpful(\'' + pid + '\',\'' + pname + '\')">'
+        + '🐾 行ったよ！ <span id="iw-helpful-cnt-' + pid + '">…</span>'
         + '</button>'
         + '</div>'
         + '<div class="iw-action-row">'
@@ -1363,7 +1400,10 @@
         });
     }
 
-    function handleHelpful(spotId) {
+    var _helpfulPromptSpotId = null;
+    var _helpfulPromptSpotName = null;
+
+    function handleHelpful(spotId, spotName) {
       if (!sb) return;
       var pid = esc(spotId);
       var helpfuls = getHelpfuls();
@@ -1381,8 +1421,27 @@
       sb.rpc('toggle_helpful', { p_spot_id: spotId, p_device_id: getDeviceId() })
         .then(function() {
           loadHelpfulCount(spotId);
-          if (!already) logEvent('spot_helpful', spotId);
+          if (!already) {
+            logEvent('spot_helpful', spotId);
+            // 初回押下時のみ口コミ誘導プロンプトを表示
+            openHelpfulPrompt(spotId, spotName);
+          }
         });
+    }
+
+    function openHelpfulPrompt(spotId, spotName) {
+      _helpfulPromptSpotId = spotId;
+      _helpfulPromptSpotName = spotName;
+      document.getElementById('helpful-prompt-overlay').classList.add('open');
+    }
+
+    function closeHelpfulPrompt() {
+      document.getElementById('helpful-prompt-overlay').classList.remove('open');
+    }
+
+    function onPromptWriteReview() {
+      closeHelpfulPrompt();
+      openReviewsModal(_helpfulPromptSpotId, _helpfulPromptSpotName);
     }
 
     // ===== 口コミ機能 =====
