@@ -481,15 +481,15 @@
     #btn-fav.active { background: #f39c12; }
 
     /* ===== チュートリアル（スポットライト型） ===== */
-    .tut-preview { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
-    .tut-btn-demo {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+    /* チュートリアル用デモカード */
+    #tut-demo-card {
+      display: none; position: fixed; z-index: 10003;
+      background: white; border-radius: 14px; padding: 14px 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.22);
+      left: 50%; transform: translateX(-50%);
+      bottom: 120px; width: 280px;
     }
-    .tut-btn-helpful { background: #fff0f5; color: #e84393; border: 1.5px solid #f5a0c8; }
-    .tut-btn-fav     { background: #fffbe6; color: #e67e22; border: 1.5px solid #ffd080; }
-    .tut-btn-review  { background: #fffbe6; color: #f39c12; border: 1.5px solid #ffd080; }
-    .tut-btn-report  { background: #fff5f5; color: #e74c3c; border: 1.5px solid #f5c0c0; }
+    #tut-demo-name { font-size: 14px; font-weight: 700; color: #1a1a2e; margin-bottom: 10px; }
     #tutorial-overlay {
       display: none; position: fixed; inset: 0; z-index: 10000;
     }
@@ -651,6 +651,22 @@
 
   <!-- スポット追加ボタン -->
   <button id="add-spot-btn" onclick="openSubmitModal()" title="スポットを追加する">＋ 追加</button>
+
+  <!-- チュートリアル用デモカード（例のカード） -->
+  <div id="tut-demo-card">
+    <div id="tut-demo-name">例：代々木公園ドッグラン 🐕</div>
+    <div class="iw-actions">
+      <div class="iw-action-row">
+        <button class="iw-action-btn iw-fav-btn" id="tut-fav-btn" onclick="return false;">☆ お気に入り</button>
+        <button class="iw-action-btn iw-helpful-btn" id="tut-helpful-btn" onclick="return false;">🐾 行ったよ！ 5</button>
+      </div>
+      <div class="iw-action-row">
+        <button class="iw-action-btn" id="tut-review-btn" onclick="return false;">★ 口コミ 3件</button>
+        <button class="iw-action-btn iw-report-btn" id="tut-report-btn" onclick="return false;">🚩 報告</button>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#bbb;margin-top:8px;">↑ 実際のスポットカードのボタンです</div>
+  </div>
 
   <!-- チュートリアルオーバーレイ -->
   <div id="tutorial-overlay">
@@ -1801,41 +1817,45 @@
         pos: 'above-center'
       },
       {
-        // Step 4: 行ったよ！（infoWindow内の実ボタンをスポットライト）
-        getRect: function() {
-          var p = PLACES_DATA[0];
-          return _getIwBtnRect(p ? ['iw-helpful-' + p.place_id] : []);
+        // Step 4: 行ったよ！（デモカードのボタンをスポットライト）
+        beforeShow: function(done) {
+          document.getElementById('tut-demo-card').style.display = 'block';
+          done();
         },
-        pad: 6, radius: '10px',
+        getRect: function() { return document.getElementById('tut-helpful-btn').getBoundingClientRect(); },
+        pad: 8, radius: '10px',
         title: '🐾 行ったよ！ボタン',
         desc: '訪問したら押してください。同じ犬連れ仲間への参考になります。押すと口コミを書く画面に誘導されます。もう一度押すと取り消しにもなります。',
         pos: 'above-center'
       },
       {
-        // Step 5: お気に入り（infoWindow内の実ボタンをスポットライト）
-        getRect: function() {
-          var p = PLACES_DATA[0];
-          return _getIwBtnRect(p ? ['iw-fav-' + p.place_id] : []);
-        },
-        pad: 6, radius: '10px',
+        // Step 5: お気に入り（デモカードのボタンをスポットライト）
+        getRect: function() { return document.getElementById('tut-fav-btn').getBoundingClientRect(); },
+        pad: 8, radius: '10px',
         title: '☆ お気に入り登録',
         desc: '押すとスポットをお気に入り登録できます。フィルターバーの「★ お気に入り」でいつでも一覧表示できます。アカウント不要で端末に保存されます。',
         pos: 'above-center'
       },
       {
-        // Step 6: 口コミ・報告（2ボタンをまとめてスポットライト）
+        // Step 6: 口コミ・報告（デモカードの2ボタンをスポットライト）
         getRect: function() {
-          var p = PLACES_DATA[0];
-          return _getIwBtnRect(p ? ['iw-review-' + p.place_id, 'iw-report-' + p.place_id] : []);
+          var r1 = document.getElementById('tut-review-btn').getBoundingClientRect();
+          var r2 = document.getElementById('tut-report-btn').getBoundingClientRect();
+          return { left: Math.min(r1.left, r2.left), top: Math.min(r1.top, r2.top),
+                   width: Math.max(r1.right, r2.right) - Math.min(r1.left, r2.left),
+                   height: Math.max(r1.bottom, r2.bottom) - Math.min(r1.top, r2.top) };
         },
-        pad: 6, radius: '10px',
+        pad: 8, radius: '10px',
         title: '★ 口コミ ／ 🚩 問題報告',
         desc: '「★口コミ」では星1〜5＋コメントで感想を投稿できます（管理者確認後に公開）。「🚩報告」は閉店・情報が古いときにお知らせください。',
         pos: 'above-center'
       },
       {
-        // Step 7: 現在地ボタン（infoWindowを閉じてから）
-        beforeShow: function(done) { infoWindow.close(); done(); },
+        // Step 7: 現在地ボタン（デモカードを隠す）
+        beforeShow: function(done) {
+          document.getElementById('tut-demo-card').style.display = 'none';
+          done();
+        },
         getRect: function() { return document.getElementById('locate-btn').getBoundingClientRect(); },
         pad: 8, radius: '50%',
         title: '現在地に移動',
@@ -1952,6 +1972,7 @@
     function closeTutorial() {
       localStorage.setItem(TUTORIAL_KEY, String(Date.now())); // 表示日時を保存
       document.getElementById('tutorial-overlay').style.display = 'none';
+      document.getElementById('tut-demo-card').style.display = 'none';
     }
 
     // ===== Service Worker =====
