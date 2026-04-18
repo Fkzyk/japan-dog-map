@@ -1476,28 +1476,26 @@
       document.getElementById('submit-overlay').classList.add('open');
     }
 
-    // Nominatimで座標→住所（逆ジオコーディング）
+    // Google Maps Geocoderで座標→住所（逆ジオコーディング）
     function _reverseGeocodePin(lat, lng) {
       var gr = document.getElementById('geocode-result');
       gr.textContent = '住所を取得中...'; gr.className = ''; gr.style.display = 'block';
-      fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&accept-language=ja', {
-        headers: { 'User-Agent': 'JapanDogMap/1.0' }
-      })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          var a = data.address || {};
-          var addr = [a.state, a.city || a.county, a.suburb || a.neighbourhood, a.road, a.house_number].filter(Boolean).join('');
-          document.getElementById('sf-address').value = addr || data.display_name || '';
+      var geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ location: { lat: lat, lng: lng }, language: 'ja' }, function(results, status) {
+        if (status === 'OK' && results[0]) {
+          // 先頭の「日本、〒xxx-xxxx 」を除去して日本語住所のみ残す
+          var addr = results[0].formatted_address.replace(/^日本、〒\d{3}-\d{4}\s*/, '');
+          document.getElementById('sf-address').value = addr;
           gr.textContent = '✓ 住所を自動入力しました（編集できます）';
           var link = document.getElementById('pin-verify-link');
           link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
           link.style.display = 'block';
           _updateSubmitBtn();
-        })
-        .catch(function() {
+        } else {
           gr.className = 'error';
           gr.textContent = '住所の取得に失敗しました。手動で入力してください。';
-        });
+        }
+      });
     }
 
     // 投稿ボタンの活性化チェック（名前・カテゴリ・座標が揃ったら有効）

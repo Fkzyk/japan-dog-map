@@ -761,14 +761,24 @@
         .catch(function() { cb(); });
     }
 
+    // 大文字小文字・カタカナひらがなを統一して比較
+    function _normalizeText(str) {
+      if (!str) return '';
+      return str.toLowerCase()
+        .replace(/[\u30A1-\u30F6]/g, function(c) {
+          return String.fromCharCode(c.charCodeAt(0) - 0x60);
+        });
+    }
+
     // スポット名で検索して候補を表示
     function _searchSpots(q) {
       var res = document.getElementById('ov-search-results');
       if (!q) { res.style.display = 'none'; return; }
       _loadPlaces(function() {
         if (!_placesCache) return;
+        var qn = _normalizeText(q);
         var hits = _placesCache.filter(function(p) {
-          return p.name && p.name.indexOf(q) >= 0;
+          return p.name && _normalizeText(p.name).indexOf(qn) >= 0;
         }).slice(0, 10);
         if (!hits.length) { res.style.display = 'none'; return; }
         res.innerHTML = hits.map(function(p) {
