@@ -206,6 +206,7 @@
         削除依頼 <span class="tab-count" id="badge-requests" style="display:none;">0</span>
       </button>
       <button class="tab-btn" onclick="setTab('overrides')" id="tab-overrides">スポット修正</button>
+      <button class="tab-btn" onclick="setTab('stats')" id="tab-stats">📊 利用統計</button>
     </div>
     <div id="stats-bar">
       <span class="stat-item">審査待ち <strong id="stat-pending">-</strong>件</span>
@@ -229,6 +230,35 @@
       <div id="requests-loading" style="text-align:center;padding:40px;color:#aaa;font-size:14px;">読み込み中...</div>
       <div id="requests-admin-list"></div>
     </div>
+    <!-- 利用統計 -->
+    <div id="stats-section" style="display:none;padding:16px 20px;max-width:900px;">
+      <div id="stats-loading" style="text-align:center;padding:40px;color:#aaa;font-size:14px;">読み込み中...</div>
+      <div id="stats-content" style="display:none;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px;">
+          <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);text-align:center;">
+            <div style="font-size:28px;font-weight:800;color:#1a1a2e;" id="stat-users-7d">-</div>
+            <div style="font-size:12px;color:#888;margin-top:4px;">ユーザー数（7日）</div>
+          </div>
+          <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);text-align:center;">
+            <div style="font-size:28px;font-weight:800;color:#27ae60;" id="stat-views-7d">-</div>
+            <div style="font-size:12px;color:#888;margin-top:4px;">スポット閲覧数（7日）</div>
+          </div>
+          <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);text-align:center;">
+            <div style="font-size:28px;font-weight:800;color:#e67e22;" id="stat-submits-7d">-</div>
+            <div style="font-size:12px;color:#888;margin-top:4px;">スポット投稿数（7日）</div>
+          </div>
+          <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);text-align:center;">
+            <div style="font-size:28px;font-weight:800;color:#8e44ad;" id="stat-users-30d">-</div>
+            <div style="font-size:12px;color:#888;margin-top:4px;">ユーザー数（30日）</div>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);">
+          <h3 style="margin:0 0 16px;font-size:14px;color:#1a1a2e;">イベント種別（7日）</h3>
+          <div id="stats-event-list"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- スポット修正管理 -->
     <div id="overrides-section" style="display:none;padding:16px 20px;max-width:900px;">
       <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
@@ -405,14 +435,16 @@
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       document.getElementById('tab-' + tab).classList.add('active');
       // セクション表示切り替え
-      var isSpecial = tab === 'reviews' || tab === 'requests' || tab === 'overrides';
+      var isSpecial = tab === 'reviews' || tab === 'requests' || tab === 'overrides' || tab === 'stats';
       document.getElementById('submission-list').style.display  = isSpecial ? 'none' : 'block';
       document.getElementById('reviews-section').style.display  = tab === 'reviews'   ? 'block' : 'none';
       document.getElementById('requests-section').style.display = tab === 'requests'  ? 'block' : 'none';
       document.getElementById('overrides-section').style.display= tab === 'overrides' ? 'block' : 'none';
+      document.getElementById('stats-section').style.display    = tab === 'stats'     ? 'block' : 'none';
       if (tab === 'reviews')   { loadAdminReviews(); return; }
       if (tab === 'requests')  { loadAdminRequests(); return; }
       if (tab === 'overrides') { loadAdminOverrides(); return; }
+      if (tab === 'stats')     { loadStats(); return; }
       renderList();
     }
 
@@ -668,6 +700,53 @@
         var label = newStatus === 'handled' ? '対応済みにしました' : '却下しました';
         showToast(label);
         loadAdminRequests();
+      });
+    }
+
+    // ===== 利用統計 =====
+    function loadStats() {
+      document.getElementById('stats-loading').style.display = 'block';
+      document.getElementById('stats-content').style.display = 'none';
+      var since7d  = new Date(Date.now() - 7  * 86400000).toISOString();
+      var since30d = new Date(Date.now() - 30 * 86400000).toISOString();
+
+      // 7日・30日のユーザー数とイベント集計を並行取得
+      Promise.all([
+        sb.from('user_events').select('device_id,event_type').gte('created_at', since7d),
+        sb.from('user_events').select('device_id').gte('created_at', since30d)
+      ]).then(function(results) {
+        document.getElementById('stats-loading').style.display = 'none';
+        document.getElementById('stats-content').style.display = 'block';
+
+        var rows7d  = results[0].data || [];
+        var rows30d = results[1].data || [];
+
+        // ユニークユーザー数
+        var users7d  = new Set(rows7d.map(function(r)  { return r.device_id; })).size;
+        var users30d = new Set(rows30d.map(function(r) { return r.device_id; })).size;
+
+        // イベント集計
+        var views7d   = rows7d.filter(function(r) { return r.event_type === 'spot_view'; }).length;
+        var submits7d = rows7d.filter(function(r) { return r.event_type === 'spot_submit'; }).length;
+
+        document.getElementById('stat-users-7d').textContent  = users7d;
+        document.getElementById('stat-views-7d').textContent  = views7d;
+        document.getElementById('stat-submits-7d').textContent = submits7d;
+        document.getElementById('stat-users-30d').textContent = users30d;
+
+        // イベント種別ごとの件数
+        var counts = {};
+        rows7d.forEach(function(r) { counts[r.event_type] = (counts[r.event_type] || 0) + 1; });
+        var labels = {
+          spot_view: 'スポット閲覧', spot_favorite_add: 'お気に入り追加',
+          spot_favorite_remove: 'お気に入り削除', spot_helpful: '行ったよ！',
+          review_submit: '口コミ投稿', spot_report: '問題報告', spot_submit: 'スポット投稿'
+        };
+        var html = Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; }).map(function(k) {
+          return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px;">' +
+            '<span>' + (labels[k] || k) + '</span><strong>' + counts[k] + '件</strong></div>';
+        }).join('');
+        document.getElementById('stats-event-list').innerHTML = html || '<div style="color:#aaa;font-size:13px;">データなし</div>';
       });
     }
 
