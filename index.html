@@ -537,15 +537,15 @@
     /* ===== ピン打ちモード ===== */
     #pin-drop-banner {
       display: none; position: fixed;
-      top: 50%; left: 50%; transform: translate(-50%, -50%);
-      z-index: 5000; flex-direction: column; align-items: center; gap: 16px;
-      background: #1a1a2e; color: #fff; border-radius: 18px;
-      padding: 28px 32px; font-size: 15px; font-weight: 600;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.45); text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      bottom: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 5000; flex-direction: row; align-items: center; gap: 12px;
+      background: rgba(26,26,46,0.93); color: #fff; border-radius: 24px;
+      padding: 12px 20px; font-size: 14px; font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4); white-space: nowrap;
+      pointer-events: auto;
     }
     #pin-drop-cancel {
-      padding: 6px 14px; background: transparent;
+      padding: 5px 12px; background: transparent;
       border: 1.5px solid rgba(255,255,255,0.5); border-radius: 8px;
       color: #fff; font-size: 13px; cursor: pointer;
     }
@@ -1477,14 +1477,15 @@
     }
 
     // Google Maps Geocoderで座標→住所（逆ジオコーディング）
+    // plus_codeをスキップして丁目・番地レベルの住所を優先選択
     function _reverseGeocodePin(lat, lng) {
       var gr = document.getElementById('geocode-result');
       gr.textContent = '住所を取得中...'; gr.className = ''; gr.style.display = 'block';
       var geocoder = new google.maps.Geocoder();
       geocoder.geocode({ location: { lat: lat, lng: lng }, language: 'ja' }, function(results, status) {
-        if (status === 'OK' && results[0]) {
-          // 先頭の「日本、〒xxx-xxxx 」を除去して日本語住所のみ残す
-          var addr = results[0].formatted_address.replace(/^日本、〒\d{3}-\d{4}\s*/, '');
+        if (status === 'OK' && results && results.length > 0) {
+          var best = _pickBestGeoResult(results);
+          var addr = best.formatted_address.replace(/^日本、〒\d{3}-\d{4}\s*/, '');
           document.getElementById('sf-address').value = addr;
           gr.textContent = '✓ 住所を自動入力しました（編集できます）';
           var link = document.getElementById('pin-verify-link');
@@ -1496,6 +1497,22 @@
           gr.textContent = '住所の取得に失敗しました。手動で入力してください。';
         }
       });
+    }
+
+    // 最も番地レベルに近い結果を選ぶ（plus_codeは除外）
+    function _pickBestGeoResult(results) {
+      var priority = ['premise', 'street_address', 'subpremise',
+                      'sublocality_level_4', 'sublocality_level_3', 'sublocality_level_2'];
+      var fallback = null;
+      for (var i = 0; i < results.length; i++) {
+        var r = results[i];
+        if (r.types.indexOf('plus_code') >= 0) continue;
+        if (!fallback) fallback = r;
+        for (var j = 0; j < priority.length; j++) {
+          if (r.types.indexOf(priority[j]) >= 0) return r;
+        }
+      }
+      return fallback || results[0];
     }
 
     // 投稿ボタンの活性化チェック（名前・カテゴリ・座標が揃ったら有効）
