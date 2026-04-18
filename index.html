@@ -258,6 +258,151 @@
       cursor: pointer; transition: background 0.2s;
     }
     #caution-ok:hover { background: #d35400; }
+
+    /* ===== スポット追加ボタン ===== */
+    #add-spot-btn {
+      position: fixed; bottom: 126px; right: 14px; z-index: 1800;
+      width: 46px; height: 46px; border-radius: 50%;
+      background: #27ae60; border: none; cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.28);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; color: white; font-weight: 300; line-height: 1;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    #add-spot-btn:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.32); background: #219a52; }
+    #add-spot-btn:active { transform: scale(0.93); }
+
+    /* ===== 投稿フォームモーダル ===== */
+    #submit-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9000;
+      background: rgba(0,0,0,0.5); align-items: flex-end; justify-content: center;
+    }
+    #submit-overlay.open { display: flex; }
+    #submit-modal {
+      background: white; border-radius: 20px 20px 0 0;
+      width: 100%; max-width: 480px; max-height: 90vh;
+      box-shadow: 0 -4px 30px rgba(0,0,0,0.18);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    #submit-header {
+      background: #27ae60; color: white;
+      padding: 16px 18px; font-size: 15px; font-weight: 700;
+      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+    }
+    #submit-close { background: none; border: none; color: white; font-size: 22px; cursor: pointer; line-height: 1; }
+    #submit-body { overflow-y: auto; padding: 18px; flex: 1; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: #555; margin-bottom: 5px; }
+    .form-label .required { color: #e74c3c; margin-left: 3px; }
+    .form-input {
+      width: 100%; padding: 10px 12px; border: 1.5px solid #ddd; border-radius: 10px;
+      font-size: 14px; outline: none; transition: border-color 0.2s; box-sizing: border-box;
+    }
+    .form-input:focus { border-color: #27ae60; box-shadow: 0 0 0 2px rgba(39,174,96,0.12); }
+    .form-input-row { display: flex; gap: 8px; align-items: flex-start; }
+    #geocode-btn {
+      padding: 10px 14px; background: #1a1a2e; color: white;
+      border: none; border-radius: 10px; font-size: 12px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: background 0.2s;
+    }
+    #geocode-btn:hover { background: #2d2d4e; }
+    #geocode-btn:disabled { background: #aaa; cursor: default; }
+    #geocode-result {
+      display: none; margin-top: 8px; padding: 8px 12px;
+      background: #f0faf4; border: 1px solid #b7e4c7; border-radius: 8px;
+      font-size: 12px; color: #2d6a4f; line-height: 1.5;
+    }
+    #geocode-result.error { background: #fff0f0; border-color: #f5c0c0; color: #c0392b; }
+    #submit-footer {
+      padding: 12px 18px 4px; border-top: 1px solid #f0f0f0;
+      display: flex; gap: 10px; flex-shrink: 0;
+    }
+    #submit-cancel-btn {
+      flex: 1; padding: 12px; border: 1.5px solid #ddd; border-radius: 10px;
+      background: white; font-size: 14px; font-weight: 600; cursor: pointer; color: #666;
+    }
+    #submit-confirm-btn {
+      flex: 2; padding: 12px; border: none; border-radius: 10px;
+      background: #27ae60; color: white; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s;
+    }
+    #submit-confirm-btn:hover:not(:disabled) { background: #219a52; }
+    #submit-confirm-btn:disabled { background: #aaa; cursor: default; }
+    #submit-delete-link { padding: 8px 18px 16px; text-align: center; flex-shrink: 0; }
+    #submit-delete-link button {
+      background: none; border: none; color: #bbb; font-size: 11px;
+      cursor: pointer; text-decoration: underline;
+    }
+
+    /* ===== 削除キー表示モーダル ===== */
+    #deletekey-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9500;
+      background: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px;
+    }
+    #deletekey-overlay.open { display: flex; }
+    #deletekey-modal {
+      background: white; border-radius: 18px;
+      width: 100%; max-width: 380px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.25); overflow: hidden;
+    }
+    #deletekey-header {
+      background: #27ae60; color: white;
+      padding: 16px 18px; font-size: 15px; font-weight: 700; text-align: center;
+    }
+    #deletekey-body { padding: 20px 18px; }
+    .deletekey-warn {
+      background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px;
+      padding: 10px 14px; font-size: 12px; color: #795548; margin-bottom: 14px; line-height: 1.65;
+    }
+    .deletekey-box {
+      background: #f5f5f5; border-radius: 10px; padding: 14px;
+      font-family: monospace; font-size: 13px; color: #1a1a2e; font-weight: 700;
+      text-align: center; letter-spacing: 0.5px; word-break: break-all;
+      border: 1.5px dashed #bbb; margin-bottom: 12px;
+    }
+    #deletekey-copy-btn {
+      width: 100%; padding: 10px; background: #1a1a2e; color: white;
+      border: none; border-radius: 10px; font-size: 13px; font-weight: 600;
+      cursor: pointer; margin-bottom: 8px; transition: background 0.2s;
+    }
+    #deletekey-copy-btn:hover { background: #2d2d4e; }
+    #deletekey-close-btn {
+      width: 100%; padding: 10px; background: white; color: #666;
+      border: 1.5px solid #ddd; border-radius: 10px; font-size: 13px; cursor: pointer; font-weight: 600;
+    }
+    .deletekey-note { font-size: 11px; color: #aaa; text-align: center; margin-top: 10px; }
+
+    /* ===== 投稿削除モーダル（ユーザー用） ===== */
+    #userdelete-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9000;
+      background: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 20px;
+    }
+    #userdelete-overlay.open { display: flex; }
+    #userdelete-modal {
+      background: white; border-radius: 18px;
+      width: 100%; max-width: 380px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.22); overflow: hidden;
+    }
+    #userdelete-header {
+      background: #e74c3c; color: white;
+      padding: 14px 18px; font-size: 15px; font-weight: 700;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    #userdelete-header-close { background: none; border: none; color: white; font-size: 22px; cursor: pointer; line-height: 1; }
+    #userdelete-body { padding: 20px 18px; }
+    #userdelete-body p { font-size: 13px; color: #555; margin: 0 0 14px; line-height: 1.65; }
+    #userdelete-result {
+      display: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; margin-top: 10px;
+    }
+    #userdelete-result.success { background: #f0faf4; border: 1px solid #b7e4c7; color: #2d6a4f; }
+    #userdelete-result.error { background: #fff0f0; border: 1px solid #f5c0c0; color: #c0392b; }
+    #userdelete-submit-btn {
+      width: 100%; padding: 12px; background: #e74c3c; color: white;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s; margin-top: 14px;
+    }
+    #userdelete-submit-btn:hover:not(:disabled) { background: #c0392b; }
+    #userdelete-submit-btn:disabled { background: #aaa; cursor: default; }
   </style>
 </head>
 <body>
@@ -370,8 +515,94 @@
   </div>
 
 
+  <!-- スポット追加ボタン -->
+  <button id="add-spot-btn" onclick="openSubmitModal()" title="スポットを追加する">＋</button>
+
+  <!-- 投稿フォームモーダル -->
+  <div id="submit-overlay">
+    <div id="submit-modal">
+      <div id="submit-header">
+        ＋ スポットを追加する
+        <button id="submit-close" onclick="closeSubmitModal()">×</button>
+      </div>
+      <div id="submit-body">
+        <div class="form-group">
+          <label class="form-label">スポット名<span class="required">*</span></label>
+          <input class="form-input" id="sf-name" type="text" placeholder="例：代々木公園ドッグラン">
+        </div>
+        <div class="form-group">
+          <label class="form-label">カテゴリ<span class="required">*</span></label>
+          <select class="form-input" id="sf-category">
+            <option value="">選択してください</option>
+            <option value="dogrun">ドッグラン</option>
+            <option value="dogcafe">ペット可飲食店</option>
+            <option value="vet">動物病院</option>
+            <option value="hotel">ペット可宿泊施設</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">住所<span class="required">*</span></label>
+          <div class="form-input-row">
+            <input class="form-input" id="sf-address" type="text" placeholder="例：東京都渋谷区代々木神園町2-1">
+            <button id="geocode-btn" onclick="geocodeAddress()">確認</button>
+          </div>
+          <div id="geocode-result"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">コメント（任意）</label>
+          <textarea class="form-input" id="sf-comment" rows="3" placeholder="犬のサイズ制限・有料無料など補足情報があれば" style="resize:vertical;"></textarea>
+        </div>
+        <p style="font-size:11px;color:#aaa;line-height:1.65;margin:0 0 4px;">
+          ※ 投稿内容は管理者が確認後に公開されます。<br>
+          ※ 個人情報は入力しないでください。
+        </p>
+      </div>
+      <div id="submit-footer">
+        <button id="submit-cancel-btn" onclick="closeSubmitModal()">キャンセル</button>
+        <button id="submit-confirm-btn" onclick="submitSpot()" disabled>投稿する</button>
+      </div>
+      <div id="submit-delete-link">
+        <button onclick="closeSubmitModal();openUserDeleteModal();">過去の投稿を削除する場合はこちら</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 削除キー表示モーダル（投稿完了後に一度だけ表示） -->
+  <div id="deletekey-overlay">
+    <div id="deletekey-modal">
+      <div id="deletekey-header">投稿が完了しました！</div>
+      <div id="deletekey-body">
+        <div class="deletekey-warn">
+          ⚠️ 以下の削除キーを必ずメモしてください。<br>
+          このキーを紛失すると投稿を削除できなくなります。
+        </div>
+        <div class="deletekey-box" id="deletekey-value">-</div>
+        <button id="deletekey-copy-btn" onclick="copyDeleteKey()">コピーする</button>
+        <button id="deletekey-close-btn" onclick="closeDeleteKeyModal()">閉じる（メモしました）</button>
+        <p class="deletekey-note">審査後に地図に反映されます（通常1〜3日）</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 投稿削除モーダル（ユーザー用） -->
+  <div id="userdelete-overlay">
+    <div id="userdelete-modal">
+      <div id="userdelete-header">
+        自分の投稿を削除する
+        <button id="userdelete-header-close" onclick="closeUserDeleteModal()">×</button>
+      </div>
+      <div id="userdelete-body">
+        <p>投稿時に発行された削除キーを入力してください。<br>削除すると元に戻せません。</p>
+        <input class="form-input" id="userdelete-key" type="text" placeholder="削除キーを入力（例：xxxxxxxx-xxxx-...）">
+        <div id="userdelete-result"></div>
+        <button id="userdelete-submit-btn" onclick="userDeleteSubmission()">削除する</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXlAvPbRMehbFLaBeckPctko2cHnPq_n0&language=ja"></script>
   <script src="https://unpkg.com/supercluster@8/dist/supercluster.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <script>
     // ===== 地図・スポット =====
@@ -392,8 +623,16 @@
     var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', cafe:'#e74c3c', vet:'#8e44ad', hotel:'#2980b9' };
     var CAT_BADGE  = { dogrun:'badge-dogrun', dogcafe:'badge-dogcafe', cafe:'badge-dogcafe', vet:'badge-vet', hotel:'badge-hotel' };
 
+    // ===== Supabase 設定 =====
+    var SUPABASE_URL = 'https://rfcfilhqkkjmkecxzijw.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmY2ZpbGhxa2tqbWtlY3h6aWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NDI4MjQsImV4cCI6MjA4NzQxODgyNH0.xtjFtJaWFWeoGRs8O_g57mDHn6ElQlEMZJN8Q0Kn6xk';
+    var sb = null;
+
     // ページロード時にアプリを起動
-    window.addEventListener('load', function() { initApp(); });
+    window.addEventListener('load', function() {
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      initApp();
+    });
 
     function initApp() {
       map = new google.maps.Map(document.getElementById('map'), {
@@ -426,6 +665,8 @@
           refreshList();
           document.getElementById('loading').style.display = 'none';
           showCautionIfNeeded();
+          // 承認済みユーザー投稿をSupabaseから追加読み込み
+          loadApprovedSubmissions();
         } else {
           document.getElementById('loading').innerHTML = '<span>データ読み込みエラー</span>';
         }
@@ -823,9 +1064,186 @@
     function closeNewsModal() { document.getElementById('news-overlay').classList.remove('open'); }
     function onNewsOverlayClick(e) { if (e.target === document.getElementById('news-overlay')) closeNewsModal(); }
 
+    // ===== 承認済みユーザー投稿を地図に追加 =====
+    function loadApprovedSubmissions() {
+      if (!sb) return;
+      sb.from('user_submissions')
+        .select('id, name, category, address, lat, lng, comment')
+        .eq('status', 'approved')
+        .then(function(result) {
+          if (result.error || !result.data || !result.data.length) return;
+          result.data.forEach(function(s) {
+            if (!s.lat || !s.lng) return;
+            var place = {
+              place_id: 'sub_' + s.id,
+              name: s.name,
+              category: s.category,
+              address: s.address,
+              lat: parseFloat(s.lat),
+              lng: parseFloat(s.lng),
+              comment: s.comment || '',
+              source: 'user'
+            };
+            PLACES_DATA.push(place);
+            placeById[place.place_id] = place;
+          });
+          updateFilterLabels();
+          _rebuildSupercluster();
+        });
+    }
+
+    // ===== 投稿フォーム =====
+    var _geocodedLat = null, _geocodedLng = null;
+
+    function openSubmitModal() {
+      // フォームをリセット
+      document.getElementById('sf-name').value = '';
+      document.getElementById('sf-category').value = '';
+      document.getElementById('sf-address').value = '';
+      document.getElementById('sf-comment').value = '';
+      var gr = document.getElementById('geocode-result');
+      gr.style.display = 'none'; gr.className = '';
+      document.getElementById('submit-confirm-btn').disabled = true;
+      _geocodedLat = null; _geocodedLng = null;
+      document.getElementById('submit-overlay').classList.add('open');
+    }
+
+    function closeSubmitModal() {
+      document.getElementById('submit-overlay').classList.remove('open');
+    }
+
+    function geocodeAddress() {
+      var address = document.getElementById('sf-address').value.trim();
+      if (!address) { alert('住所を入力してください。'); return; }
+      var btn = document.getElementById('geocode-btn');
+      var gr = document.getElementById('geocode-result');
+      btn.disabled = true; btn.textContent = '検索中...';
+      gr.style.display = 'none'; gr.className = '';
+      _geocodedLat = null; _geocodedLng = null;
+      document.getElementById('submit-confirm-btn').disabled = true;
+
+      // Nominatim（OpenStreetMap）で住所→座標変換（完全無料）
+      fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(address) + '&format=json&limit=1&accept-language=ja', {
+        headers: { 'User-Agent': 'JapanDogMap/1.0 (contact@example.com)' }
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          btn.disabled = false; btn.textContent = '確認';
+          if (!data || !data.length) {
+            gr.className = 'error';
+            gr.textContent = '住所が見つかりませんでした。より詳しい住所を入力してください。';
+            gr.style.display = 'block';
+            return;
+          }
+          _geocodedLat = parseFloat(data[0].lat);
+          _geocodedLng = parseFloat(data[0].lon);
+          gr.className = '';
+          gr.textContent = '✓ 位置確認完了：' + data[0].display_name;
+          gr.style.display = 'block';
+          document.getElementById('submit-confirm-btn').disabled = false;
+        })
+        .catch(function() {
+          btn.disabled = false; btn.textContent = '確認';
+          gr.className = 'error';
+          gr.textContent = '住所の検索に失敗しました。しばらくしてから再試行してください。';
+          gr.style.display = 'block';
+        });
+    }
+
+    function submitSpot() {
+      var name = document.getElementById('sf-name').value.trim();
+      var category = document.getElementById('sf-category').value;
+      var address = document.getElementById('sf-address').value.trim();
+      var comment = document.getElementById('sf-comment').value.trim();
+      if (!name) { alert('スポット名を入力してください。'); return; }
+      if (!category) { alert('カテゴリを選択してください。'); return; }
+      if (!address || !_geocodedLat) { alert('住所を入力して「確認」ボタンを押してください。'); return; }
+
+      var btn = document.getElementById('submit-confirm-btn');
+      btn.disabled = true; btn.textContent = '送信中...';
+
+      // submit_spot関数経由で投稿（delete_keyを返す）
+      sb.rpc('submit_spot', {
+        p_name: name, p_category: category, p_address: address,
+        p_lat: _geocodedLat, p_lng: _geocodedLng,
+        p_comment: comment || null
+      }).then(function(result) {
+        btn.disabled = false; btn.textContent = '投稿する';
+        if (result.error) {
+          alert('投稿に失敗しました。しばらくしてから再試行してください。\n' + (result.error.message || ''));
+          return;
+        }
+        closeSubmitModal();
+        showDeleteKeyModal(result.data);
+      });
+    }
+
+    // ===== 削除キー表示（投稿完了後に一度だけ） =====
+    function showDeleteKeyModal(key) {
+      document.getElementById('deletekey-value').textContent = key;
+      document.getElementById('deletekey-overlay').classList.add('open');
+    }
+
+    function closeDeleteKeyModal() {
+      document.getElementById('deletekey-overlay').classList.remove('open');
+    }
+
+    function copyDeleteKey() {
+      var key = document.getElementById('deletekey-value').textContent;
+      var btn = document.getElementById('deletekey-copy-btn');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(key).then(function() {
+          btn.textContent = 'コピーしました！';
+          setTimeout(function() { btn.textContent = 'コピーする'; }, 2000);
+        }).catch(function() { fallbackCopy(key); });
+      } else { fallbackCopy(key); }
+    }
+
+    function fallbackCopy(text) {
+      alert('削除キーを手動でメモしてください:\n\n' + text);
+    }
+
+    // ===== 投稿削除（ユーザー自身が削除キーで削除） =====
+    function openUserDeleteModal() {
+      document.getElementById('userdelete-key').value = '';
+      var r = document.getElementById('userdelete-result');
+      r.style.display = 'none'; r.className = '';
+      document.getElementById('userdelete-overlay').classList.add('open');
+    }
+
+    function closeUserDeleteModal() {
+      document.getElementById('userdelete-overlay').classList.remove('open');
+    }
+
+    function userDeleteSubmission() {
+      var key = document.getElementById('userdelete-key').value.trim();
+      if (!key) { alert('削除キーを入力してください。'); return; }
+      var btn = document.getElementById('userdelete-submit-btn');
+      var r = document.getElementById('userdelete-result');
+      btn.disabled = true; btn.textContent = '削除中...';
+      r.style.display = 'none';
+
+      sb.rpc('user_delete_by_key', { input_delete_key: key })
+        .then(function(result) {
+          btn.disabled = false; btn.textContent = '削除する';
+          r.style.display = 'block';
+          if (result.error) {
+            r.className = 'error';
+            r.textContent = '削除に失敗しました。削除キーを確認してください。';
+          } else if (result.data === true) {
+            r.className = 'success';
+            r.textContent = '削除しました。地図への反映まで少し時間がかかる場合があります。';
+            document.getElementById('userdelete-key').value = '';
+          } else {
+            r.className = 'error';
+            r.textContent = '削除キーが一致しませんでした。もう一度確認してください。';
+          }
+        });
+    }
+
     // ===== Service Worker =====
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/tokyo-dog-map/sw.js').then(function(reg) {
+      navigator.serviceWorker.register('/sw.js').then(function(reg) {
         reg.addEventListener('updatefound', function() {
           var newWorker = reg.installing;
           newWorker.addEventListener('statechange', function() {

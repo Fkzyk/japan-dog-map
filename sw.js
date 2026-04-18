@@ -5,10 +5,10 @@ var CACHE_NAME = 'japan-dog-map-' + CACHE_VERSION;
 
 // キャッシュするリソース（アプリシェル）
 var PRECACHE_URLS = [
-  '/tokyo-dog-map/',
-  '/tokyo-dog-map/index.html',
-  '/tokyo-dog-map/news.json',
-  '/tokyo-dog-map/favicon.ico'
+  '/',
+  '/index.html',
+  '/news.json',
+  '/favicon.ico'
 ];
 
 // インストール時にアプリシェルをキャッシュ

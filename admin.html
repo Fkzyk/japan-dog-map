@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理画面 — Japan Dog Map</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+    /* ヘッダー */
+    #admin-header {
+      background: #1a1a2e; color: white;
+      padding: 0 20px; height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    #admin-header h1 { font-size: 16px; font-weight: 700; margin: 0; }
+    #logout-btn {
+      padding: 7px 14px; background: rgba(255,255,255,0.12); color: white;
+      border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+      font-size: 12px; cursor: pointer; transition: background 0.2s;
+    }
+    #logout-btn:hover { background: rgba(255,255,255,0.2); }
+
+    /* ログイン画面 */
+    #login-section {
+      display: flex; align-items: center; justify-content: center;
+      min-height: calc(100vh - 52px); padding: 20px;
+    }
+    #login-card {
+      background: white; border-radius: 18px; padding: 32px 28px;
+      width: 100%; max-width: 360px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    }
+    #login-card h2 { font-size: 18px; color: #1a1a2e; margin: 0 0 6px; }
+    #login-card p { font-size: 13px; color: #888; margin: 0 0 20px; }
+    #admin-password {
+      width: 100%; padding: 11px 14px; border: 1.5px solid #ddd; border-radius: 10px;
+      font-size: 14px; outline: none; margin-bottom: 12px; transition: border-color 0.2s;
+    }
+    #admin-password:focus { border-color: #1a1a2e; }
+    #login-btn {
+      width: 100%; padding: 12px; background: #1a1a2e; color: white;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s;
+    }
+    #login-btn:hover { background: #2d2d4e; }
+    #login-btn:disabled { background: #aaa; cursor: default; }
+    #login-error {
+      display: none; margin-top: 10px; padding: 8px 12px;
+      background: #fff0f0; border: 1px solid #f5c0c0; border-radius: 8px;
+      font-size: 12px; color: #c0392b;
+    }
+
+    /* 管理画面 */
+    #admin-section { display: none; }
+
+    /* タブ */
+    #tab-bar {
+      background: white; border-bottom: 1px solid #e8e8e8;
+      display: flex; padding: 0 20px; overflow-x: auto;
+      scrollbar-width: none; position: sticky; top: 52px; z-index: 90;
+    }
+    #tab-bar::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      padding: 14px 18px; border: none; background: none;
+      font-size: 13px; font-weight: 600; color: #888;
+      cursor: pointer; border-bottom: 3px solid transparent;
+      white-space: nowrap; transition: color 0.15s;
+    }
+    .tab-btn.active { color: #1a1a2e; border-bottom-color: #1a1a2e; }
+    .tab-count {
+      display: inline-block; background: #e74c3c; color: white;
+      font-size: 10px; font-weight: 700; padding: 1px 5px;
+      border-radius: 10px; margin-left: 5px;
+    }
+
+    /* 統計バー */
+    #stats-bar {
+      padding: 12px 20px; background: white; border-bottom: 1px solid #eee;
+      font-size: 12px; color: #888; display: flex; gap: 16px; flex-wrap: wrap;
+    }
+    .stat-item strong { color: #1a1a2e; font-size: 14px; }
+
+    /* 投稿リスト */
+    #submission-list { padding: 16px 20px; max-width: 900px; }
+
+    .submission-card {
+      background: white; border-radius: 14px; padding: 16px 18px;
+      margin-bottom: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      border-left: 4px solid #ddd;
+    }
+    .submission-card.pending  { border-left-color: #f39c12; }
+    .submission-card.approved { border-left-color: #27ae60; }
+    .submission-card.rejected { border-left-color: #bbb; }
+
+    .card-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+    .card-name { font-size: 15px; font-weight: 700; color: #1a1a2e; flex: 1; line-height: 1.35; }
+    .status-badge {
+      padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .status-pending  { background: #fff3cd; color: #856404; }
+    .status-approved { background: #d4edda; color: #155724; }
+    .status-rejected { background: #f0f0f0; color: #888; }
+
+    .card-meta { font-size: 12px; color: #888; margin-bottom: 6px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .card-address { font-size: 13px; color: #555; margin-bottom: 4px; }
+    .card-comment { font-size: 12px; color: #777; background: #f8f8f8; padding: 6px 10px; border-radius: 8px; margin-bottom: 8px; line-height: 1.6; }
+    .card-date { font-size: 11px; color: #bbb; }
+
+    .cat-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 10px; font-weight: 700; color: white;
+    }
+    .cat-dogrun  { background: #27ae60; }
+    .cat-dogcafe { background: #e74c3c; }
+    .cat-vet     { background: #8e44ad; }
+    .cat-hotel   { background: #2980b9; }
+
+    /* アクションボタン */
+    .card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .action-btn {
+      padding: 7px 14px; border-radius: 8px; border: none;
+      font-size: 12px; font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+      text-decoration: none; display: inline-block;
+    }
+    .action-btn:hover { opacity: 0.82; }
+    .action-btn:disabled { opacity: 0.4; cursor: default; }
+    .btn-approve { background: #27ae60; color: white; }
+    .btn-reject  { background: #95a5a6; color: white; }
+    .btn-delete  { background: #e74c3c; color: white; }
+    .btn-map     { background: #f0f4ff; color: #1a73e8; }
+
+    /* 空状態 */
+    .empty-state { text-align: center; padding: 60px 20px; color: #bbb; font-size: 14px; }
+    .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+    /* ローディング */
+    #loading-indicator { text-align: center; padding: 40px; color: #aaa; font-size: 14px; }
+
+    /* トースト */
+    #admin-toast {
+      display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: rgba(30,30,50,0.9); color: white;
+      padding: 10px 20px; border-radius: 10px; font-size: 13px;
+      z-index: 9999; white-space: nowrap;
+    }
+
+    @media (max-width: 600px) {
+      #submission-list { padding: 12px; }
+      .action-btn { padding: 7px 11px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ヘッダー -->
+  <div id="admin-header">
+    <h1>🐕 Japan Dog Map 管理画面</h1>
+    <button id="logout-btn" onclick="logout()" style="display:none;">ログアウト</button>
+  </div>
+
+  <!-- ログイン画面 -->
+  <div id="login-section">
+    <div id="login-card">
+      <h2>管理者ログイン</h2>
+      <p>Japan Dog Map の管理者専用ページです。</p>
+      <input type="password" id="admin-password" placeholder="管理者パスワード"
+             onkeydown="if(event.key==='Enter')adminLogin()">
+      <button id="login-btn" onclick="adminLogin()">ログイン</button>
+      <div id="login-error">パスワードが正しくありません。</div>
+    </div>
+  </div>
+
+  <!-- 管理画面 -->
+  <div id="admin-section">
+    <div id="tab-bar">
+      <button class="tab-btn active" onclick="setTab('pending')" id="tab-pending">
+        審査待ち <span class="tab-count" id="badge-pending" style="display:none;">0</span>
+      </button>
+      <button class="tab-btn" onclick="setTab('approved')" id="tab-approved">承認済み</button>
+      <button class="tab-btn" onclick="setTab('rejected')" id="tab-rejected">却下済み</button>
+      <button class="tab-btn" onclick="setTab('all')" id="tab-all">全て</button>
+    </div>
+    <div id="stats-bar">
+      <span class="stat-item">審査待ち <strong id="stat-pending">-</strong>件</span>
+      <span class="stat-item">承認済み <strong id="stat-approved">-</strong>件</span>
+      <span class="stat-item">却下済み <strong id="stat-rejected">-</strong>件</span>
+      <span style="margin-left:auto;">
+        <button onclick="loadSubmissions()" style="background:none;border:1px solid #ddd;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;color:#555;">再読み込み</button>
+      </span>
+    </div>
+    <div id="submission-list">
+      <div id="loading-indicator">読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- トースト -->
+  <div id="admin-toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    var SUPABASE_URL = 'https://rfcfilhqkkjmkecxzijw.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmY2ZpbGhxa2tqbWtlY3h6aWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NDI4MjQsImV4cCI6MjA4NzQxODgyNH0.xtjFtJaWFWeoGRs8O_g57mDHn6ElQlEMZJN8Q0Kn6xk';
+    var sb = null;
+    var adminPassword = '';
+    var allSubmissions = [];
+    var currentTab = 'pending';
+    var CAT_LABELS = { dogrun:'ドッグラン', dogcafe:'ペット可飲食店', vet:'動物病院', hotel:'ペット可宿泊施設' };
+
+    window.addEventListener('load', function() {
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // セッション内でのパスワード保持（ページリロード時に再ログイン不要）
+      var saved = sessionStorage.getItem('jdm_admin_pw');
+      if (saved) { adminPassword = saved; showAdminSection(); loadSubmissions(); }
+    });
+
+    // ===== ログイン =====
+    function adminLogin() {
+      var pw = document.getElementById('admin-password').value;
+      if (!pw) { alert('パスワードを入力してください。'); return; }
+      var btn = document.getElementById('login-btn');
+      btn.disabled = true; btn.textContent = '確認中...';
+      document.getElementById('login-error').style.display = 'none';
+
+      sb.rpc('admin_login', { input_password: pw }).then(function(result) {
+        btn.disabled = false; btn.textContent = 'ログイン';
+        if (result.error || !result.data) {
+          document.getElementById('login-error').style.display = 'block';
+          return;
+        }
+        adminPassword = pw;
+        sessionStorage.setItem('jdm_admin_pw', pw);
+        showAdminSection();
+        loadSubmissions();
+      });
+    }
+
+    function logout() {
+      adminPassword = '';
+      sessionStorage.removeItem('jdm_admin_pw');
+      document.getElementById('admin-section').style.display = 'none';
+      document.getElementById('login-section').style.display = 'flex';
+      document.getElementById('logout-btn').style.display = 'none';
+      document.getElementById('admin-password').value = '';
+    }
+
+    function showAdminSection() {
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('admin-section').style.display = 'block';
+      document.getElementById('logout-btn').style.display = 'block';
+    }
+
+    // ===== 投稿データ読み込み =====
+    function loadSubmissions() {
+      document.getElementById('loading-indicator').style.display = 'block';
+      document.getElementById('submission-list').innerHTML =
+        '<div id="loading-indicator" style="text-align:center;padding:40px;color:#aaa;font-size:14px;">読み込み中...</div>';
+
+      sb.rpc('admin_get_submissions', { input_password: adminPassword })
+        .then(function(result) {
+          if (result.error) {
+            document.getElementById('submission-list').innerHTML =
+              '<div class="empty-state"><div class="empty-icon">⚠️</div>データの取得に失敗しました。<br>ページをリロードしてください。</div>';
+            return;
+          }
+          allSubmissions = result.data || [];
+          updateStats();
+          renderList();
+        });
+    }
+
+    function updateStats() {
+      var counts = { pending: 0, approved: 0, rejected: 0 };
+      allSubmissions.forEach(function(s) { if (counts[s.status] !== undefined) counts[s.status]++; });
+      document.getElementById('stat-pending').textContent  = counts.pending;
+      document.getElementById('stat-approved').textContent = counts.approved;
+      document.getElementById('stat-rejected').textContent = counts.rejected;
+      var badge = document.getElementById('badge-pending');
+      badge.textContent = counts.pending;
+      badge.style.display = counts.pending > 0 ? 'inline-block' : 'none';
+    }
+
+    // ===== タブ切り替え =====
+    function setTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.getElementById('tab-' + tab).classList.add('active');
+      renderList();
+    }
+
+    // ===== 投稿一覧レンダリング =====
+    function renderList() {
+      var filtered = currentTab === 'all'
+        ? allSubmissions
+        : allSubmissions.filter(function(s) { return s.status === currentTab; });
+
+      var list = document.getElementById('submission-list');
+
+      if (!filtered.length) {
+        var msgs = { pending:'審査待ちの投稿はありません', approved:'承認済みの投稿はありません', rejected:'却下済みの投稿はありません', all:'投稿はありません' };
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div>' + (msgs[currentTab] || '') + '</div>';
+        return;
+      }
+
+      list.innerHTML = filtered.map(function(s) {
+        var date = new Date(s.created_at).toLocaleString('ja-JP', {
+          year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
+        });
+        var catLabel = CAT_LABELS[s.category] || s.category;
+        var statusLabel = { pending:'審査待ち', approved:'承認済み', rejected:'却下済み' }[s.status] || s.status;
+        var mapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(s.address);
+        var sid = s.id;
+        var sname = esc(s.name);
+
+        return '<div class="submission-card ' + s.status + '" id="card-' + sid + '">' +
+          '<div class="card-top">' +
+            '<div class="card-name">' + sname + '</div>' +
+            '<span class="status-badge status-' + s.status + '">' + statusLabel + '</span>' +
+          '</div>' +
+          '<div class="card-meta">' +
+            '<span class="cat-badge cat-' + s.category + '">' + catLabel + '</span>' +
+            '<span class="card-date">' + date + '</span>' +
+          '</div>' +
+          '<div class="card-address">📍 ' + esc(s.address) + '</div>' +
+          (s.comment ? '<div class="card-comment">' + esc(s.comment) + '</div>' : '') +
+          '<div class="card-actions">' +
+            (s.status !== 'approved' ?
+              '<button class="action-btn btn-approve" onclick="updateStatus(\'' + sid + '\',\'approved\')">✓ 承認する</button>' : '') +
+            (s.status !== 'rejected' ?
+              '<button class="action-btn btn-reject" onclick="updateStatus(\'' + sid + '\',\'rejected\')">却下する</button>' : '') +
+            '<button class="action-btn btn-delete" onclick="deleteSubmission(\'' + sid + '\',\'' + sname + '\')">削除</button>' +
+            '<a class="action-btn btn-map" href="' + mapUrl + '" target="_blank">地図で確認</a>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    // ===== 承認・却下 =====
+    function updateStatus(id, newStatus) {
+      sb.rpc('admin_update_status', {
+        input_password: adminPassword,
+        submission_id: id,
+        new_status: newStatus
+      }).then(function(result) {
+        if (result.error) { showToast('操作に失敗しました'); return; }
+        var label = newStatus === 'approved' ? '承認' : '却下';
+        allSubmissions = allSubmissions.map(function(s) {
+          return s.id === id ? Object.assign({}, s, { status: newStatus }) : s;
+        });
+        updateStats();
+        renderList();
+        showToast(label + 'しました');
+      });
+    }
+
+    // ===== 削除（管理者） =====
+    function deleteSubmission(id, name) {
+      if (!confirm('「' + name + '」を削除しますか？\nこの操作は元に戻せません。')) return;
+      sb.rpc('admin_delete_submission', {
+        input_password: adminPassword,
+        submission_id: id
+      }).then(function(result) {
+        if (result.error) { showToast('削除に失敗しました'); return; }
+        allSubmissions = allSubmissions.filter(function(s) { return s.id !== id; });
+        updateStats();
+        renderList();
+        showToast('削除しました');
+      });
+    }
+
+    // ===== トースト通知 =====
+    function showToast(msg) {
+      var t = document.getElementById('admin-toast');
+      t.textContent = msg; t.style.display = 'block';
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(function() { t.style.display = 'none'; }, 2500);
+    }
+
+    function esc(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>
