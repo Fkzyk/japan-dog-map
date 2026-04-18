@@ -480,6 +480,45 @@
     /* ===== お気に入りフィルタースタイル ===== */
     #btn-fav.active { background: #f39c12; }
 
+    /* ===== チュートリアル（スポットライト型） ===== */
+    #tutorial-overlay {
+      display: none; position: fixed; inset: 0; z-index: 10000;
+    }
+    #tutorial-spotlight {
+      position: fixed; z-index: 10001; pointer-events: none;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.74);
+      transition: left 0.32s cubic-bezier(0.4,0,0.2,1),
+                  top 0.32s cubic-bezier(0.4,0,0.2,1),
+                  width 0.32s cubic-bezier(0.4,0,0.2,1),
+                  height 0.32s cubic-bezier(0.4,0,0.2,1),
+                  border-radius 0.32s;
+    }
+    #tutorial-tooltip {
+      position: fixed; z-index: 10002; background: white;
+      border-radius: 16px; padding: 20px 22px; width: 272px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+      transition: left 0.32s cubic-bezier(0.4,0,0.2,1), top 0.32s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: all;
+    }
+    #tut-step-label { font-size: 11px; color: #bbb; font-weight: 600; margin-bottom: 6px; }
+    #tut-title { font-size: 16px; font-weight: 700; color: #1a1a2e; margin: 0 0 8px; }
+    #tut-desc { font-size: 13px; color: #666; line-height: 1.75; margin: 0 0 18px; }
+    .tut-footer { display: flex; align-items: center; }
+    #tut-skip-btn { background: none; border: none; font-size: 12px; color: #ccc; cursor: pointer; padding: 0; flex-shrink: 0; }
+    #tut-skip-btn:hover { color: #aaa; }
+    .tut-dots { display: flex; gap: 5px; margin: 0 auto; }
+    .tut-dot { width: 6px; height: 6px; border-radius: 50%; background: #ddd; transition: all 0.2s; }
+    .tut-dot.active { width: 18px; border-radius: 3px; background: #1a1a2e; }
+    #tut-next-btn {
+      padding: 8px 16px; background: #1a1a2e; color: white;
+      border: none; border-radius: 8px; font-size: 13px; font-weight: 700;
+      cursor: pointer; flex-shrink: 0; transition: background 0.15s;
+    }
+    #tut-next-btn:hover { background: #2d2d4e; }
+
+    /* スポット追加ボタン（テキスト付き版） */
+    #add-spot-btn { width: auto; padding: 0 16px; border-radius: 24px; font-size: 14px; font-weight: 700; gap: 4px; }
+
     /* ===== PC表示: ボトムシートを中央モーダルに変更 ===== */
     @media (min-width: 601px) {
       #reviews-overlay { align-items: center; }
@@ -602,7 +641,22 @@
 
 
   <!-- スポット追加ボタン -->
-  <button id="add-spot-btn" onclick="openSubmitModal()" title="スポットを追加する">＋</button>
+  <button id="add-spot-btn" onclick="openSubmitModal()" title="スポットを追加する">＋ 追加</button>
+
+  <!-- チュートリアルオーバーレイ -->
+  <div id="tutorial-overlay">
+    <div id="tutorial-spotlight"></div>
+    <div id="tutorial-tooltip">
+      <div id="tut-step-label">1 / 4</div>
+      <h3 id="tut-title"></h3>
+      <p id="tut-desc"></p>
+      <div class="tut-footer">
+        <button id="tut-skip-btn" onclick="closeTutorial()">スキップ</button>
+        <div class="tut-dots" id="tut-dots"></div>
+        <button id="tut-next-btn" onclick="nextTutStep()">次へ →</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 投稿フォームモーダル -->
   <div id="submit-overlay">
@@ -1174,9 +1228,13 @@
 
     // ===== 注意喚起モーダル =====
     function showCautionIfNeeded() {
-      var today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+      var today = new Date().toISOString().slice(0, 10);
       var skipped = localStorage.getItem('caution_skip_date');
-      if (skipped === today) return; // 本日スキップ済み
+      if (skipped === today) {
+        // 注意喚起スキップ済み → 直接チュートリアル表示
+        setTimeout(startTutorial, 600);
+        return;
+      }
       document.getElementById('caution-overlay').classList.add('open');
     }
     function closeCautionModal() {
@@ -1185,6 +1243,8 @@
         localStorage.setItem('caution_skip_date', today);
       }
       document.getElementById('caution-overlay').classList.remove('open');
+      // 注意喚起を閉じた後にチュートリアルを表示
+      setTimeout(startTutorial, 400);
     }
 
     // ===== お知らせ =====
@@ -1601,6 +1661,120 @@
         spot_id: spotId || null,
         metadata: metadata || null
       }]).then(function() {});
+    }
+
+    // ===== チュートリアル（スポットライト型コーチマーク） =====
+    var TUTORIAL_KEY = 'jdm-tutorial-done';
+    var _tutStep = 0;
+
+    var TUTORIAL_STEPS = [
+      {
+        getRect: function() { return document.getElementById('filter-bar').getBoundingClientRect(); },
+        pad: 4, radius: '8px',
+        title: 'カテゴリで絞り込もう',
+        desc: 'ドッグラン・動物病院・カフェなど、見たい種類だけ表示できます。気になるカテゴリを押してみてください。',
+        pos: 'below'
+      },
+      {
+        getRect: function() {
+          var mc = document.getElementById('map-container').getBoundingClientRect();
+          var cx = mc.left + mc.width / 2, cy = mc.top + mc.height / 2;
+          return { left: cx - 38, top: cy - 38, width: 76, height: 76 };
+        },
+        pad: 0, radius: '50%',
+        title: 'マーカーをタップしよう',
+        desc: '地図上の丸いマーカーをタップすると詳細が表示されます。口コミや「🐾 行ったよ！」ボタンも使えます。',
+        pos: 'above-center'
+      },
+      {
+        getRect: function() { return document.getElementById('add-spot-btn').getBoundingClientRect(); },
+        pad: 8, radius: '24px',
+        title: 'スポットを追加しよう！',
+        desc: '犬と行けるお気に入りの場所を追加してください。みんなのマップが育ちます 🐾',
+        pos: 'above-left'
+      },
+      {
+        getRect: function() { return document.getElementById('bell-btn').getBoundingClientRect(); },
+        pad: 6, radius: '50%',
+        title: 'お知らせをチェック',
+        desc: '新機能やメンテナンス情報はここに届きます。赤いバッジが付いたら確認してみてください。',
+        pos: 'below-left'
+      }
+    ];
+
+    function startTutorial() {
+      if (localStorage.getItem(TUTORIAL_KEY)) return;
+      _tutStep = 0;
+      document.getElementById('tutorial-overlay').style.display = 'block';
+      // 初回は少し遅らせてアニメーション開始
+      setTimeout(function() { showTutStep(0); }, 50);
+    }
+
+    function showTutStep(idx) {
+      var step = TUTORIAL_STEPS[idx];
+      var r = step.getRect();
+      var pad = step.pad || 0;
+
+      // スポットライト位置設定
+      var sl = document.getElementById('tutorial-spotlight');
+      sl.style.left   = (r.left - pad) + 'px';
+      sl.style.top    = (r.top - pad) + 'px';
+      sl.style.width  = (r.width + pad * 2) + 'px';
+      sl.style.height = (r.height + pad * 2) + 'px';
+      sl.style.borderRadius = step.radius;
+
+      // ツールチップ内容
+      document.getElementById('tut-step-label').textContent = (idx + 1) + ' / ' + TUTORIAL_STEPS.length;
+      document.getElementById('tut-title').textContent = step.title;
+      document.getElementById('tut-desc').textContent  = step.desc;
+      document.getElementById('tut-next-btn').textContent =
+        idx === TUTORIAL_STEPS.length - 1 ? 'はじめる！' : '次へ →';
+
+      // ドット更新
+      var dots = document.getElementById('tut-dots');
+      dots.innerHTML = '';
+      for (var i = 0; i < TUTORIAL_STEPS.length; i++) {
+        var d = document.createElement('span');
+        d.className = 'tut-dot' + (i === idx ? ' active' : '');
+        dots.appendChild(d);
+      }
+
+      // ツールチップ位置計算
+      var tw = 272, margin = 12;
+      var sLeft = r.left - pad, sTop = r.top - pad;
+      var sW = r.width + pad * 2, sH = r.height + pad * 2;
+      var tLeft, tTop;
+
+      if (step.pos === 'below') {
+        tLeft = Math.max(margin, Math.min(window.innerWidth - tw - margin, sLeft));
+        tTop  = sTop + sH + 14;
+      } else if (step.pos === 'above-center') {
+        tLeft = (window.innerWidth - tw) / 2;
+        tTop  = sTop - 200;
+        if (tTop < 60) tTop = sTop + sH + 14;
+      } else if (step.pos === 'above-left') {
+        tLeft = Math.max(margin, sLeft + sW - tw);
+        tTop  = sTop - 200;
+        if (tTop < 60) tTop = sTop + sH + 14;
+      } else if (step.pos === 'below-left') {
+        tLeft = Math.max(margin, sLeft + sW - tw);
+        tTop  = sTop + sH + 14;
+      }
+
+      var tt = document.getElementById('tutorial-tooltip');
+      tt.style.left = tLeft + 'px';
+      tt.style.top  = Math.max(60, tTop) + 'px';
+    }
+
+    function nextTutStep() {
+      if (_tutStep >= TUTORIAL_STEPS.length - 1) { closeTutorial(); return; }
+      _tutStep++;
+      showTutStep(_tutStep);
+    }
+
+    function closeTutorial() {
+      localStorage.setItem(TUTORIAL_KEY, '1');
+      document.getElementById('tutorial-overlay').style.display = 'none';
     }
 
     // ===== Service Worker =====
