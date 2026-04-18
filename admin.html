@@ -183,17 +183,32 @@
       <button class="tab-btn" onclick="setTab('approved')" id="tab-approved">承認済み</button>
       <button class="tab-btn" onclick="setTab('rejected')" id="tab-rejected">却下済み</button>
       <button class="tab-btn" onclick="setTab('all')" id="tab-all">全て</button>
+      <button class="tab-btn" onclick="setTab('reviews')" id="tab-reviews">口コミ審査</button>
+      <button class="tab-btn" onclick="setTab('requests')" id="tab-requests">
+        削除依頼 <span class="tab-count" id="badge-requests" style="display:none;">0</span>
+      </button>
     </div>
     <div id="stats-bar">
       <span class="stat-item">審査待ち <strong id="stat-pending">-</strong>件</span>
       <span class="stat-item">承認済み <strong id="stat-approved">-</strong>件</span>
       <span class="stat-item">却下済み <strong id="stat-rejected">-</strong>件</span>
       <span style="margin-left:auto;">
-        <button onclick="loadSubmissions()" style="background:none;border:1px solid #ddd;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;color:#555;">再読み込み</button>
+        <button onclick="reloadCurrentTab()" style="background:none;border:1px solid #ddd;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;color:#555;">再読み込み</button>
       </span>
     </div>
+    <!-- 投稿一覧 -->
     <div id="submission-list">
       <div id="loading-indicator">読み込み中...</div>
+    </div>
+    <!-- 口コミ審査 -->
+    <div id="reviews-section" style="display:none;padding:16px 20px;max-width:900px;">
+      <div id="reviews-loading" style="text-align:center;padding:40px;color:#aaa;font-size:14px;">読み込み中...</div>
+      <div id="reviews-admin-list"></div>
+    </div>
+    <!-- 削除依頼 -->
+    <div id="requests-section" style="display:none;padding:16px 20px;max-width:900px;">
+      <div id="requests-loading" style="text-align:center;padding:40px;color:#aaa;font-size:14px;">読み込み中...</div>
+      <div id="requests-admin-list"></div>
     </div>
   </div>
 
@@ -288,7 +303,19 @@
       currentTab = tab;
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       document.getElementById('tab-' + tab).classList.add('active');
+      // セクション表示切り替え
+      document.getElementById('submission-list').style.display  = (tab === 'reviews' || tab === 'requests') ? 'none' : 'block';
+      document.getElementById('reviews-section').style.display  = tab === 'reviews'  ? 'block' : 'none';
+      document.getElementById('requests-section').style.display = tab === 'requests' ? 'block' : 'none';
+      if (tab === 'reviews')  { loadAdminReviews(); return; }
+      if (tab === 'requests') { loadAdminRequests(); return; }
       renderList();
+    }
+
+    function reloadCurrentTab() {
+      if (currentTab === 'reviews')  { loadAdminReviews(); return; }
+      if (currentTab === 'requests') { loadAdminRequests(); return; }
+      loadSubmissions();
     }
 
     // ===== 投稿一覧レンダリング =====
@@ -368,6 +395,124 @@
         updateStats();
         renderList();
         showToast('削除しました');
+      });
+    }
+
+    // ===== 口コミ審査 =====
+    function loadAdminReviews() {
+      document.getElementById('reviews-loading').style.display = 'block';
+      document.getElementById('reviews-admin-list').innerHTML = '';
+      sb.rpc('admin_get_reviews', { input_password: adminPassword })
+        .then(function(result) {
+          document.getElementById('reviews-loading').style.display = 'none';
+          if (result.error) {
+            document.getElementById('reviews-admin-list').innerHTML =
+              '<div class="empty-state"><div class="empty-icon">⚠️</div>データの取得に失敗しました。</div>';
+            return;
+          }
+          var data = result.data || [];
+          if (!data.length) {
+            document.getElementById('reviews-admin-list').innerHTML =
+              '<div class="empty-state"><div class="empty-icon">📭</div>口コミはありません</div>';
+            return;
+          }
+          var statusLabels = { pending:'審査待ち', approved:'承認済み', rejected:'却下済み' };
+          document.getElementById('reviews-admin-list').innerHTML = data.map(function(r) {
+            var date = new Date(r.created_at).toLocaleString('ja-JP', {
+              year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
+            });
+            var stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+            var rid = r.id;
+            return '<div class="submission-card ' + r.status + '" id="rev-card-' + rid + '">' +
+              '<div class="card-top">' +
+                '<div class="card-name">' + esc(r.spot_id) + '</div>' +
+                '<span class="status-badge status-' + r.status + '">' + (statusLabels[r.status] || r.status) + '</span>' +
+              '</div>' +
+              '<div class="card-meta">' +
+                '<span style="color:#f39c12;font-size:14px;">' + stars + '</span>' +
+                '<span class="card-date">' + date + '</span>' +
+              '</div>' +
+              (r.comment ? '<div class="card-comment">' + esc(r.comment) + '</div>' : '<div class="card-comment" style="color:#bbb;">（コメントなし）</div>') +
+              '<div class="card-actions">' +
+                (r.status !== 'approved' ?
+                  '<button class="action-btn btn-approve" onclick="updateReviewStatus(\'' + rid + '\',\'approved\')">✓ 承認する</button>' : '') +
+                (r.status !== 'rejected' ?
+                  '<button class="action-btn btn-reject" onclick="updateReviewStatus(\'' + rid + '\',\'rejected\')">却下する</button>' : '') +
+              '</div>' +
+            '</div>';
+          }).join('');
+        });
+    }
+
+    function updateReviewStatus(id, newStatus) {
+      sb.rpc('admin_update_review_status', {
+        input_password: adminPassword, review_id: id, new_status: newStatus
+      }).then(function(result) {
+        if (result.error) { showToast('操作に失敗しました'); return; }
+        var label = newStatus === 'approved' ? '承認' : '却下';
+        showToast('口コミを' + label + 'しました');
+        loadAdminReviews();
+      });
+    }
+
+    // ===== 削除依頼管理 =====
+    function loadAdminRequests() {
+      document.getElementById('requests-loading').style.display = 'block';
+      document.getElementById('requests-admin-list').innerHTML = '';
+      sb.rpc('admin_get_deletion_requests', { input_password: adminPassword })
+        .then(function(result) {
+          document.getElementById('requests-loading').style.display = 'none';
+          if (result.error) {
+            document.getElementById('requests-admin-list').innerHTML =
+              '<div class="empty-state"><div class="empty-icon">⚠️</div>データの取得に失敗しました。</div>';
+            return;
+          }
+          var data = result.data || [];
+          // 未対応件数をバッジ更新
+          var pending = data.filter(function(r) { return r.status === 'pending'; }).length;
+          var badge = document.getElementById('badge-requests');
+          badge.textContent = pending;
+          badge.style.display = pending > 0 ? 'inline-block' : 'none';
+          if (!data.length) {
+            document.getElementById('requests-admin-list').innerHTML =
+              '<div class="empty-state"><div class="empty-icon">📭</div>削除依頼はありません</div>';
+            return;
+          }
+          var statusLabels = { pending:'未対応', handled:'対応済み', rejected:'却下済み' };
+          document.getElementById('requests-admin-list').innerHTML = data.map(function(r) {
+            var date = new Date(r.created_at).toLocaleString('ja-JP', {
+              year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
+            });
+            var mapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(r.spot_name);
+            var rid = r.id;
+            return '<div class="submission-card ' + (r.status === 'pending' ? 'pending' : r.status === 'handled' ? 'approved' : 'rejected') + '" id="req-card-' + rid + '">' +
+              '<div class="card-top">' +
+                '<div class="card-name">🗺 ' + esc(r.spot_name) + '</div>' +
+                '<span class="status-badge status-' + (r.status === 'pending' ? 'pending' : r.status === 'handled' ? 'approved' : 'rejected') + '">' + (statusLabels[r.status] || r.status) + '</span>' +
+              '</div>' +
+              '<div class="card-meta"><span class="card-date">' + date + '</span></div>' +
+              '<div class="card-comment">' + esc(r.reason) + '</div>' +
+              (r.contact_email ? '<div class="card-address">📧 ' + esc(r.contact_email) + '</div>' : '') +
+              '<div class="card-actions">' +
+                (r.status !== 'handled' ?
+                  '<button class="action-btn btn-approve" onclick="updateRequestStatus(\'' + rid + '\',\'handled\')">✓ 対応済み</button>' : '') +
+                (r.status !== 'rejected' ?
+                  '<button class="action-btn btn-reject" onclick="updateRequestStatus(\'' + rid + '\',\'rejected\')">却下する</button>' : '') +
+                '<a class="action-btn btn-map" href="' + mapUrl + '" target="_blank">地図で確認</a>' +
+              '</div>' +
+            '</div>';
+          }).join('');
+        });
+    }
+
+    function updateRequestStatus(id, newStatus) {
+      sb.rpc('admin_update_request', {
+        input_password: adminPassword, request_id: id, new_status: newStatus
+      }).then(function(result) {
+        if (result.error) { showToast('操作に失敗しました'); return; }
+        var label = newStatus === 'handled' ? '対応済みにしました' : '却下しました';
+        showToast(label);
+        loadAdminRequests();
       });
     }
 

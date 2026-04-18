@@ -328,81 +328,133 @@
     }
     #submit-confirm-btn:hover:not(:disabled) { background: #219a52; }
     #submit-confirm-btn:disabled { background: #aaa; cursor: default; }
-    #submit-delete-link { padding: 8px 18px 16px; text-align: center; flex-shrink: 0; }
-    #submit-delete-link button {
-      background: none; border: none; color: #bbb; font-size: 11px;
-      cursor: pointer; text-decoration: underline;
-    }
 
-    /* ===== 削除キー表示モーダル ===== */
-    #deletekey-overlay {
+    /* ===== 投稿完了モーダル（シンプル版） ===== */
+    #submit-success-overlay {
       display: none; position: fixed; inset: 0; z-index: 9500;
-      background: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px;
+      background: rgba(0,0,0,0.55); align-items: center; justify-content: center; padding: 20px;
     }
-    #deletekey-overlay.open { display: flex; }
-    #deletekey-modal {
-      background: white; border-radius: 18px;
-      width: 100%; max-width: 380px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.25); overflow: hidden;
+    #submit-success-overlay.open { display: flex; }
+    #submit-success-modal {
+      background: white; border-radius: 18px; padding: 36px 28px;
+      width: 100%; max-width: 340px; text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.22);
     }
-    #deletekey-header {
-      background: #27ae60; color: white;
-      padding: 16px 18px; font-size: 15px; font-weight: 700; text-align: center;
+    #submit-success-modal .success-icon { font-size: 48px; margin-bottom: 14px; }
+    #submit-success-modal h3 { font-size: 17px; color: #1a1a2e; margin: 0 0 10px; }
+    #submit-success-modal p { font-size: 13px; color: #777; margin: 0 0 20px; line-height: 1.7; }
+    #submit-success-close {
+      padding: 11px 28px; background: #27ae60; color: white;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
     }
-    #deletekey-body { padding: 20px 18px; }
-    .deletekey-warn {
-      background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px;
-      padding: 10px 14px; font-size: 12px; color: #795548; margin-bottom: 14px; line-height: 1.65;
-    }
-    .deletekey-box {
-      background: #f5f5f5; border-radius: 10px; padding: 14px;
-      font-family: monospace; font-size: 13px; color: #1a1a2e; font-weight: 700;
-      text-align: center; letter-spacing: 0.5px; word-break: break-all;
-      border: 1.5px dashed #bbb; margin-bottom: 12px;
-    }
-    #deletekey-copy-btn {
-      width: 100%; padding: 10px; background: #1a1a2e; color: white;
-      border: none; border-radius: 10px; font-size: 13px; font-weight: 600;
-      cursor: pointer; margin-bottom: 8px; transition: background 0.2s;
-    }
-    #deletekey-copy-btn:hover { background: #2d2d4e; }
-    #deletekey-close-btn {
-      width: 100%; padding: 10px; background: white; color: #666;
-      border: 1.5px solid #ddd; border-radius: 10px; font-size: 13px; cursor: pointer; font-weight: 600;
-    }
-    .deletekey-note { font-size: 11px; color: #aaa; text-align: center; margin-top: 10px; }
 
-    /* ===== 投稿削除モーダル（ユーザー用） ===== */
-    #userdelete-overlay {
+    /* ===== infoWindowのアクション行 ===== */
+    .iw-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0f0; }
+    .iw-action-row { display: flex; gap: 6px; }
+    .iw-action-btn {
+      flex: 1; padding: 7px 8px; border-radius: 8px; border: 1.5px solid #e8e8e8;
+      background: white; font-size: 11px; font-weight: 600; cursor: pointer;
+      transition: background 0.15s, border-color 0.15s; text-align: center; white-space: nowrap;
+    }
+    .iw-action-btn:hover { background: #f5f5f7; }
+    .iw-fav-btn.active { background: #fff8e1; border-color: #f39c12; color: #e67e22; }
+    .iw-helpful-btn.active { background: #fff0f0; border-color: #e74c3c; color: #c0392b; }
+    .iw-report-btn { color: #aaa; border-color: #eee; font-size: 10px; flex: 0 0 auto; }
+
+    /* ===== 口コミモーダル（ボトムシート） ===== */
+    #reviews-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9000;
+      background: rgba(0,0,0,0.45); align-items: flex-end; justify-content: center;
+    }
+    #reviews-overlay.open { display: flex; }
+    #reviews-modal {
+      background: white; border-radius: 20px 20px 0 0;
+      width: 100%; max-width: 480px; max-height: 82vh;
+      box-shadow: 0 -4px 30px rgba(0,0,0,0.15);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    #reviews-header {
+      background: #1a1a2e; color: white;
+      padding: 14px 18px; font-size: 14px; font-weight: 700;
+      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+    }
+    #reviews-close { background: none; border: none; color: white; font-size: 22px; cursor: pointer; line-height: 1; }
+    #reviews-body { overflow-y: auto; flex: 1; }
+    #reviews-write { padding: 16px 18px; border-bottom: 1px solid #f0f0f0; }
+    #reviews-write h4 { font-size: 13px; font-weight: 700; color: #333; margin: 0 0 10px; }
+    .star-row { display: flex; gap: 4px; margin-bottom: 10px; }
+    .star-btn {
+      font-size: 22px; background: none; border: none; cursor: pointer;
+      color: #ddd; transition: color 0.1s; padding: 0 2px; line-height: 1;
+    }
+    .star-btn.active { color: #f39c12; }
+    #review-comment {
+      width: 100%; padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 10px;
+      font-size: 13px; outline: none; resize: vertical; min-height: 70px;
+      box-sizing: border-box; transition: border-color 0.2s;
+    }
+    #review-comment:focus { border-color: #1a1a2e; }
+    #review-char-count { font-size: 10px; color: #bbb; text-align: right; margin-top: 3px; }
+    #review-submit-btn {
+      width: 100%; margin-top: 10px; padding: 11px; background: #1a1a2e; color: white;
+      border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+    }
+    #review-submit-btn:disabled { background: #aaa; cursor: default; }
+    #review-feedback { display: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; margin-top: 8px; }
+    #review-feedback.success { background: #f0faf4; border: 1px solid #b7e4c7; color: #2d6a4f; }
+    #review-feedback.error   { background: #fff0f0; border: 1px solid #f5c0c0; color: #c0392b; }
+    #reviews-list { padding: 12px 18px; }
+    #reviews-list-title { font-size: 12px; font-weight: 700; color: #888; margin-bottom: 10px; }
+    .review-item { padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+    .review-item:last-child { border-bottom: none; }
+    .review-stars { color: #f39c12; font-size: 12px; margin-bottom: 3px; }
+    .review-text { font-size: 13px; color: #333; line-height: 1.6; }
+    .review-date { font-size: 11px; color: #bbb; margin-top: 3px; }
+
+    /* ===== 削除依頼モーダル ===== */
+    #report-overlay {
       display: none; position: fixed; inset: 0; z-index: 9000;
       background: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 20px;
     }
-    #userdelete-overlay.open { display: flex; }
-    #userdelete-modal {
+    #report-overlay.open { display: flex; }
+    #report-modal {
       background: white; border-radius: 18px;
       width: 100%; max-width: 380px;
       box-shadow: 0 8px 40px rgba(0,0,0,0.22); overflow: hidden;
     }
-    #userdelete-header {
-      background: #e74c3c; color: white;
+    #report-header {
+      background: #e67e22; color: white;
       padding: 14px 18px; font-size: 15px; font-weight: 700;
       display: flex; justify-content: space-between; align-items: center;
     }
-    #userdelete-header-close { background: none; border: none; color: white; font-size: 22px; cursor: pointer; line-height: 1; }
-    #userdelete-body { padding: 20px 18px; }
-    #userdelete-body p { font-size: 13px; color: #555; margin: 0 0 14px; line-height: 1.65; }
-    #userdelete-result {
-      display: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; margin-top: 10px;
+    #report-close { background: none; border: none; color: white; font-size: 22px; cursor: pointer; line-height: 1; }
+    #report-body { padding: 18px; }
+    #report-body p { font-size: 13px; color: #555; margin: 0 0 12px; line-height: 1.65; }
+    #report-spot-display { font-size: 13px; font-weight: 700; color: #1a1a2e; background: #f5f5f7; padding: 8px 12px; border-radius: 8px; margin-bottom: 14px; }
+    #report-reason {
+      width: 100%; padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 10px;
+      font-size: 13px; outline: none; resize: vertical; min-height: 80px;
+      box-sizing: border-box; margin-bottom: 10px; transition: border-color 0.2s;
     }
-    #userdelete-result.success { background: #f0faf4; border: 1px solid #b7e4c7; color: #2d6a4f; }
-    #userdelete-result.error { background: #fff0f0; border: 1px solid #f5c0c0; color: #c0392b; }
-    #userdelete-submit-btn {
-      width: 100%; padding: 12px; background: #e74c3c; color: white;
-      border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
-      cursor: pointer; transition: background 0.2s; margin-top: 14px;
+    #report-reason:focus { border-color: #e67e22; }
+    #report-email {
+      width: 100%; padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 10px;
+      font-size: 13px; outline: none; box-sizing: border-box; margin-bottom: 14px; transition: border-color 0.2s;
     }
-    #userdelete-submit-btn:hover:not(:disabled) { background: #c0392b; }
-    #userdelete-submit-btn:disabled { background: #aaa; cursor: default; }
+    #report-email:focus { border-color: #e67e22; }
+    #report-submit-btn {
+      width: 100%; padding: 12px; background: #e67e22; color: white;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: background 0.2s;
+    }
+    #report-submit-btn:hover:not(:disabled) { background: #d35400; }
+    #report-submit-btn:disabled { background: #aaa; cursor: default; }
+    #report-feedback { display: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; margin-top: 10px; }
+    #report-feedback.success { background: #f0faf4; border: 1px solid #b7e4c7; color: #2d6a4f; }
+    #report-feedback.error   { background: #fff0f0; border: 1px solid #f5c0c0; color: #c0392b; }
+
+    /* ===== お気に入りフィルタースタイル ===== */
+    #btn-fav.active { background: #f39c12; }
   </style>
 </head>
 <body>
@@ -453,6 +505,7 @@
     <button class="filter-btn"        id="btn-dogcafe" onclick="setFilter('dogcafe',this)">ペット可飲食店</button>
     <button class="filter-btn"        id="btn-vet"     onclick="setFilter('vet',this)">動物病院</button>
     <button class="filter-btn"        id="btn-hotel"   onclick="setFilter('hotel',this)">ペット可宿泊施設</button>
+    <button class="filter-btn"        id="btn-fav"     onclick="setFilter('fav',this)">★ お気に入り</button>
   </div>
 
   <!-- 検索バー -->
@@ -561,44 +614,71 @@
         <button id="submit-cancel-btn" onclick="closeSubmitModal()">キャンセル</button>
         <button id="submit-confirm-btn" onclick="submitSpot()" disabled>投稿する</button>
       </div>
-      <div id="submit-delete-link">
-        <button onclick="closeSubmitModal();openUserDeleteModal();">過去の投稿を削除する場合はこちら</button>
-      </div>
     </div>
   </div>
 
-  <!-- 削除キー表示モーダル（投稿完了後に一度だけ表示） -->
-  <div id="deletekey-overlay">
-    <div id="deletekey-modal">
-      <div id="deletekey-header">投稿が完了しました！</div>
-      <div id="deletekey-body">
-        <div class="deletekey-warn">
-          ⚠️ 以下の削除キーを必ずメモしてください。<br>
-          このキーを紛失すると投稿を削除できなくなります。
+  <!-- 投稿完了モーダル（シンプル版） -->
+  <div id="submit-success-overlay">
+    <div id="submit-success-modal">
+      <div class="success-icon">🐾</div>
+      <h3>投稿ありがとうございます！</h3>
+      <p>管理者が確認後、地図に公開されます<br>（通常1〜3日）。</p>
+      <button id="submit-success-close" onclick="closeSubmitSuccess()">閉じる</button>
+    </div>
+  </div>
+
+  <!-- 口コミモーダル（ボトムシート） -->
+  <div id="reviews-overlay">
+    <div id="reviews-modal">
+      <div id="reviews-header">
+        <span id="reviews-spot-name">口コミ</span>
+        <button id="reviews-close" onclick="closeReviewsModal()">×</button>
+      </div>
+      <div id="reviews-body">
+        <div id="reviews-write">
+          <h4>口コミを書く</h4>
+          <div class="star-row">
+            <button class="star-btn" data-v="1" onclick="setReviewStar(1)">★</button>
+            <button class="star-btn" data-v="2" onclick="setReviewStar(2)">★</button>
+            <button class="star-btn" data-v="3" onclick="setReviewStar(3)">★</button>
+            <button class="star-btn" data-v="4" onclick="setReviewStar(4)">★</button>
+            <button class="star-btn" data-v="5" onclick="setReviewStar(5)">★</button>
+          </div>
+          <textarea id="review-comment" placeholder="コメント（任意・500字以内）" maxlength="500" oninput="onReviewCommentInput()"></textarea>
+          <div id="review-char-count">0 / 500</div>
+          <button id="review-submit-btn" onclick="submitReview()" disabled>投稿する</button>
+          <div id="review-feedback"></div>
         </div>
-        <div class="deletekey-box" id="deletekey-value">-</div>
-        <button id="deletekey-copy-btn" onclick="copyDeleteKey()">コピーする</button>
-        <button id="deletekey-close-btn" onclick="closeDeleteKeyModal()">閉じる（メモしました）</button>
-        <p class="deletekey-note">審査後に地図に反映されます（通常1〜3日）</p>
+        <div id="reviews-list">
+          <div id="reviews-list-title">みんなの口コミ</div>
+          <div id="reviews-list-body"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 投稿削除モーダル（ユーザー用） -->
-  <div id="userdelete-overlay">
-    <div id="userdelete-modal">
-      <div id="userdelete-header">
-        自分の投稿を削除する
-        <button id="userdelete-header-close" onclick="closeUserDeleteModal()">×</button>
+  <!-- 削除依頼モーダル -->
+  <div id="report-overlay">
+    <div id="report-modal">
+      <div id="report-header">
+        🚩 問題を報告
+        <button id="report-close" onclick="closeReportModal()">×</button>
       </div>
-      <div id="userdelete-body">
-        <p>投稿時に発行された削除キーを入力してください。<br>削除すると元に戻せません。</p>
-        <input class="form-input" id="userdelete-key" type="text" placeholder="削除キーを入力（例：xxxxxxxx-xxxx-...）">
-        <div id="userdelete-result"></div>
-        <button id="userdelete-submit-btn" onclick="userDeleteSubmission()">削除する</button>
+      <div id="report-body">
+        <p>情報が古い・閉店・不適切なスポットなど、問題のあるスポットを管理者に報告できます。</p>
+        <div id="report-spot-display"></div>
+        <label class="form-label">報告内容<span class="required">*</span></label>
+        <textarea id="report-reason" placeholder="例：閉店した・情報が古い・不適切なスポット" maxlength="1000"></textarea>
+        <label class="form-label">連絡先メール（任意・返信希望の場合）</label>
+        <input id="report-email" type="email" placeholder="your@email.com">
+        <button id="report-submit-btn" onclick="submitReport()">送信する</button>
+        <div id="report-feedback"></div>
       </div>
     </div>
   </div>
+
+  <!-- 広告枠1: 地図下部バナー（Phase 3で有効化） -->
+  <div id="ad-slot-map-bottom" class="ad-slot" style="display:none;width:320px;height:50px;margin:0 auto;position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:1700;"></div>
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXlAvPbRMehbFLaBeckPctko2cHnPq_n0&language=ja"></script>
   <script src="https://unpkg.com/supercluster@8/dist/supercluster.min.js"></script>
@@ -701,7 +781,9 @@
     }
 
     function getBaseFiltered() {
-      return currentFilter === 'all' ? PLACES_DATA : PLACES_DATA.filter(function(p) {
+      if (currentFilter === 'all') return PLACES_DATA;
+      if (currentFilter === 'fav') return PLACES_DATA.filter(function(p) { return isFavorite(p.place_id); });
+      return PLACES_DATA.filter(function(p) {
         if (currentFilter === 'dogcafe') return p.category === 'dogcafe' || p.category === 'cafe';
         if (currentFilter === 'hotel') return p.category === 'hotel';
         return p.category === currentFilter;
@@ -883,9 +965,11 @@
       // 電話番号
       var phoneHtml = p.phone ? '<div class="iw-detail">📞 <a href="tel:' + p.phone + '" style="color:#1a73e8;text-decoration:none;">' + esc(p.phone) + '</a></div>' : '';
 
+      var pid = esc(p.place_id);
+      var pname = esc(p.name);
       var content =
         '<div class="iw-card">'
-        + '<div class="iw-name">' + esc(p.name) + '</div>'
+        + '<div class="iw-name">' + pname + '</div>'
         + '<div class="iw-addr">' + esc(p.address || '') + '</div>'
         + '<div class="iw-meta">'
         + '<span class="iw-badge" style="background:' + (CAT_COLORS[p.category]||'#999') + '">' + (CAT_LABELS[p.category]||'') + '</span>'
@@ -894,12 +978,34 @@
         + '</div>'
         + phoneHtml
         + (links ? '<div class="iw-links">' + links + '</div>' : '')
+        + '<div class="iw-actions">'
+        + '<div class="iw-action-row">'
+        + '<button class="iw-action-btn iw-fav-btn" id="iw-fav-' + pid + '" onclick="toggleFavorite(\'' + pid + '\')">'
+        + (isFavorite(p.place_id) ? '★ お気に入り済み' : '☆ お気に入り')
+        + '</button>'
+        + '<button class="iw-action-btn iw-helpful-btn" id="iw-helpful-' + pid + '" onclick="handleHelpful(\'' + pid + '\')">'
+        + '❤️ 参考になった <span id="iw-helpful-cnt-' + pid + '">…</span>'
+        + '</button>'
+        + '</div>'
+        + '<div class="iw-action-row">'
+        + '<button class="iw-action-btn" onclick="openReviewsModal(\'' + pid + '\',\'' + pname + '\')">'
+        + '★ 口コミ <span id="iw-review-cnt-' + pid + '">…</span>'
+        + '</button>'
+        + '<button class="iw-action-btn iw-report-btn" onclick="openReportModal(\'' + pid + '\',\'' + pname + '\')">'
+        + '🚩 報告'
+        + '</button>'
+        + '</div>'
+        + '</div>'
         + '</div>';
 
       infoWindow.setContent(content);
       _activeInfoMarker = marker;
       // shouldFocus:false で infoWindow表示時の自動パンを無効化
       infoWindow.open({ map: map, anchor: marker, shouldFocus: false });
+      // 参考になったカウントと口コミ数を非同期で取得
+      loadHelpfulCount(p.place_id);
+      loadReviewCount(p.place_id);
+      logEvent('spot_view', p.place_id);
     }
 
     function refreshList() {
@@ -1174,71 +1280,251 @@
           return;
         }
         closeSubmitModal();
-        showDeleteKeyModal(result.data);
+        openSubmitSuccess();
+        logEvent('spot_submit', null);
       });
     }
 
-    // ===== 削除キー表示（投稿完了後に一度だけ） =====
-    function showDeleteKeyModal(key) {
-      document.getElementById('deletekey-value').textContent = key;
-      document.getElementById('deletekey-overlay').classList.add('open');
+    // ===== 投稿完了モーダル（シンプル版） =====
+    function openSubmitSuccess() {
+      document.getElementById('submit-success-overlay').classList.add('open');
+    }
+    function closeSubmitSuccess() {
+      document.getElementById('submit-success-overlay').classList.remove('open');
     }
 
-    function closeDeleteKeyModal() {
-      document.getElementById('deletekey-overlay').classList.remove('open');
+    // ===== device_id 基盤（ブラウザ識別子） =====
+    var DEVICE_ID_KEY = 'jdm-device-id';
+    function getDeviceId() {
+      var id = localStorage.getItem(DEVICE_ID_KEY);
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          var r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        }));
+        localStorage.setItem(DEVICE_ID_KEY, id);
+      }
+      return id;
     }
 
-    function copyDeleteKey() {
-      var key = document.getElementById('deletekey-value').textContent;
-      var btn = document.getElementById('deletekey-copy-btn');
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(key).then(function() {
-          btn.textContent = 'コピーしました！';
-          setTimeout(function() { btn.textContent = 'コピーする'; }, 2000);
-        }).catch(function() { fallbackCopy(key); });
-      } else { fallbackCopy(key); }
+    // ===== お気に入り機能（LocalStorage） =====
+    var FAV_KEY = 'jdm-favorites';
+    function getFavorites() {
+      try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch(e) { return []; }
+    }
+    function isFavorite(id) { return getFavorites().indexOf(id) >= 0; }
+    function toggleFavorite(id) {
+      var favs = getFavorites();
+      var idx = favs.indexOf(id);
+      if (idx >= 0) {
+        favs.splice(idx, 1);
+        logEvent('spot_favorite_remove', id);
+      } else {
+        favs.push(id);
+        logEvent('spot_favorite_add', id);
+      }
+      localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+      // infoWindowのボタン表示を更新
+      var btn = document.getElementById('iw-fav-' + id);
+      if (btn) {
+        if (isFavorite(id)) {
+          btn.textContent = '★ お気に入り済み'; btn.classList.add('active');
+        } else {
+          btn.textContent = '☆ お気に入り'; btn.classList.remove('active');
+        }
+      }
     }
 
-    function fallbackCopy(text) {
-      alert('削除キーを手動でメモしてください:\n\n' + text);
+    // ===== 参考になった機能 =====
+    var HELPFUL_KEY = 'jdm-helpfuls';
+    function getHelpfuls() {
+      try { return JSON.parse(localStorage.getItem(HELPFUL_KEY) || '[]'); } catch(e) { return []; }
     }
+    function isHelpful(id) { return getHelpfuls().indexOf(id) >= 0; }
 
-    // ===== 投稿削除（ユーザー自身が削除キーで削除） =====
-    function openUserDeleteModal() {
-      document.getElementById('userdelete-key').value = '';
-      var r = document.getElementById('userdelete-result');
-      r.style.display = 'none'; r.className = '';
-      document.getElementById('userdelete-overlay').classList.add('open');
-    }
-
-    function closeUserDeleteModal() {
-      document.getElementById('userdelete-overlay').classList.remove('open');
-    }
-
-    function userDeleteSubmission() {
-      var key = document.getElementById('userdelete-key').value.trim();
-      if (!key) { alert('削除キーを入力してください。'); return; }
-      var btn = document.getElementById('userdelete-submit-btn');
-      var r = document.getElementById('userdelete-result');
-      btn.disabled = true; btn.textContent = '削除中...';
-      r.style.display = 'none';
-
-      sb.rpc('user_delete_by_key', { input_delete_key: key })
+    function loadHelpfulCount(spotId) {
+      if (!sb) return;
+      var pid = esc(spotId);
+      sb.from('spot_helpfuls').select('*', { count: 'exact', head: true }).eq('spot_id', spotId)
         .then(function(result) {
-          btn.disabled = false; btn.textContent = '削除する';
-          r.style.display = 'block';
-          if (result.error) {
-            r.className = 'error';
-            r.textContent = '削除に失敗しました。削除キーを確認してください。';
-          } else if (result.data === true) {
-            r.className = 'success';
-            r.textContent = '削除しました。地図への反映まで少し時間がかかる場合があります。';
-            document.getElementById('userdelete-key').value = '';
-          } else {
-            r.className = 'error';
-            r.textContent = '削除キーが一致しませんでした。もう一度確認してください。';
-          }
+          var cnt = document.getElementById('iw-helpful-cnt-' + pid);
+          if (cnt) cnt.textContent = result.count || 0;
+          var btn = document.getElementById('iw-helpful-' + pid);
+          if (btn && isHelpful(spotId)) btn.classList.add('active');
         });
+    }
+
+    function handleHelpful(spotId) {
+      if (!sb) return;
+      var pid = esc(spotId);
+      var helpfuls = getHelpfuls();
+      var already = helpfuls.indexOf(spotId) >= 0;
+      // LocalStorageを即時更新（楽観的UI）
+      if (already) {
+        helpfuls.splice(helpfuls.indexOf(spotId), 1);
+      } else {
+        helpfuls.push(spotId);
+      }
+      localStorage.setItem(HELPFUL_KEY, JSON.stringify(helpfuls));
+      var btn = document.getElementById('iw-helpful-' + pid);
+      if (btn) btn.classList.toggle('active', !already);
+      // DB確定（toggle_helpful RPC）
+      sb.rpc('toggle_helpful', { p_spot_id: spotId, p_device_id: getDeviceId() })
+        .then(function() {
+          loadHelpfulCount(spotId);
+          if (!already) logEvent('spot_helpful', spotId);
+        });
+    }
+
+    // ===== 口コミ機能 =====
+    var _reviewSpotId = null;
+    var _reviewRating = 0;
+
+    function loadReviewCount(spotId) {
+      if (!sb) return;
+      var pid = esc(spotId);
+      sb.from('spot_reviews').select('*', { count: 'exact', head: true })
+        .eq('spot_id', spotId).eq('status', 'approved')
+        .then(function(result) {
+          var cnt = document.getElementById('iw-review-cnt-' + pid);
+          if (cnt) cnt.textContent = (result.count || 0) + '件';
+        });
+    }
+
+    function openReviewsModal(spotId, spotName) {
+      _reviewSpotId = spotId;
+      _reviewRating = 0;
+      document.getElementById('reviews-spot-name').textContent = spotName;
+      document.querySelectorAll('.star-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.getElementById('review-comment').value = '';
+      document.getElementById('review-char-count').textContent = '0 / 500';
+      document.getElementById('review-submit-btn').disabled = true;
+      var fb = document.getElementById('review-feedback');
+      fb.style.display = 'none'; fb.className = '';
+      document.getElementById('reviews-list-body').innerHTML = '<div style="padding:10px;color:#bbb;font-size:12px;">読み込み中...</div>';
+      document.getElementById('reviews-overlay').classList.add('open');
+      loadReviews(spotId);
+    }
+
+    function closeReviewsModal() {
+      document.getElementById('reviews-overlay').classList.remove('open');
+    }
+
+    function setReviewStar(rating) {
+      _reviewRating = rating;
+      document.querySelectorAll('.star-btn').forEach(function(b) {
+        b.classList.toggle('active', parseInt(b.getAttribute('data-v')) <= rating);
+      });
+      document.getElementById('review-submit-btn').disabled = false;
+    }
+
+    function onReviewCommentInput() {
+      var len = document.getElementById('review-comment').value.length;
+      document.getElementById('review-char-count').textContent = len + ' / 500';
+    }
+
+    function loadReviews(spotId) {
+      if (!sb) return;
+      sb.from('spot_reviews').select('rating, comment, created_at')
+        .eq('spot_id', spotId).eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .then(function(result) {
+          var body = document.getElementById('reviews-list-body');
+          if (!result.data || !result.data.length) {
+            body.innerHTML = '<div style="padding:10px;color:#bbb;font-size:12px;">まだ口コミはありません。最初の口コミを書いてみましょう！</div>';
+            return;
+          }
+          body.innerHTML = result.data.map(function(r) {
+            var stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+            var date = r.created_at ? r.created_at.slice(0, 10) : '';
+            return '<div class="review-item">'
+              + '<div class="review-stars">' + stars + '</div>'
+              + (r.comment ? '<div class="review-text">' + esc(r.comment) + '</div>' : '')
+              + '<div class="review-date">' + date + '</div>'
+              + '</div>';
+          }).join('');
+        });
+    }
+
+    function submitReview() {
+      if (!_reviewSpotId || !_reviewRating) return;
+      var comment = document.getElementById('review-comment').value.trim();
+      var btn = document.getElementById('review-submit-btn');
+      btn.disabled = true; btn.textContent = '送信中...';
+      sb.from('spot_reviews').insert([{
+        spot_id: _reviewSpotId,
+        rating: _reviewRating,
+        comment: comment || null,
+        device_id: getDeviceId(),
+        status: 'pending'
+      }]).then(function(result) {
+        btn.disabled = false; btn.textContent = '投稿する';
+        var fb = document.getElementById('review-feedback');
+        fb.style.display = 'block';
+        if (result.error) {
+          fb.className = 'error'; fb.textContent = '送信に失敗しました。しばらく後に再試行してください。';
+        } else {
+          fb.className = 'success'; fb.textContent = '送信しました！管理者の審査後に反映されます。';
+          document.getElementById('review-comment').value = '';
+          _reviewRating = 0;
+          document.querySelectorAll('.star-btn').forEach(function(b) { b.classList.remove('active'); });
+          logEvent('review_submit', _reviewSpotId);
+        }
+      });
+    }
+
+    // ===== 削除依頼フォーム =====
+    var _reportSpotId = null;
+
+    function openReportModal(spotId, spotName) {
+      _reportSpotId = spotId;
+      document.getElementById('report-spot-display').textContent = spotName;
+      document.getElementById('report-reason').value = '';
+      document.getElementById('report-email').value = '';
+      var fb = document.getElementById('report-feedback');
+      fb.style.display = 'none'; fb.className = '';
+      document.getElementById('report-submit-btn').disabled = false;
+      document.getElementById('report-overlay').classList.add('open');
+    }
+
+    function closeReportModal() {
+      document.getElementById('report-overlay').classList.remove('open');
+    }
+
+    function submitReport() {
+      var reason = document.getElementById('report-reason').value.trim();
+      if (!reason) { alert('報告内容を入力してください。'); return; }
+      var email = document.getElementById('report-email').value.trim();
+      var btn = document.getElementById('report-submit-btn');
+      btn.disabled = true; btn.textContent = '送信中...';
+      var spotName = document.getElementById('report-spot-display').textContent;
+      sb.from('deletion_requests').insert([{
+        spot_id: _reportSpotId,
+        spot_name: spotName,
+        reason: reason,
+        contact_email: email || null
+      }]).then(function(result) {
+        btn.disabled = false; btn.textContent = '送信する';
+        var fb = document.getElementById('report-feedback');
+        fb.style.display = 'block';
+        if (result.error) {
+          fb.className = 'error'; fb.textContent = '送信に失敗しました。';
+        } else {
+          fb.className = 'success'; fb.textContent = '報告を受け付けました。ありがとうございます。';
+          logEvent('spot_report', _reportSpotId);
+        }
+      });
+    }
+
+    // ===== 行動ログ（fire-and-forget） =====
+    function logEvent(eventType, spotId, metadata) {
+      if (!sb) return;
+      sb.from('user_events').insert([{
+        device_id: getDeviceId(),
+        event_type: eventType,
+        spot_id: spotId || null,
+        metadata: metadata || null
+      }]).then(function() {});
     }
 
     // ===== Service Worker =====
