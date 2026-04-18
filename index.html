@@ -455,6 +455,15 @@
 
     /* ===== お気に入りフィルタースタイル ===== */
     #btn-fav.active { background: #f39c12; }
+
+    /* ===== PC表示: ボトムシートを中央モーダルに変更 ===== */
+    @media (min-width: 601px) {
+      #reviews-overlay { align-items: center; }
+      #reviews-modal { border-radius: 18px; max-height: 80vh; }
+
+      #submit-overlay { align-items: center; }
+      #submit-modal { border-radius: 18px; max-height: 85vh; }
+    }
   </style>
 </head>
 <body>
