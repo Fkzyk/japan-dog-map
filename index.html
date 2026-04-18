@@ -534,6 +534,22 @@
     /* スポット追加ボタン（テキスト付き版） */
     #add-spot-btn { width: auto; padding: 0 16px; border-radius: 24px; font-size: 14px; font-weight: 700; gap: 4px; }
 
+    /* ===== ピン打ちモード ===== */
+    #pin-drop-banner {
+      display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 5000;
+      align-items: center; justify-content: center; gap: 12px;
+      background: #1a1a2e; color: #fff;
+      padding: 13px 16px; font-size: 14px; font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    #pin-drop-cancel {
+      padding: 6px 14px; background: transparent;
+      border: 1.5px solid rgba(255,255,255,0.5); border-radius: 8px;
+      color: #fff; font-size: 13px; cursor: pointer;
+    }
+    #pin-mode-hint { display:none; font-size:11px; color:#888; margin-top:4px; }
+    #pin-verify-link { display:none; font-size:11px; color:#3498db; margin-top:6px; }
+
     /* ===== PC表示: ボトムシートを中央モーダルに変更 ===== */
     @media (min-width: 601px) {
       #reviews-overlay { align-items: center; }
@@ -696,6 +712,12 @@
     </div>
   </div>
 
+  <!-- ピン打ちモードバナー -->
+  <div id="pin-drop-banner">
+    📍 地図をタップしてスポットの場所を選んでください
+    <button id="pin-drop-cancel" onclick="closeSubmitModal()">キャンセル</button>
+  </div>
+
   <!-- 投稿フォームモーダル -->
   <div id="submit-overlay">
     <div id="submit-modal">
@@ -706,11 +728,11 @@
       <div id="submit-body">
         <div class="form-group">
           <label class="form-label">スポット名<span class="required">*</span></label>
-          <input class="form-input" id="sf-name" type="text" placeholder="例：代々木公園ドッグラン">
+          <input class="form-input" id="sf-name" type="text" placeholder="例：わんこカフェ" oninput="_updateSubmitBtn()">
         </div>
         <div class="form-group">
           <label class="form-label">カテゴリ<span class="required">*</span></label>
-          <select class="form-input" id="sf-category">
+          <select class="form-input" id="sf-category" onchange="_updateSubmitBtn()">
             <option value="">選択してください</option>
             <option value="dogrun">ドッグラン</option>
             <option value="dogcafe">ペット可飲食店</option>
@@ -725,6 +747,8 @@
             <button id="geocode-btn" onclick="geocodeAddress()">確認</button>
           </div>
           <div id="geocode-result"></div>
+          <div id="pin-mode-hint">📍 ピンをドラッグして位置を微調整できます</div>
+          <a id="pin-verify-link" href="#" target="_blank" rel="noopener">🗺 Googleマップで位置を確認する →</a>
         </div>
         <div class="form-group">
           <label class="form-label">コメント（任意）</label>
@@ -1393,22 +1417,98 @@
 
     // ===== 投稿フォーム =====
     var _geocodedLat = null, _geocodedLng = null;
+    var _pinDropMarker = null, _pinDropListener = null;
 
+    // ＋追加ボタン → ピン打ちモードへ
     function openSubmitModal() {
-      // フォームをリセット
+      _geocodedLat = null; _geocodedLng = null;
+      _enterPinDropMode();
+    }
+
+    function _enterPinDropMode() {
+      var banner = document.getElementById('pin-drop-banner');
+      banner.style.display = 'flex';
+      _pinDropListener = map.addListener('click', function(e) { _onPinDrop(e.latLng); });
+    }
+
+    function _exitPinDropMode() {
+      document.getElementById('pin-drop-banner').style.display = 'none';
+      if (_pinDropListener) { google.maps.event.removeListener(_pinDropListener); _pinDropListener = null; }
+    }
+
+    // 地図タップ → ピンを置いてフォームを開く
+    function _onPinDrop(latLng) {
+      if (_pinDropMarker) { _pinDropMarker.setMap(null); }
+      _pinDropMarker = new google.maps.Marker({
+        position: latLng, map: map, draggable: true,
+        animation: google.maps.Animation.DROP
+      });
+      _pinDropMarker.addListener('dragend', function(e) { _updatePinLocation(e.latLng); });
+      _updatePinLocation(latLng);
+      _exitPinDropMode();
+      _openFormFromPin();
+    }
+
+    // ピン位置更新 → 逆ジオコーディング
+    function _updatePinLocation(latLng) {
+      _geocodedLat = latLng.lat();
+      _geocodedLng = latLng.lng();
+      _reverseGeocodePin(_geocodedLat, _geocodedLng);
+    }
+
+    // ピン打ち後のフォーム初期化
+    function _openFormFromPin() {
       document.getElementById('sf-name').value = '';
       document.getElementById('sf-category').value = '';
       document.getElementById('sf-address').value = '';
       document.getElementById('sf-comment').value = '';
-      var gr = document.getElementById('geocode-result');
-      gr.style.display = 'none'; gr.className = '';
+      document.getElementById('geocode-btn').style.display = 'none';
+      document.getElementById('pin-mode-hint').style.display = 'block';
+      document.getElementById('pin-verify-link').style.display = 'none';
+      document.getElementById('geocode-result').style.display = 'none';
       document.getElementById('submit-confirm-btn').disabled = true;
-      _geocodedLat = null; _geocodedLng = null;
       document.getElementById('submit-overlay').classList.add('open');
+    }
+
+    // Nominatimで座標→住所（逆ジオコーディング）
+    function _reverseGeocodePin(lat, lng) {
+      var gr = document.getElementById('geocode-result');
+      gr.textContent = '住所を取得中...'; gr.className = ''; gr.style.display = 'block';
+      fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&accept-language=ja', {
+        headers: { 'User-Agent': 'JapanDogMap/1.0' }
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var a = data.address || {};
+          var addr = [a.state, a.city || a.county, a.suburb || a.neighbourhood, a.road, a.house_number].filter(Boolean).join('');
+          document.getElementById('sf-address').value = addr || data.display_name || '';
+          gr.textContent = '✓ 住所を自動入力しました（編集できます）';
+          var link = document.getElementById('pin-verify-link');
+          link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+          link.style.display = 'block';
+          _updateSubmitBtn();
+        })
+        .catch(function() {
+          gr.className = 'error';
+          gr.textContent = '住所の取得に失敗しました。手動で入力してください。';
+        });
+    }
+
+    // 投稿ボタンの活性化チェック（名前・カテゴリ・座標が揃ったら有効）
+    function _updateSubmitBtn() {
+      var name = document.getElementById('sf-name').value.trim();
+      var cat  = document.getElementById('sf-category').value;
+      document.getElementById('submit-confirm-btn').disabled = !(_geocodedLat && name && cat);
     }
 
     function closeSubmitModal() {
       document.getElementById('submit-overlay').classList.remove('open');
+      _exitPinDropMode();
+      if (_pinDropMarker) { _pinDropMarker.setMap(null); _pinDropMarker = null; }
+      document.getElementById('geocode-btn').style.display = '';
+      document.getElementById('pin-mode-hint').style.display = 'none';
+      document.getElementById('pin-verify-link').style.display = 'none';
+      _geocodedLat = null; _geocodedLng = null;
     }
 
     function geocodeAddress() {
@@ -1456,7 +1556,8 @@
       var comment = document.getElementById('sf-comment').value.trim();
       if (!name) { alert('スポット名を入力してください。'); return; }
       if (!category) { alert('カテゴリを選択してください。'); return; }
-      if (!address || !_geocodedLat) { alert('住所を入力して「確認」ボタンを押してください。'); return; }
+      if (!_geocodedLat) { alert('地図をタップしてスポットの場所を指定してください。'); return; }
+      if (!address) { alert('住所を入力してください。'); return; }
 
       var btn = document.getElementById('submit-confirm-btn');
       btn.disabled = true; btn.textContent = '送信中...';
