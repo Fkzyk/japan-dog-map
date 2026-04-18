@@ -1426,6 +1426,10 @@
     }
 
     function _enterPinDropMode() {
+      if (typeof map === 'undefined') {
+        alert('地図の読み込みに失敗しました。ページを再読み込みしてください。');
+        return;
+      }
       var banner = document.getElementById('pin-drop-banner');
       banner.style.display = 'flex';
       _pinDropListener = map.addListener('click', function(e) { _onPinDrop(e.latLng); });
@@ -1862,17 +1866,17 @@
         desc: '検索ボックスに入力すると、スポット名や住所でリアルタイムに絞り込めます。行きたいエリアや施設名を入れてみてください。',
       },
       {
-        // スポットライトなし・地図ズームイン（暗幕を薄くしてアニメーションを見せる）
+        // スポットライトなし・地図ズームイン（暗幕を透明にしてアニメーションを見せる）
         title: 'マーカーをタップしよう',
         desc: '地図上のアイコンをタップするとスポットの詳細カードが開きます。次のステップで実際のカードの使い方を説明します。',
-        overlayOpacity: '0.35',
+        overlayOpacity: '0',
         beforeShow: function() {
-          // PLACES_DATAの最初のスポットにズームイン
-          if (typeof map !== 'undefined' && PLACES_DATA && PLACES_DATA.length > 0) {
-            var spot = PLACES_DATA[0];
-            map.setCenter({ lat: spot.lat, lng: spot.lng });
-            map.setZoom(15);
-          }
+          if (typeof map === 'undefined' || !PLACES_DATA || !PLACES_DATA.length) return;
+          var spot = PLACES_DATA[0];
+          // 広域から表示してズームインアニメーションを見せる
+          map.setZoom(8);
+          map.setCenter({ lat: spot.lat, lng: spot.lng });
+          setTimeout(function() { _smoothZoom(15); }, 500);
         },
       },
       {
@@ -2012,6 +2016,16 @@
         d.className = 'tut-dot' + (i === idx ? ' active' : '');
         dots.appendChild(d);
       }
+    }
+
+    // ズームを1段階ずつ上げてアニメーションさせる
+    function _smoothZoom(targetZoom) {
+      if (typeof map === 'undefined') return;
+      if (map.getZoom() >= targetZoom) return;
+      google.maps.event.addListenerOnce(map, 'zoom_changed', function() {
+        setTimeout(function() { _smoothZoom(targetZoom); }, 80);
+      });
+      map.setZoom(map.getZoom() + 1);
     }
 
     function _renderTutStep(idx) {
