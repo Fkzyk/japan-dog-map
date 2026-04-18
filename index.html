@@ -488,10 +488,11 @@
       display: none; position: fixed; z-index: 10001;
       left: 50%; transform: translateX(-50%); top: 190px;
       width: 300px; background: white; border-radius: 14px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.22); overflow: hidden;
+      padding: 14px 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.22);
     }
-    /* iw-cardのデフォルトpaddingを使う（box-shadowだけ除去） */
-    #tut-demo-card .iw-card { box-shadow: none; }
+    /* iw-cardのmax-widthとbox-shadowを無効化（デモカード内では不要） */
+    #tut-demo-card .iw-card { max-width: none; box-shadow: none; }
     .tut-dim { opacity: 0.25; }
     .tut-highlight-btn {
       box-shadow: 0 0 0 3px #f39c12 !important;
@@ -663,16 +664,15 @@
   <!-- スポット追加ボタン -->
   <button id="add-spot-btn" onclick="openSubmitModal()" title="スポットを追加する">＋ 追加</button>
 
-  <!-- チュートリアルデモカード（スポットライトの穴から見える、z-index:9999） -->
+  <!-- チュートリアルデモカード（z-index:10001、dark overlayの上に表示） -->
   <div id="tut-demo-card">
     <div class="iw-card">
-      <div class="iw-name">代々木公園ドッグラン</div>
+      <div class="iw-name">例：代々木公園ドッグラン</div>
       <div class="iw-addr">東京都渋谷区代々木神園町2-1</div>
       <div class="iw-meta">
         <span class="iw-badge" style="background:#27ae60;">ドッグラン</span>
-        <span class="iw-rating">★ 4.2 <span style="color:#aaa;font-size:11px;">(12件)</span></span>
+        <span class="iw-rating">★ 4.2</span>
       </div>
-      <div class="iw-hint">💡 🐾行ったよ！で訪問記録＆口コミ投稿へ ／ ☆でお気に入り保存</div>
       <div class="iw-links">
         <a class="iw-link iw-link-gmap" href="#" onclick="return false;">Googleマップ</a>
       </div>
@@ -1816,27 +1816,11 @@
         pos: 'below'
       },
       {
-        // Step 3: マーカー（ズームインしてマップ中央をスポットライト）
-        beforeShow: function(done) {
-          var p = PLACES_DATA[0];
-          if (!p) { done(); return; }
-          map.panTo({ lat: p.lat, lng: p.lng });
-          map.setZoom(16);
-          // マップが動き終わったタイミングで完了（位置計算のため少し待つ）
-          setTimeout(done, 900);
-        },
-        getRect: function() {
-          var p = PLACES_DATA[0];
-          if (!p) {
-            var mc = document.getElementById('map-container').getBoundingClientRect();
-            return { left: mc.left + mc.width/2 - 28, top: mc.top + mc.height/2 - 28, width: 56, height: 56 };
-          }
-          return _latLngToScreenRect(p.lat, p.lng, 28);
-        },
-        pad: 0, radius: '50%',
+        // Step 3: マーカー説明（暗転＋ツールチップのみ、マーカー位置に依存しない）
+        isDemoCard: true,
+        showDemoCard: false,
         title: 'マーカーをタップしよう',
-        desc: '地図上のアイコンをタップするとスポットのカードが開きます。次のステップでカードの各ボタンを説明します。',
-        pos: 'below'
+        desc: '地図上のアイコンをタップするとスポットの詳細カードが開きます。次のステップで実際のカードの各ボタンを説明します。',
       },
       {
         // Step 4: 行ったよ！（デモカード表示・isDemoCard:true）
@@ -1892,8 +1876,7 @@
         desc: '「★口コミ」では星1〜5＋コメントで感想を投稿できます（管理者確認後に公開）。「🚩報告」は閉店・情報が古いときにお知らせください。',
       },
       {
-        // Step 7: 現在地ボタン（デモカードを隠す）
-        beforeShow: function(done) { document.getElementById('tut-demo-card').style.display = 'none'; done(); },
+        // Step 7: 現在地ボタン（_renderTutStepでデモカードを自動的に隠す）
         getRect: function() { return document.getElementById('locate-btn').getBoundingClientRect(); },
         pad: 8, radius: '50%',
         title: '現在地に移動',
@@ -1948,23 +1931,31 @@
       var step = TUTORIAL_STEPS[idx];
       var sl = document.getElementById('tutorial-spotlight');
       var overlay = document.getElementById('tutorial-overlay');
+      var demoCard = document.getElementById('tut-demo-card');
       var tw = 272, margin = 12;
       var tLeft, tTop;
 
       if (step.isDemoCard) {
-        // デモカードステップ: スポットライト非表示・オーバーレイを暗くする
+        // isDemoCardステップ: spotlight非表示・overlay暗色・デモカード表示制御
         sl.style.display = 'none';
         overlay.style.background = 'rgba(0,0,0,0.74)';
-        // ツールチップはデモカードの真下に配置
-        var cardEl = document.getElementById('tut-demo-card');
-        var cr = cardEl.getBoundingClientRect();
-        tLeft = (window.innerWidth - tw) / 2;
-        tTop  = cr.bottom + 14;
-        if (tTop + 240 > window.innerHeight) tTop = cr.top - 240;
+        demoCard.style.display = step.showDemoCard ? 'block' : 'none';
+        if (step.showDemoCard) {
+          // デモカード真下にツールチップ配置
+          var cr = demoCard.getBoundingClientRect();
+          tLeft = (window.innerWidth - tw) / 2;
+          tTop  = cr.bottom + 14;
+          if (tTop + 240 > window.innerHeight) tTop = cr.top - 240;
+        } else {
+          // デモカードなし→画面中央よりやや上
+          tLeft = (window.innerWidth - tw) / 2;
+          tTop  = Math.round(window.innerHeight * 0.35);
+        }
       } else {
-        // 通常ステップ: スポットライト表示・オーバーレイ透明
+        // 通常ステップ: spotlight表示・overlay透明・デモカード非表示
         sl.style.display = '';
         overlay.style.background = '';
+        demoCard.style.display = 'none';
         var r = step.getRect();
         var pad = step.pad || 0;
         sl.style.left         = (r.left - pad) + 'px';
