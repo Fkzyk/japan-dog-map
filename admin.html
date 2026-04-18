@@ -205,6 +205,7 @@
       <button class="tab-btn" onclick="setTab('requests')" id="tab-requests">
         削除依頼 <span class="tab-count" id="badge-requests" style="display:none;">0</span>
       </button>
+      <button class="tab-btn" onclick="setTab('overrides')" id="tab-overrides">スポット修正</button>
     </div>
     <div id="stats-bar">
       <span class="stat-item">審査待ち <strong id="stat-pending">-</strong>件</span>
@@ -227,6 +228,69 @@
     <div id="requests-section" style="display:none;padding:16px 20px;max-width:900px;">
       <div id="requests-loading" style="text-align:center;padding:40px;color:#aaa;font-size:14px;">読み込み中...</div>
       <div id="requests-admin-list"></div>
+    </div>
+    <!-- スポット修正管理 -->
+    <div id="overrides-section" style="display:none;padding:16px 20px;max-width:900px;">
+      <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <p style="margin:0;font-size:13px;color:#888;">places.jsonのスポット情報をDB側で上書きします。閉店フラグONにするとマップから非表示になります。</p>
+        <button class="action-btn btn-approve" onclick="openOverrideModal('','')">＋ 新しく修正を追加</button>
+      </div>
+      <div id="overrides-loading" style="text-align:center;padding:40px;color:#aaa;font-size:14px;">読み込み中...</div>
+      <div id="overrides-admin-list"></div>
+    </div>
+  </div>
+
+  <!-- スポット修正モーダル -->
+  <div id="override-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:white;border-radius:16px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.25);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <h3 style="margin:0;font-size:16px;color:#1a1a2e;">✏️ スポット情報を修正</h3>
+        <button onclick="closeOverrideModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1;">×</button>
+      </div>
+      <div class="edit-row">
+        <label>スポットID <span style="color:#e74c3c;">*</span><small style="font-weight:normal;color:#aaa;">（places.jsonのplace_id、または投稿のUUID）</small></label>
+        <input class="edit-input" id="ov-spot-id" placeholder="例: ChIJxxxxxx または sub_xxxxxxxx">
+      </div>
+      <div class="edit-row">
+        <label>スポット名（変更する場合のみ）</label>
+        <input class="edit-input" id="ov-name" placeholder="空欄なら変更しない">
+      </div>
+      <div class="edit-row">
+        <label>住所（変更する場合のみ）</label>
+        <input class="edit-input" id="ov-address" placeholder="空欄なら変更しない">
+      </div>
+      <div class="edit-row">
+        <label>カテゴリ（変更する場合のみ）</label>
+        <select class="edit-input" id="ov-category">
+          <option value="">変更しない</option>
+          <option value="dogrun">ドッグラン</option>
+          <option value="dogcafe">ペット可飲食店</option>
+          <option value="vet">動物病院</option>
+          <option value="hotel">ペット可宿泊施設</option>
+        </select>
+      </div>
+      <div class="edit-row">
+        <label>ウェブサイトURL（変更する場合のみ）</label>
+        <input class="edit-input" id="ov-website" placeholder="https://...">
+      </div>
+      <div class="edit-row">
+        <label>電話番号（変更する場合のみ）</label>
+        <input class="edit-input" id="ov-phone" placeholder="03-xxxx-xxxx">
+      </div>
+      <div class="edit-row">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="ov-closed" style="width:16px;height:16px;">
+          <span>閉店・廃業フラグ（ONにするとマップから非表示）</span>
+        </label>
+      </div>
+      <div class="edit-row">
+        <label>管理者メモ（内部用）</label>
+        <input class="edit-input" id="ov-note" placeholder="対応経緯など">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button class="action-btn btn-save" style="flex:1;" onclick="saveOverride()">保存する</button>
+        <button class="action-btn btn-cancel-edit" onclick="closeOverrideModal()">キャンセル</button>
+      </div>
     </div>
   </div>
 
@@ -335,17 +399,21 @@
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       document.getElementById('tab-' + tab).classList.add('active');
       // セクション表示切り替え
-      document.getElementById('submission-list').style.display  = (tab === 'reviews' || tab === 'requests') ? 'none' : 'block';
-      document.getElementById('reviews-section').style.display  = tab === 'reviews'  ? 'block' : 'none';
-      document.getElementById('requests-section').style.display = tab === 'requests' ? 'block' : 'none';
-      if (tab === 'reviews')  { loadAdminReviews(); return; }
-      if (tab === 'requests') { loadAdminRequests(); return; }
+      var isSpecial = tab === 'reviews' || tab === 'requests' || tab === 'overrides';
+      document.getElementById('submission-list').style.display  = isSpecial ? 'none' : 'block';
+      document.getElementById('reviews-section').style.display  = tab === 'reviews'   ? 'block' : 'none';
+      document.getElementById('requests-section').style.display = tab === 'requests'  ? 'block' : 'none';
+      document.getElementById('overrides-section').style.display= tab === 'overrides' ? 'block' : 'none';
+      if (tab === 'reviews')   { loadAdminReviews(); return; }
+      if (tab === 'requests')  { loadAdminRequests(); return; }
+      if (tab === 'overrides') { loadAdminOverrides(); return; }
       renderList();
     }
 
     function reloadCurrentTab() {
-      if (currentTab === 'reviews')  { loadAdminReviews(); return; }
-      if (currentTab === 'requests') { loadAdminRequests(); return; }
+      if (currentTab === 'reviews')   { loadAdminReviews(); return; }
+      if (currentTab === 'requests')  { loadAdminRequests(); return; }
+      if (currentTab === 'overrides') { loadAdminOverrides(); return; }
       loadSubmissions();
     }
 
@@ -578,6 +646,7 @@
                   '<button class="action-btn btn-approve" onclick="updateRequestStatus(\'' + rid + '\',\'handled\')">✓ 対応済み</button>' : '') +
                 (r.status !== 'rejected' ?
                   '<button class="action-btn btn-reject" onclick="updateRequestStatus(\'' + rid + '\',\'rejected\')">却下する</button>' : '') +
+                '<button class="action-btn btn-edit" onclick="openOverrideModal(\'' + esc(r.spot_id) + '\',\'' + esc(r.spot_name) + '\')">✏️ スポットを修正</button>' +
                 '<a class="action-btn btn-map" href="' + mapUrl + '" target="_blank">地図で確認</a>' +
               '</div>' +
             '</div>';
@@ -593,6 +662,118 @@
         var label = newStatus === 'handled' ? '対応済みにしました' : '却下しました';
         showToast(label);
         loadAdminRequests();
+      });
+    }
+
+    // ===== スポット修正（spot_overrides）=====
+
+    // モーダルを開く（削除依頼カードから呼ばれる場合はspotId/spotNameが渡される）
+    function openOverrideModal(spotId, spotName) {
+      document.getElementById('ov-spot-id').value   = spotId || '';
+      document.getElementById('ov-name').value      = spotName || '';
+      document.getElementById('ov-address').value   = '';
+      document.getElementById('ov-category').value  = '';
+      document.getElementById('ov-website').value   = '';
+      document.getElementById('ov-phone').value     = '';
+      document.getElementById('ov-closed').checked  = false;
+      document.getElementById('ov-note').value      = '';
+      var overlay = document.getElementById('override-overlay');
+      overlay.style.display = 'flex';
+    }
+
+    function closeOverrideModal() {
+      document.getElementById('override-overlay').style.display = 'none';
+    }
+
+    function saveOverride() {
+      var spotId = document.getElementById('ov-spot-id').value.trim();
+      if (!spotId) { showToast('スポットIDは必須です'); return; }
+
+      var params = {
+        input_password: adminPassword,
+        p_spot_id:  spotId,
+        p_name:     document.getElementById('ov-name').value.trim()    || null,
+        p_address:  document.getElementById('ov-address').value.trim() || null,
+        p_category: document.getElementById('ov-category').value       || null,
+        p_website:  document.getElementById('ov-website').value.trim() || null,
+        p_phone:    document.getElementById('ov-phone').value.trim()   || null,
+        p_is_closed:document.getElementById('ov-closed').checked,
+        p_note:     document.getElementById('ov-note').value.trim()    || null
+      };
+
+      sb.rpc('admin_upsert_override', params).then(function(result) {
+        if (result.error) { showToast('保存に失敗しました: ' + result.error.message); return; }
+        closeOverrideModal();
+        showToast('スポット修正を保存しました');
+        // overridesタブが開いていれば再読み込み
+        if (currentTab === 'overrides') loadAdminOverrides();
+      });
+    }
+
+    function loadAdminOverrides() {
+      document.getElementById('overrides-loading').style.display = 'block';
+      document.getElementById('overrides-admin-list').innerHTML = '';
+      sb.rpc('admin_get_overrides', { input_password: adminPassword })
+        .then(function(result) {
+          document.getElementById('overrides-loading').style.display = 'none';
+          if (result.error) {
+            document.getElementById('overrides-admin-list').innerHTML =
+              '<div class="empty-state"><div class="empty-icon">⚠️</div>データの取得に失敗しました。</div>';
+            return;
+          }
+          var data = result.data || [];
+          if (!data.length) {
+            document.getElementById('overrides-admin-list').innerHTML =
+              '<div class="empty-state"><div class="empty-icon">📝</div>修正済みスポットはありません</div>';
+            return;
+          }
+          document.getElementById('overrides-admin-list').innerHTML = data.map(function(ov) {
+            var date = new Date(ov.updated_at).toLocaleString('ja-JP', {
+              year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
+            });
+            var catLabel = CAT_LABELS[ov.category] || ov.category || '（変更なし）';
+            return '<div class="submission-card ' + (ov.is_closed ? 'rejected' : 'approved') + '">' +
+              '<div class="card-top">' +
+                '<div class="card-name">' + esc(ov.name || '（名前変更なし）') + '</div>' +
+                (ov.is_closed ? '<span class="status-badge status-rejected">閉店</span>' :
+                  '<span class="status-badge status-approved">修正済み</span>') +
+              '</div>' +
+              '<div class="card-meta">' +
+                '<code style="font-size:11px;background:#f5f5f5;padding:2px 6px;border-radius:4px;">' + esc(ov.spot_id) + '</code>' +
+                '<span class="card-date">' + date + '</span>' +
+              '</div>' +
+              (ov.address ? '<div class="card-address">📍 ' + esc(ov.address) + '</div>' : '') +
+              (ov.admin_note ? '<div class="card-comment">📝 ' + esc(ov.admin_note) + '</div>' : '') +
+              '<div class="card-actions">' +
+                '<button class="action-btn btn-edit" onclick="editOverride(' + JSON.stringify(ov) + ')">✏️ 編集</button>' +
+                '<button class="action-btn btn-delete" onclick="deleteOverride(\'' + esc(ov.spot_id) + '\')">削除</button>' +
+              '</div>' +
+            '</div>';
+          }).join('');
+        });
+    }
+
+    // 既存overrideを編集フォームに展開
+    function editOverride(ov) {
+      document.getElementById('ov-spot-id').value   = ov.spot_id || '';
+      document.getElementById('ov-name').value      = ov.name    || '';
+      document.getElementById('ov-address').value   = ov.address || '';
+      document.getElementById('ov-category').value  = ov.category|| '';
+      document.getElementById('ov-website').value   = ov.website || '';
+      document.getElementById('ov-phone').value     = ov.phone   || '';
+      document.getElementById('ov-closed').checked  = !!ov.is_closed;
+      document.getElementById('ov-note').value      = ov.admin_note || '';
+      document.getElementById('override-overlay').style.display = 'flex';
+    }
+
+    function deleteOverride(spotId) {
+      if (!confirm('「' + spotId + '」の修正データを削除しますか？\nスポット情報がplaces.jsonの元データに戻ります。')) return;
+      sb.rpc('admin_delete_override', {
+        input_password: adminPassword, p_spot_id: spotId
+      }).then(function(result) {
+        if (result.error) { showToast('削除に失敗しました'); return; }
+        showToast('修正データを削除しました');
+        loadAdminOverrides();
       });
     }
 
