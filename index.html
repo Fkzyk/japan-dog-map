@@ -1664,7 +1664,8 @@
     }
 
     // ===== チュートリアル（スポットライト型コーチマーク） =====
-    var TUTORIAL_KEY = 'jdm-tutorial-done';
+    var TUTORIAL_KEY = 'jdm-tutorial-date'; // 最終表示日を保存
+    var TUTORIAL_INTERVAL_DAYS = 30;        // 30日に1回表示
     var _tutStep = 0;
 
     var TUTORIAL_STEPS = [
@@ -1703,7 +1704,11 @@
     ];
 
     function startTutorial() {
-      if (localStorage.getItem(TUTORIAL_KEY)) return;
+      var last = localStorage.getItem(TUTORIAL_KEY);
+      if (last) {
+        var daysSince = (Date.now() - parseInt(last)) / (1000 * 60 * 60 * 24);
+        if (daysSince < TUTORIAL_INTERVAL_DAYS) return;
+      }
       _tutStep = 0;
       document.getElementById('tutorial-overlay').style.display = 'block';
       // 初回は少し遅らせてアニメーション開始
@@ -1773,7 +1778,7 @@
     }
 
     function closeTutorial() {
-      localStorage.setItem(TUTORIAL_KEY, '1');
+      localStorage.setItem(TUTORIAL_KEY, String(Date.now())); // 表示日時を保存
       document.getElementById('tutorial-overlay').style.display = 'none';
     }
 

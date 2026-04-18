@@ -132,6 +132,24 @@
     .btn-reject  { background: #95a5a6; color: white; }
     .btn-delete  { background: #e74c3c; color: white; }
     .btn-map     { background: #f0f4ff; color: #1a73e8; }
+    .btn-edit    { background: #fff8e1; color: #e67e22; }
+
+    /* インライン編集フォーム */
+    .edit-form {
+      display: none; margin-top: 12px; padding: 14px;
+      background: #f9f9fb; border-radius: 10px; border: 1px solid #e8e8e8;
+    }
+    .edit-form.open { display: block; }
+    .edit-row { margin-bottom: 10px; }
+    .edit-row label { display: block; font-size: 11px; font-weight: 700; color: #888; margin-bottom: 4px; }
+    .edit-input {
+      width: 100%; padding: 8px 10px; border: 1.5px solid #ddd; border-radius: 8px;
+      font-size: 13px; outline: none; box-sizing: border-box; transition: border-color 0.2s;
+    }
+    .edit-input:focus { border-color: #1a1a2e; }
+    .edit-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-save { background: #1a1a2e; color: white; }
+    .btn-cancel-edit { background: #f0f0f0; color: #888; }
 
     /* 空状態 */
     .empty-state { text-align: center; padding: 60px 20px; color: #bbb; font-size: 14px; }
@@ -371,11 +389,60 @@
               '<button class="action-btn btn-approve" onclick="updateStatus(\'' + sid + '\',\'approved\')">✓ 承認する</button>' : '') +
             (s.status !== 'rejected' ?
               '<button class="action-btn btn-reject" onclick="updateStatus(\'' + sid + '\',\'rejected\')">却下する</button>' : '') +
+            '<button class="action-btn btn-edit" onclick="toggleEditForm(\'' + sid + '\')">✏️ 修正</button>' +
             '<button class="action-btn btn-delete" onclick="deleteSubmission(\'' + sid + '\',\'' + sname + '\')">削除</button>' +
             '<a class="action-btn btn-map" href="' + mapUrl + '" target="_blank">地図で確認</a>' +
           '</div>' +
+          '<div class="edit-form" id="edit-form-' + sid + '">' +
+            '<div class="edit-row"><label>スポット名</label><input class="edit-input" id="edit-name-' + sid + '" value="' + sname + '"></div>' +
+            '<div class="edit-row"><label>住所</label><input class="edit-input" id="edit-addr-' + sid + '" value="' + esc(s.address) + '"></div>' +
+            '<div class="edit-row"><label>カテゴリ</label>' +
+              '<select class="edit-input" id="edit-cat-' + sid + '">' +
+                '<option value="dogrun"' + (s.category==='dogrun'?' selected':'') + '>ドッグラン</option>' +
+                '<option value="dogcafe"' + (s.category==='dogcafe'?' selected':'') + '>ペット可飲食店</option>' +
+                '<option value="vet"' + (s.category==='vet'?' selected':'') + '>動物病院</option>' +
+                '<option value="hotel"' + (s.category==='hotel'?' selected':'') + '>ペット可宿泊施設</option>' +
+              '</select>' +
+            '</div>' +
+            '<div class="edit-row"><label>コメント</label><input class="edit-input" id="edit-comment-' + sid + '" value="' + esc(s.comment||'') + '"></div>' +
+            '<div class="edit-actions">' +
+              '<button class="action-btn btn-save" onclick="saveEdit(\'' + sid + '\')">保存する</button>' +
+              '<button class="action-btn btn-cancel-edit" onclick="toggleEditForm(\'' + sid + '\')">キャンセル</button>' +
+            '</div>' +
+          '</div>' +
         '</div>';
       }).join('');
+    }
+
+    // ===== インライン編集 =====
+    function toggleEditForm(id) {
+      var form = document.getElementById('edit-form-' + id);
+      form.classList.toggle('open');
+    }
+
+    function saveEdit(id) {
+      var name    = document.getElementById('edit-name-' + id).value.trim();
+      var address = document.getElementById('edit-addr-' + id).value.trim();
+      var cat     = document.getElementById('edit-cat-' + id).value;
+      var comment = document.getElementById('edit-comment-' + id).value.trim();
+      if (!name || !address) { showToast('スポット名と住所は必須です'); return; }
+
+      sb.rpc('admin_update_submission', {
+        input_password: adminPassword,
+        submission_id: id,
+        new_name: name, new_address: address,
+        new_category: cat, new_comment: comment || null
+      }).then(function(result) {
+        if (result.error) { showToast('保存に失敗しました'); return; }
+        // ローカルデータも更新
+        allSubmissions = allSubmissions.map(function(s) {
+          return s.id === id
+            ? Object.assign({}, s, { name: name, address: address, category: cat, comment: comment })
+            : s;
+        });
+        renderList();
+        showToast('保存しました');
+      });
     }
 
     // ===== 承認・却下 =====
