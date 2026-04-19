@@ -1084,8 +1084,16 @@
     function checkAndShowPwaPrompt() {
       if (_isStandalone()) return; // 追加済みは表示しない
 
-      var count = parseInt(localStorage.getItem('pwa_prompt_count') || '0', 10) + 1;
-      localStorage.setItem('pwa_prompt_count', count);
+      // DB管理（ログイン済み）優先、未ログインはLocalStorageフォールバック
+      var count;
+      if (_userPrefs) {
+        count = (_userPrefs.pwa_prompt_shown_count || 0) + 1;
+        saveUserPref('pwa_prompt_shown_count', count);
+        saveUserPref('pwa_prompt_last_shown_at', new Date().toISOString());
+      } else {
+        count = parseInt(localStorage.getItem('pwa_prompt_count') || '0', 10) + 1;
+      }
+      localStorage.setItem('pwa_prompt_count', count); // フォールバック用に維持
       if (count % 15 !== 0) return;
 
       var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -1173,8 +1181,9 @@
       infoWindow = new google.maps.InfoWindow({ maxWidth: 280 });
       infoWindow.addListener('closeclick', function() { _activeInfoMarker = null; });
       map.addListener('bounds_changed', function() { renderMarkers(); });
-      // ログイン済みの場合はDBからお気に入りを読み込む
+      // ログイン済みの場合はDBからお気に入り・ユーザー設定を読み込む
       loadFavoritesFromDB();
+      loadUserPrefs();
       loadAllPlaces();
     }
 
@@ -1598,8 +1607,14 @@
     // ===== 注意喚起モーダル =====
     function showCautionIfNeeded() {
       var today = new Date().toISOString().slice(0, 10);
-      var skipped = localStorage.getItem('caution_skip_date');
-      if (skipped === today) {
+      // DB管理（ログイン済み）優先、未ログインはLocalStorageフォールバック
+      var hiddenUntil;
+      if (_userPrefs && _userPrefs.caution_modal_hidden_until) {
+        hiddenUntil = _userPrefs.caution_modal_hidden_until.slice(0, 10);
+      } else {
+        hiddenUntil = localStorage.getItem('caution_skip_date');
+      }
+      if (hiddenUntil && hiddenUntil >= today) {
         // 注意喚起スキップ済み → 直接チュートリアル表示
         setTimeout(startTutorial, 600);
         return;
@@ -1608,6 +1623,12 @@
     }
     function closeCautionModal() {
       if (document.getElementById('caution-skip-today').checked) {
+        // 翌日0時まで非表示にする
+        var tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        saveUserPref('caution_modal_hidden_until', tomorrow.toISOString());
+        // LocalStorageフォールバック
         var today = new Date().toISOString().slice(0, 10);
         localStorage.setItem('caution_skip_date', today);
       }
@@ -2267,6 +2288,32 @@
       }]).then(function() {});
     }
 
+    // ===== ユーザー設定（DB管理 / LocalStorageフォールバック） =====
+    var _userPrefs = null; // メモリキャッシュ
+
+    // ログイン済みの場合にDBからユーザー設定を読み込む
+    function loadUserPrefs() {
+      return getCurrentUser().then(function(user) {
+        if (!user) return;
+        return sb.from('user_preferences').select('*').eq('user_id', user.id).single()
+          .then(function(result) {
+            _userPrefs = result.data || { user_id: user.id };
+          }).catch(function() {
+            _userPrefs = { user_id: user.id };
+          });
+      });
+    }
+
+    // ユーザー設定を1項目更新する（DB優先、未ログインはLocalStorageで代替）
+    function saveUserPref(key, value) {
+      if (_userPrefs) {
+        _userPrefs[key] = value;
+        var update = { user_id: _userPrefs.user_id };
+        update[key] = value;
+        sb.from('user_preferences').upsert(update, { onConflict: 'user_id' }).then(function() {});
+      }
+    }
+
     // ===== ゲーミフィケーション =====
 
     // バッジキュー（複数同時獲得時に順番に表示）
@@ -2456,7 +2503,12 @@
     function startTutorial(force) {
       var forceByUrl = location.search.indexOf('tutorial') >= 0;
       if (!force && !forceByUrl) {
-        var last = parseInt(localStorage.getItem(TUTORIAL_KEY), 10);
+        var last;
+        if (_userPrefs && _userPrefs.tutorial_completed_at) {
+          last = new Date(_userPrefs.tutorial_completed_at).getTime();
+        } else {
+          last = parseInt(localStorage.getItem(TUTORIAL_KEY), 10);
+        }
         if (!isNaN(last)) {
           var daysSince = (Date.now() - last) / (1000 * 60 * 60 * 24);
           if (daysSince < TUTORIAL_INTERVAL_DAYS) return;
@@ -2587,6 +2639,8 @@
     }
 
     function closeTutorial() {
+      // DB保存（ログイン済み）+ LocalStorageフォールバック
+      saveUserPref('tutorial_completed_at', new Date().toISOString());
       localStorage.setItem(TUTORIAL_KEY, String(Date.now()));
       document.getElementById('tutorial-overlay').style.display = 'none';
       document.getElementById('tutorial-tooltip').style.display = 'none';
@@ -2594,6 +2648,7 @@
       // チュートリアル終了後にPWAバナーを必ず1回表示（少し遅らせてUX調整）
       // 14にセットすることでcheckAndShowPwaPrompt内で+1=15（15%15=0）になり表示される
       if (!_isStandalone()) {
+        if (_userPrefs) _userPrefs.pwa_prompt_shown_count = 14;
         localStorage.setItem('pwa_prompt_count', '14');
         setTimeout(checkAndShowPwaPrompt, 1000);
       }
