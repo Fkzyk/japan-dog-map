@@ -165,6 +165,7 @@
       </button>
       <button class="tab-btn" onclick="setTab('overrides')" id="tab-overrides">スポット修正</button>
       <button class="tab-btn" onclick="setTab('stats')" id="tab-stats">📊 利用統計</button>
+      <button class="tab-btn" onclick="setTab('settings')" id="tab-settings">⚙️ 設定</button>
     </div>
     <div id="stats-bar">
       <span class="stat-item">審査待ち <strong id="stat-pending">-</strong>件</span>
@@ -213,6 +214,19 @@
         <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);">
           <h3 style="margin:0 0 16px;font-size:14px;color:#1a1a2e;">イベント種別（7日）</h3>
           <div id="stats-event-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- システム設定（Kill Switch） -->
+    <div id="settings-section" style="display:none;padding:16px 20px;max-width:600px;">
+      <h2 style="font-size:16px;font-weight:700;color:#1a1a2e;margin:0 0 8px;">システム設定</h2>
+      <p style="font-size:13px;color:#888;margin:0 0 20px;">フラグをOFFにすると、ユーザー側の対応機能が即座に無効化されます。</p>
+      <div id="settings-loading" style="text-align:center;padding:40px;color:#aaa;font-size:14px;">読み込み中...</div>
+      <div id="settings-content" style="display:none;">
+        <div style="background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.07);overflow:hidden;">
+          <!-- フラグ行テンプレート（JSで生成） -->
+          <div id="settings-flags-list"></div>
         </div>
       </div>
     </div>
@@ -384,16 +398,18 @@
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       document.getElementById('tab-' + tab).classList.add('active');
       // セクション表示切り替え
-      var isSpecial = tab === 'reviews' || tab === 'requests' || tab === 'overrides' || tab === 'stats';
+      var isSpecial = tab === 'reviews' || tab === 'requests' || tab === 'overrides' || tab === 'stats' || tab === 'settings';
       document.getElementById('submission-list').style.display  = isSpecial ? 'none' : 'block';
       document.getElementById('reviews-section').style.display  = tab === 'reviews'   ? 'block' : 'none';
       document.getElementById('requests-section').style.display = tab === 'requests'  ? 'block' : 'none';
       document.getElementById('overrides-section').style.display= tab === 'overrides' ? 'block' : 'none';
       document.getElementById('stats-section').style.display    = tab === 'stats'     ? 'block' : 'none';
+      document.getElementById('settings-section').style.display = tab === 'settings'  ? 'block' : 'none';
       if (tab === 'reviews')   { loadAdminReviews(); return; }
       if (tab === 'requests')  { loadAdminRequests(); return; }
       if (tab === 'overrides') { loadAdminOverrides(); return; }
       if (tab === 'stats')     { loadStats(); return; }
+      if (tab === 'settings')  { loadSettings(); return; }
       renderList();
     }
 
@@ -401,7 +417,74 @@
       if (currentTab === 'reviews')   { loadAdminReviews(); return; }
       if (currentTab === 'requests')  { loadAdminRequests(); return; }
       if (currentTab === 'overrides') { loadAdminOverrides(); return; }
+      if (currentTab === 'settings')  { loadSettings(); return; }
       loadSubmissions();
+    }
+
+    // ===== システム設定（Kill Switch） =====
+
+    // フラグの表示名定義
+    var FLAG_LABELS = {
+      maintenance_mode:         { label: '🔧 メンテナンスモード', desc: 'ONにするとサイト全体がメンテナンス画面になります', danger: true },
+      allow_spot_submission:    { label: '📍 スポット投稿',        desc: 'ユーザーからの新規スポット投稿を受け付けます' },
+      allow_reviews:            { label: '★ 口コミ投稿',          desc: 'ユーザーからの口コミ投稿を受け付けます' },
+      allow_helpfuls:           { label: '🐾 行ったよ！',          desc: '「参考になった」ボタンを有効にします' },
+      allow_reports:            { label: '🚩 問題報告',            desc: 'スポットへの問題報告を受け付けます' },
+      allow_checkins:           { label: '📌 チェックイン',        desc: 'チェックイン機能を有効にします' },
+      allow_new_anonymous_auth: { label: '👤 匿名認証',            desc: '新規匿名ユーザーの認証を許可します' }
+    };
+
+    function loadSettings() {
+      document.getElementById('settings-loading').style.display = 'block';
+      document.getElementById('settings-content').style.display = 'none';
+      sb.from('system_flags').select('*').eq('id', 1).single()
+        .then(function(result) {
+          document.getElementById('settings-loading').style.display = 'none';
+          if (result.error) {
+            document.getElementById('settings-loading').textContent = 'データの取得に失敗しました。';
+            document.getElementById('settings-loading').style.display = 'block';
+            return;
+          }
+          renderSettingsFlags(result.data);
+          document.getElementById('settings-content').style.display = 'block';
+        });
+    }
+
+    function renderSettingsFlags(flags) {
+      var html = Object.keys(FLAG_LABELS).map(function(key) {
+        var info    = FLAG_LABELS[key];
+        var isOn    = !!flags[key];
+        var color   = info.danger ? (isOn ? '#e74c3c' : '#27ae60') : (isOn ? '#27ae60' : '#aaa');
+        var bgColor = isOn ? (info.danger ? '#fff0f0' : '#f0fff4') : '#f9f9f9';
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f0f0;background:' + bgColor + ';">' +
+          '<div>' +
+            '<div style="font-size:14px;font-weight:600;color:#1a1a2e;">' + info.label + '</div>' +
+            '<div style="font-size:12px;color:#888;margin-top:2px;">' + info.desc + '</div>' +
+          '</div>' +
+          '<button onclick="toggleFlag(\'' + key + '\',' + !isOn + ')" style="' +
+            'padding:6px 18px;border-radius:20px;border:none;cursor:pointer;font-size:13px;font-weight:700;' +
+            'background:' + color + ';color:#fff;transition:background 0.2s;">' +
+            (isOn ? 'ON' : 'OFF') +
+          '</button>' +
+        '</div>';
+      }).join('');
+      document.getElementById('settings-flags-list').innerHTML = html;
+    }
+
+    function toggleFlag(flagName, newValue) {
+      var label = FLAG_LABELS[flagName] ? FLAG_LABELS[flagName].label : flagName;
+      var msg   = newValue ? label + ' をONにします。よろしいですか？' : label + ' をOFFにします。よろしいですか？';
+      if (!confirm(msg)) return;
+      sb.rpc('admin_update_system_flag_v2', { p_flag_name: flagName, p_flag_value: newValue })
+        .then(function(result) {
+          if (result.error) {
+            console.error('toggleFlag エラー:', result.error);
+            showToast('操作に失敗しました。時間をおいて再度お試しください。');
+            return;
+          }
+          showToast(label + ' を ' + (newValue ? 'ON' : 'OFF') + ' にしました');
+          loadSettings(); // 最新状態を再表示
+        });
     }
 
     // ===== 投稿一覧レンダリング =====

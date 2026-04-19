@@ -678,6 +678,13 @@
   <!-- スポット追加ボタン -->
   <button id="add-spot-btn" onclick="openSubmitModal()" title="スポットを追加する">＋ 追加</button>
 
+  <!-- メンテナンスモードオーバーレイ（system_flags.maintenance_mode=trueのとき表示） -->
+  <div id="maintenance-overlay" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,0.96);z-index:99999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;text-align:center;padding:32px;">
+    <div style="font-size:48px;">🐕</div>
+    <div style="font-size:22px;font-weight:800;color:#fff;">メンテナンス中</div>
+    <div style="font-size:14px;color:#aaa;line-height:1.8;max-width:320px;">現在メンテナンスのためご利用いただけません。<br>しばらくしてから再度アクセスしてください。</div>
+  </div>
+
   <!-- チュートリアルデモカード（完全インラインスタイル、z-index:10001） -->
   <div id="tut-demo-card">
     <div style="font-weight:700;font-size:15px;color:#1a1a2e;margin-bottom:4px;line-height:1.35;">ペット可カフェ　ほっこり（サンプル）</div>
@@ -877,8 +884,37 @@
     // ページロード時にアプリを起動
     window.addEventListener('load', function() {
       sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      initApp();
+      // system_flagsを最初に確認してからアプリを起動
+      loadSystemFlags(function() { initApp(); });
     });
+
+    // system_flagsを読み込んでUI制御を適用する
+    function loadSystemFlags(cb) {
+      if (!sb) { cb(); return; }
+      sb.from('system_flags').select('*').eq('id', 1).single()
+        .then(function(result) {
+          if (!result.error && result.data) {
+            applySystemFlags(result.data);
+          }
+          cb();
+        })
+        .catch(function() { cb(); }); // 読み込み失敗時はそのまま起動
+    }
+
+    // フラグに応じてUIを制御する
+    function applySystemFlags(flags) {
+      // メンテナンスモード：全画面表示
+      if (flags.maintenance_mode) {
+        var overlay = document.getElementById('maintenance-overlay');
+        overlay.style.display = 'flex';
+        return;
+      }
+      // 各機能ボタンの表示制御
+      if (!flags.allow_spot_submission) {
+        var addBtn = document.getElementById('add-spot-btn');
+        if (addBtn) addBtn.style.display = 'none';
+      }
+    }
 
     function initApp() {
       map = new google.maps.Map(document.getElementById('map'), {
