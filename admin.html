@@ -584,6 +584,9 @@
 
     // ===== 承認・却下 =====
     function updateStatus(id, newStatus) {
+      // user_idを事前に取得（バッジ連動用）
+      var submission = allSubmissions.find(function(s) { return s.id === id; });
+      var userId = submission ? submission.user_id : null;
       sb.rpc('admin_update_status_v2', {
         submission_id: id,
         new_status: newStatus
@@ -596,6 +599,14 @@
         updateStats();
         renderList();
         showToast(label + 'しました');
+        // バッジ連動（user_idがある場合のみ）
+        if (userId) {
+          if (newStatus === 'approved') {
+            sb.rpc('confirm_achievements_on_approval', { p_user_id: userId });
+          } else if (newStatus === 'rejected') {
+            sb.rpc('revoke_achievements_on_rejection', { p_user_id: userId });
+          }
+        }
       });
     }
 
@@ -660,14 +671,27 @@
     }
 
     function updateReviewStatus(id, newStatus) {
-      sb.rpc('admin_update_review_status_v2', {
-        review_id: id, new_status: newStatus
-      }).then(function(result) {
-        if (result.error) { showToast('操作に失敗しました'); return; }
-        var label = newStatus === 'approved' ? '承認' : '却下';
-        showToast('口コミを' + label + 'しました');
-        loadAdminReviews();
-      });
+      // user_idを事前取得（バッジ連動用）
+      sb.from('spot_reviews').select('user_id').eq('id', id).single()
+        .then(function(r) {
+          var userId = r.data ? r.data.user_id : null;
+          return sb.rpc('admin_update_review_status_v2', {
+            review_id: id, new_status: newStatus
+          }).then(function(result) {
+            if (result.error) { showToast('操作に失敗しました'); return; }
+            var label = newStatus === 'approved' ? '承認' : '却下';
+            showToast('口コミを' + label + 'しました');
+            loadAdminReviews();
+            // バッジ連動（user_idがある場合のみ）
+            if (userId) {
+              if (newStatus === 'approved') {
+                sb.rpc('confirm_achievements_on_approval', { p_user_id: userId });
+              } else if (newStatus === 'rejected') {
+                sb.rpc('revoke_achievements_on_rejection', { p_user_id: userId });
+              }
+            }
+          });
+        });
     }
 
     // ===== 削除依頼管理 =====

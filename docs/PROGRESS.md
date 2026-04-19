@@ -25,12 +25,12 @@ ___
 
 ## Phase 3: ゲーミフィケーション
 
-- [ ] Phase 3a: achievementsテーブル + user_achievementsテーブル作成
-- [ ] Phase 3a-2: 初期バッジ20件投入
-- [ ] Phase 3b: RPC関数4本実装（get_my_achievements, check_and_unlock_achievements, confirm, revoke）
-- [ ] Phase 3c: バッジ獲得モーダル + 紙吹雪 + SNSシェア
-- [ ] Phase 3d: 既存フックへの差し込み（submitSpot, onHelpfulClick, submitReview）
-- [ ] Phase 3e: プロフィールモーダル実装
+- [x] Phase 3a: achievementsテーブル + user_achievementsテーブル作成 ✅ 2026-04-19
+- [x] Phase 3a-2: 初期バッジ18件投入 ✅ 2026-04-19
+- [x] Phase 3b: RPC関数4本実装（get_my_achievements, check_and_unlock_achievements, confirm, revoke）✅ 2026-04-19
+- [x] Phase 3c: バッジ獲得モーダル + 紙吹雪 + SNSシェア ✅ 2026-04-19
+- [x] Phase 3d: 既存フックへの差し込み（submitSpot, handleHelpful, submitReview）✅ 2026-04-19
+- [x] Phase 3e: プロフィールモーダル実装 ✅ 2026-04-19
 - [ ] Phase 3f: admin.html 承認・却下連動
 
 ## Phase 4: UX強化（LocalStorage全廃）
