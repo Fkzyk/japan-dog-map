@@ -1752,11 +1752,14 @@
       var btn = document.getElementById('submit-confirm-btn');
       btn.disabled = true; btn.textContent = '送信中...';
 
-      // submit_spot関数経由で投稿（delete_keyを返す）
-      sb.rpc('submit_spot', {
-        p_name: name, p_category: category, p_address: address,
-        p_lat: _geocodedLat, p_lng: _geocodedLng,
-        p_comment: comment || null
+      // 認証してから submit_spot_v2 で投稿（user_id付き）
+      requireAuth().then(function(user) {
+        return sb.rpc('submit_spot_v2', {
+          p_name: name, p_category: category, p_address: address,
+          p_lat: _geocodedLat, p_lng: _geocodedLng,
+          p_user_id: user.id,
+          p_comment: comment || null
+        });
       }).then(function(result) {
         btn.disabled = false; btn.textContent = '投稿する';
         if (result.error) {
@@ -1766,6 +1769,8 @@
         closeSubmitModal();
         openSubmitSuccess();
         logEvent('spot_submit', null);
+      }).catch(function() {
+        btn.disabled = false; btn.textContent = '投稿する';
       });
     }
 
@@ -1919,22 +1924,27 @@
       localStorage.setItem(HELPFUL_KEY, JSON.stringify(helpfuls));
       var btn = document.getElementById('iw-helpful-' + pid);
       if (btn) btn.classList.toggle('active', !already);
-      // DB確定（toggle_helpful RPC）
-      sb.rpc('toggle_helpful', { p_spot_id: spotId, p_device_id: getDeviceId() })
-        .then(function(result) {
-          if (result.error) {
-            // DB失敗時はLocalStorageとUIをロールバック
-            localStorage.setItem(HELPFUL_KEY, JSON.stringify(prevHelpfuls));
-            if (btn) btn.classList.toggle('active', already);
-            return;
-          }
-          loadHelpfulCount(spotId);
-          if (!already) {
-            logEvent('spot_helpful', spotId);
-            // 初回押下時のみ口コミ誘導プロンプトを表示
-            openHelpfulPrompt(spotId, spotName);
-          }
-        });
+      // 認証してから toggle_helpful_v2（user_id版）で確定
+      requireAuth().then(function(user) {
+        return sb.rpc('toggle_helpful_v2', { p_spot_id: spotId, p_user_id: user.id });
+      }).then(function(result) {
+        if (result.error) {
+          // DB失敗時はLocalStorageとUIをロールバック
+          localStorage.setItem(HELPFUL_KEY, JSON.stringify(prevHelpfuls));
+          if (btn) btn.classList.toggle('active', already);
+          return;
+        }
+        loadHelpfulCount(spotId);
+        if (!already) {
+          logEvent('spot_helpful', spotId);
+          // 初回押下時のみ口コミ誘導プロンプトを表示
+          openHelpfulPrompt(spotId, spotName);
+        }
+      }).catch(function() {
+        // 認証失敗時はロールバック
+        localStorage.setItem(HELPFUL_KEY, JSON.stringify(prevHelpfuls));
+        if (btn) btn.classList.toggle('active', already);
+      });
     }
 
     function openHelpfulPrompt(spotId, spotName) {
@@ -2028,13 +2038,18 @@
       var comment = document.getElementById('review-comment').value.trim();
       var btn = document.getElementById('review-submit-btn');
       btn.disabled = true; btn.textContent = '送信中...';
-      sb.from('spot_reviews').insert([{
-        spot_id: _reviewSpotId,
-        rating: _reviewRating,
-        comment: comment || null,
-        device_id: getDeviceId(),
-        status: 'pending'
-      }]).then(function(result) {
+      var spotId = _reviewSpotId;
+      // 認証してから口コミを投稿（user_id付き）
+      requireAuth().then(function(user) {
+        return sb.from('spot_reviews').insert([{
+          spot_id: spotId,
+          rating: _reviewRating,
+          comment: comment || null,
+          device_id: getDeviceId(),
+          user_id: user.id,
+          status: 'pending'
+        }]);
+      }).then(function(result) {
         btn.disabled = false; btn.textContent = '投稿する';
         var fb = document.getElementById('review-feedback');
         fb.style.display = 'block';
@@ -2045,8 +2060,10 @@
           document.getElementById('review-comment').value = '';
           _reviewRating = 0;
           document.querySelectorAll('.star-btn').forEach(function(b) { b.classList.remove('active'); });
-          logEvent('review_submit', _reviewSpotId);
+          logEvent('review_submit', spotId);
         }
+      }).catch(function() {
+        btn.disabled = false; btn.textContent = '投稿する';
       });
     }
 
@@ -2078,12 +2095,17 @@
       btn.disabled = true; btn.textContent = '送信中...';
       // DOMではなく変数からスポット名を取得（XSS対策）
       var spotName = _reportSpotName || '';
-      sb.from('deletion_requests').insert([{
-        spot_id: _reportSpotId,
-        spot_name: spotName,
-        reason: reason,
-        contact_email: email || null
-      }]).then(function(result) {
+      var spotId = _reportSpotId;
+      // user_idは任意（ログイン済みなら付与、未ログインでも送信可）
+      getCurrentUser().then(function(user) {
+        return sb.from('deletion_requests').insert([{
+          spot_id: spotId,
+          spot_name: spotName,
+          reason: reason,
+          contact_email: email || null,
+          user_id: user ? user.id : null
+        }]);
+      }).then(function(result) {
         btn.disabled = false; btn.textContent = '送信する';
         var fb = document.getElementById('report-feedback');
         fb.style.display = 'block';
@@ -2091,16 +2113,20 @@
           fb.className = 'error'; fb.textContent = '送信に失敗しました。';
         } else {
           fb.className = 'success'; fb.textContent = '報告を受け付けました。ありがとうございます。';
-          logEvent('spot_report', _reportSpotId);
+          logEvent('spot_report', spotId);
         }
+      }).catch(function() {
+        btn.disabled = false; btn.textContent = '送信する';
       });
     }
 
     // ===== 行動ログ（fire-and-forget） =====
-    function logEvent(eventType, spotId, metadata) {
+    // userId は任意。ログイン済みの呼び出し元から渡す
+    function logEvent(eventType, spotId, metadata, userId) {
       if (!sb) return;
       sb.from('user_events').insert([{
         device_id: getDeviceId(),
+        user_id: userId || null,
         event_type: eventType,
         spot_id: spotId || null,
         metadata: metadata || null
