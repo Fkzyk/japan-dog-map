@@ -44,11 +44,11 @@ ___
 
 ## Phase 5: 運用強化
 
-- [ ] Phase 5a: GitHub Actions 日次バックアップ
-- [ ] Phase 5b: GitHub Actions keep-alive Ping
-- [ ] Phase 5c: UptimeRobot登録
-- [ ] Phase 5d: 信頼スコア自動承認トリガー（口コミ）
-- [ ] Phase 5e: 投稿レート制限トリガー
+- [x] Phase 5a: GitHub Actions 日次バックアップ ✅ 2026-04-19
+- [x] Phase 5b: GitHub Actions keep-alive Ping ✅ 2026-04-19
+- [ ] Phase 5c: UptimeRobot登録（えふかず手動作業）
+- [x] Phase 5d: 信頼スコア自動承認トリガー（口コミ）✅ 2026-04-19
+- [x] Phase 5e: 投稿レート制限トリガー ✅ 2026-04-19
 
 ## Phase 6: 広告導入
 
