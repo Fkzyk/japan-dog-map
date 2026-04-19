@@ -1302,8 +1302,9 @@
       document.getElementById('list-panel').classList.toggle('open', listOpen);
     }
 
+    // HTMLエスケープ（シングルクォート含む全5文字をエスケープ）
     function esc(str) {
-      return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
 
     // ===== 注意喚起モーダル =====
@@ -1770,6 +1771,7 @@
       sb.from('spot_reviews').select('rating, comment, created_at')
         .eq('spot_id', spotId).eq('status', 'approved')
         .order('created_at', { ascending: false })
+        .limit(20)
         .then(function(result) {
           var body = document.getElementById('reviews-list-body');
           if (!result.data || !result.data.length) {
@@ -1817,9 +1819,11 @@
 
     // ===== 削除依頼フォーム =====
     var _reportSpotId = null;
+    var _reportSpotName = null;
 
     function openReportModal(spotId, spotName) {
       _reportSpotId = spotId;
+      _reportSpotName = spotName;
       document.getElementById('report-spot-display').textContent = spotName;
       document.getElementById('report-reason').value = '';
       document.getElementById('report-email').value = '';
@@ -1839,7 +1843,8 @@
       var email = document.getElementById('report-email').value.trim();
       var btn = document.getElementById('report-submit-btn');
       btn.disabled = true; btn.textContent = '送信中...';
-      var spotName = document.getElementById('report-spot-display').textContent;
+      // DOMではなく変数からスポット名を取得（XSS対策）
+      var spotName = _reportSpotName || '';
       sb.from('deletion_requests').insert([{
         spot_id: _reportSpotId,
         spot_name: spotName,
