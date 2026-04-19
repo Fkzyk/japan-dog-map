@@ -919,6 +919,8 @@
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXlAvPbRMehbFLaBeckPctko2cHnPq_n0&language=ja"></script>
   <script src="https://unpkg.com/supercluster@8/dist/supercluster.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/turnstile.js"></script>
+  <script src="/auth.js"></script>
 
   <script>
     // ===== 地図・スポット =====
@@ -994,14 +996,9 @@
     var CAT_COLORS = { dogrun:'#27ae60', dogcafe:'#e74c3c', cafe:'#e74c3c', vet:'#8e44ad', hotel:'#2980b9' };
     var CAT_BADGE  = { dogrun:'badge-dogrun', dogcafe:'badge-dogcafe', cafe:'badge-dogcafe', vet:'badge-vet', hotel:'badge-hotel' };
 
-    // ===== Supabase 設定 =====
-    var SUPABASE_URL = 'https://rfcfilhqkkjmkecxzijw.supabase.co';
-    var SUPABASE_ANON_KEY = 'sb_publishable_6BlkQzDAGM7lyDnpRgMI8Q_4NHRR_lw';
-    var sb = null;
-
     // ページロード時にアプリを起動
+    // Supabaseクライアント sb は auth.js で定義済み
     window.addEventListener('load', function() {
-      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       // system_flagsを最初に確認してからアプリを起動
       loadSystemFlags(function() { initApp(); });
     });

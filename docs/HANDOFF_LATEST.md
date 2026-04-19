@@ -11,46 +11,57 @@ ___
 
 ## 更新者
 
-Claude（Web版・設計フェーズ）
+Claude Code
 
 ___
 
 ## 現在のフェーズ
 
-Phase 1a 開始前（事前調査の待ち状態）
+Phase 1b・1c 完了待ち（えふかず手動作業待ち）
 
 ___
 
 ## 前回までの作業内容
 
-計画書作成フェーズが完了。以下のドキュメントが揃った状態。
-
-- `CLAUDE.md`（ルール・絶対条件・確定判断のサマリー）
-- `docs/MASTER_PLAN.md`（全Phase詳細）
-- `docs/DECISIONS.md`（確定した設計判断）
-- `docs/PROGRESS.md`（Phase進捗管理）
-- `docs/HANDOFF_LATEST.md`（このファイル）
+- Phase 1a 完了：`docs/reports/phase-1a-investigation.md` に調査結果出力済み
+- Phase 1d 完了：`auth.js` 作成済み（Supabaseクライアント sb・requireAuth・ensureAuthenticated等）
+- Phase 1e 完了：`turnstile.js` 作成済み（TURNSTILE_SITE_KEYはプレースホルダー）
+- index.html整理：インラインのSUPABASE_URL・sb初期化を削除し auth.js に委譲済み
+- index.htmlに `/turnstile.js` と `/auth.js` の script タグを追加済み
 
 ___
 
 ## 次に Claude Code がやるべきこと
 
-1. まず `CLAUDE.md` を読む
-2. `docs/MASTER_PLAN.md` を読む
-3. `docs/DECISIONS.md` を読む
-4. `docs/PROGRESS.md` で現在の進捗を確認
-5. Phase 1a（事前調査）を開始
-   - 既存コードベース調査（index.html, admin.html, sw.js）
-   - Supabase側の既存スキーマ調査
-   - インフラ調査（APIキー、ドメイン）
-6. 調査結果を `docs/reports/phase-1a-investigation.md` に出力
-7. ユーザー（えふかず）に確認を取ってから次のPhaseへ
+えふかずの手動作業が完了したら以下を実施：
+
+### Phase 1c 完了後の作業
+1. えふかずから Cloudflare Turnstile の Site Key を受け取る
+2. `turnstile.js` の `REPLACE_WITH_TURNSTILE_SITE_KEY` を実際のSite Keyに差し替える
+3. PROGRESS.md の Phase 1b・1c を [x] に更新
+4. コミット・プッシュ
+5. Phase 2a（spot_favorites テーブル作成・お気に入りDB化）へ進む
+
+___
+
+## えふかずへの手動作業依頼
+
+### Phase 1b：Supabase Anonymous Sign-Ins
+- Supabase Dashboard → Authentication → Providers → Anonymous → Enable
+
+### Phase 1c：Cloudflare Turnstile
+1. Cloudflare Dashboard → Turnstile → Add widget
+2. 入力：Site name: Japan Dog Map / Domain: japan-dog-map.vercel.app / Widget mode: Managed
+3. Create → Site Key と Secret Key をコピー
+4. Secret Key を Supabase Dashboard → Authentication → Settings → Captcha に登録
+5. Site Key を Claude Code に渡す
 
 ___
 
 ## 未解決の課題
 
-なし（計画段階完了のため）
+- TURNSTILE_SITE_KEY がプレースホルダーのまま（Phase 1c完了後に差し替え）
+- Supabase Anonymous Sign-Ins が未設定（Phase 1b待ち）
 
 ___
 
