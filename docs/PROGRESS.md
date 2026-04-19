@@ -61,8 +61,8 @@ ___
 
 ## Phase 7: アカウント昇格導線
 
-- [ ] Phase 7a: Google OAuth設定（えふかず手動）
-- [ ] Phase 7b: マジックリンク設定（えふかず手動）
+- [x] Phase 7a: Google OAuth設定 ✅ 2026-04-19
+- [x] Phase 7b: マジックリンク設定 ✅ 2026-04-19
 - [x] Phase 7c: 「別端末でも使う」モーダル実装 ✅ 2026-04-19
 - [x] Phase 7d: linkIdentity実装 ✅ 2026-04-19
 
