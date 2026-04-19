@@ -2253,6 +2253,12 @@
       document.getElementById('tutorial-overlay').style.display = 'none';
       document.getElementById('tutorial-tooltip').style.display = 'none';
       document.getElementById('tut-demo-card').style.display = 'none';
+      // チュートリアル終了後にPWAバナーを必ず1回表示（少し遅らせてUX調整）
+      // 14にセットすることでcheckAndShowPwaPrompt内で+1=15（15%15=0）になり表示される
+      if (!_isStandalone()) {
+        localStorage.setItem('pwa_prompt_count', '14');
+        setTimeout(checkAndShowPwaPrompt, 1000);
+      }
     }
 
     // ===== Service Worker =====
