@@ -18,5 +18,5 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Claude Code ワークツリー（一時作業用）
-.claude/worktrees/
+# Claude Code（ローカル設定・一時作業用）
+.claude/

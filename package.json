@@ -1,0 +1,12 @@
+{
+  "name": "tokyo-dog-map",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "ask:claude": "node scripts/ask-claude.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.51.0",
+    "dotenv": "^16.6.1"
+  }
+}
