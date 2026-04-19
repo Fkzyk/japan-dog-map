@@ -35,12 +35,12 @@ ___
 
 ## Phase 4: UX強化（LocalStorage全廃）
 
-- [ ] Phase 4a: user_preferences テーブル作成
-- [ ] Phase 4b: チュートリアル表示状態のDB化
-- [ ] Phase 4c: PWAプロンプト表示制御のDB化
-- [ ] Phase 4d: 初回注意モーダル表示日のDB化
-- [ ] Phase 4e: manifest.json 整備
-- [ ] Phase 4f: ホーム画面追加バナー実装
+- [x] Phase 4a: user_preferences テーブル作成 ✅ 2026-04-19
+- [x] Phase 4b: チュートリアル表示状態のDB化 ✅ 2026-04-19
+- [x] Phase 4c: PWAプロンプト表示制御のDB化 ✅ 2026-04-19
+- [x] Phase 4d: 初回注意モーダル表示日のDB化 ✅ 2026-04-19
+- [x] Phase 4e: manifest.json 整備（実装済み）✅
+- [x] Phase 4f: ホーム画面追加バナー実装（実装済み）✅
 
 ## Phase 5: 運用強化
 
