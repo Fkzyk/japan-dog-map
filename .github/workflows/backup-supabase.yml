@@ -1,0 +1,32 @@
+name: Supabase 日次バックアップ
+
+on:
+  schedule:
+    # 毎日 18:00 UTC（JST 03:00）
+    - cron: '0 18 * * *'
+  workflow_dispatch: # 手動実行も可能
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: pg_dump でバックアップ取得
+        run: |
+          export PGPASSWORD="${{ secrets.SUPABASE_DB_PASSWORD }}"
+          DATE=$(date +'%Y-%m-%d')
+          pg_dump \
+            -h db.rfcfilhqkkjmkecxzijw.supabase.co \
+            -U postgres \
+            -d postgres \
+            --no-owner \
+            --no-acl \
+            -F c \
+            -f "backup-${DATE}.dump"
+          echo "バックアップ完了: backup-${DATE}.dump"
+
+      - name: Artifacts にアップロード（30日間保存）
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backup-${{ github.run_id }}
+          path: backup-*.dump
+          retention-days: 30

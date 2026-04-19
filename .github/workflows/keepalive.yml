@@ -1,0 +1,28 @@
+name: Supabase Keep-Alive Ping
+
+on:
+  schedule:
+    # 6時間ごとに実行（Supabase無料枠の1週間pause対策）
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Supabase に ping
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: sb_publishable_6BlkQzDAGM7lyDnpRgMI8Q_4NHRR_lw" \
+            "https://rfcfilhqkkjmkecxzijw.supabase.co/rest/v1/system_flags?id=eq.1&select=id")
+          echo "HTTP Status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "ping失敗: $STATUS"
+            exit 1
+          fi
+          echo "ping成功"
+
+      - name: サイトに ping
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://japan-dog-map.vercel.app/")
+          echo "Site Status: $STATUS"

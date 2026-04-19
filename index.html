@@ -2207,7 +2207,11 @@
           var fb = document.getElementById('review-feedback');
           fb.style.display = 'block';
           if (result.error) {
-            fb.className = 'error'; fb.textContent = '送信に失敗しました。しばらく後に再試行してください。';
+            var errMsg = '送信に失敗しました。しばらく後に再試行してください。';
+            if (result.error.message && result.error.message.indexOf('REVIEW_RATE_LIMIT') >= 0) {
+              errMsg = '口コミは24時間に3件までです。時間をおいて再試行してください。';
+            }
+            fb.className = 'error'; fb.textContent = errMsg;
           } else {
             fb.className = 'success'; fb.textContent = '送信しました！管理者の審査後に反映されます。';
             document.getElementById('review-comment').value = '';
