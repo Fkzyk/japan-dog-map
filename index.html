@@ -1045,6 +1045,8 @@
       infoWindow = new google.maps.InfoWindow({ maxWidth: 280 });
       infoWindow.addListener('closeclick', function() { _activeInfoMarker = null; });
       map.addListener('bounds_changed', function() { renderMarkers(); });
+      // ログイン済みの場合はDBからお気に入りを読み込む
+      loadFavoritesFromDB();
       loadAllPlaces();
     }
 
@@ -1789,37 +1791,94 @@
       return id;
     }
 
-    // ===== お気に入り機能（LocalStorage） =====
+    // ===== お気に入り機能（Supabase DB版） =====
     var FAV_KEY = 'jdm-favorites';
-    // LocalStorageパースのキャッシュ（毎回パースしないよう最適化）
-    var _favoritesCache = null;
-    function getFavorites() {
-      if (_favoritesCache !== null) return _favoritesCache;
-      try { _favoritesCache = JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch(e) { _favoritesCache = []; }
-      return _favoritesCache;
+    var FAV_MIGRATED_KEY = 'jdm-favorites-migrated';
+    // メモリキャッシュ（Set）：同期的な isFavorite() 参照用
+    var _favoritesCache = new Set();
+
+    // ログイン済みユーザーのお気に入りをDBから読み込んでキャッシュを更新
+    function loadFavoritesFromDB() {
+      return getCurrentUser().then(function(user) {
+        if (!user) return;
+        return sb.from('spot_favorites').select('spot_id').eq('user_id', user.id)
+          .then(function(result) {
+            if (!result.error && result.data) {
+              _favoritesCache = new Set(result.data.map(function(r) { return r.spot_id; }));
+            }
+          });
+      });
     }
-    function isFavorite(id) { return getFavorites().indexOf(id) >= 0; }
-    function toggleFavorite(id) {
-      var favs = getFavorites();
-      var idx = favs.indexOf(id);
-      if (idx >= 0) {
-        favs.splice(idx, 1);
-        logEvent('spot_favorite_remove', id);
-      } else {
-        favs.push(id);
-        logEvent('spot_favorite_add', id);
-      }
-      localStorage.setItem(FAV_KEY, JSON.stringify(favs));
-      _favoritesCache = favs; // キャッシュを最新状態に更新
-      // infoWindowのボタン表示を更新
+
+    // LocalStorage → DB へ一回だけ移行する（初回ログイン時）
+    function migrateLocalFavorites(userId) {
+      if (localStorage.getItem(FAV_MIGRATED_KEY)) return Promise.resolve();
+      var local = [];
+      try { local = JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch(e) {}
+      localStorage.setItem(FAV_MIGRATED_KEY, '1');
+      if (local.length === 0) return Promise.resolve();
+      var rows = local.map(function(spotId) { return { user_id: userId, spot_id: spotId }; });
+      return sb.from('spot_favorites').upsert(rows, { ignoreDuplicates: true })
+        .then(function() {
+          local.forEach(function(id) { _favoritesCache.add(id); });
+        });
+    }
+
+    // 同期的にキャッシュを参照（infoWindow描画時に使用）
+    function isFavorite(id) { return _favoritesCache.has(id); }
+
+    // お気に入りボタンのUI更新
+    function updateFavBtn(id) {
       var btn = document.getElementById('iw-fav-' + id);
-      if (btn) {
-        if (isFavorite(id)) {
-          btn.textContent = '★ お気に入り済み'; btn.classList.add('active');
-        } else {
-          btn.textContent = '☆ お気に入り'; btn.classList.remove('active');
-        }
+      if (!btn) return;
+      if (isFavorite(id)) {
+        btn.textContent = '★ お気に入り済み'; btn.classList.add('active');
+      } else {
+        btn.textContent = '☆ お気に入り'; btn.classList.remove('active');
       }
+    }
+
+    // お気に入りをトグルする（認証 → 移行 → DB操作 → 楽観的UI更新）
+    function toggleFavorite(id) {
+      var wasFav = isFavorite(id);
+      // 楽観的UI更新（先に表示を変える）
+      if (wasFav) { _favoritesCache.delete(id); } else { _favoritesCache.add(id); }
+      updateFavBtn(id);
+
+      requireAuth().then(function(user) {
+        return migrateLocalFavorites(user.id).then(function() {
+          if (wasFav) {
+            return sb.from('spot_favorites').delete()
+              .eq('user_id', user.id).eq('spot_id', id)
+              .then(function(result) {
+                if (result.error) {
+                  _favoritesCache.add(id); updateFavBtn(id);
+                  if (typeof showToast === 'function') showToast('お気に入りの解除に失敗しました');
+                } else {
+                  logEvent('spot_favorite_remove', id);
+                }
+              });
+          } else {
+            return sb.from('spot_favorites').insert({ user_id: user.id, spot_id: id })
+              .then(function(result) {
+                if (result.error) {
+                  _favoritesCache.delete(id); updateFavBtn(id);
+                  if (result.error.message && result.error.message.indexOf('FAVORITES_LIMIT_REACHED') >= 0) {
+                    if (typeof showToast === 'function') showToast('お気に入りは100件までです');
+                  } else {
+                    if (typeof showToast === 'function') showToast('お気に入りの追加に失敗しました');
+                  }
+                } else {
+                  logEvent('spot_favorite_add', id);
+                }
+              });
+          }
+        });
+      }).catch(function() {
+        // 認証失敗・キャンセル時はロールバック
+        if (wasFav) { _favoritesCache.add(id); } else { _favoritesCache.delete(id); }
+        updateFavBtn(id);
+      });
     }
 
     // ===== 参考になった機能 =====
