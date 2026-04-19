@@ -17,7 +17,7 @@ ___
 
 ## Phase 2: 既存機能の認証紐付け
 
-- [ ] Phase 2a: お気に入りのSupabase化（新規テーブル + LocalStorage移行）
+- [x] Phase 2a: お気に入りのSupabase化（新規テーブル + LocalStorage移行）✅ 2026-04-19
 - [ ] Phase 2b: submissions.user_id追加 + submitSpot改修
 - [ ] Phase 2c: spot_reviews.user_id追加 + submitReview改修
 - [ ] Phase 2d: user_events.user_id追加 + onHelpfulClick改修
