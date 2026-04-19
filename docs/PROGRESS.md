@@ -31,7 +31,7 @@ ___
 - [x] Phase 3c: バッジ獲得モーダル + 紙吹雪 + SNSシェア ✅ 2026-04-19
 - [x] Phase 3d: 既存フックへの差し込み（submitSpot, handleHelpful, submitReview）✅ 2026-04-19
 - [x] Phase 3e: プロフィールモーダル実装 ✅ 2026-04-19
-- [ ] Phase 3f: admin.html 承認・却下連動
+- [x] Phase 3f: admin.html 承認・却下連動 ✅ 2026-04-19
 
 ## Phase 4: UX強化（LocalStorage全廃）
 
