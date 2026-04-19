@@ -661,6 +661,13 @@
         sb.from('user_events').select('device_id,event_type').gte('created_at', since7d),
         sb.from('user_events').select('device_id').gte('created_at', since30d)
       ]).then(function(results) {
+        // エラーチェックを追加
+        if (results[0].error || results[1].error) {
+          document.getElementById('stats-loading').style.display = 'none';
+          document.getElementById('stats-content').innerHTML = '<div style="text-align:center;padding:40px;color:#e74c3c;font-size:14px;">データの取得に失敗しました。再読み込みしてください。</div>';
+          document.getElementById('stats-content').style.display = 'block';
+          return;
+        }
         document.getElementById('stats-loading').style.display = 'none';
         document.getElementById('stats-content').style.display = 'block';
 
@@ -728,10 +735,11 @@
         }).slice(0, 10);
         if (!hits.length) { res.style.display = 'none'; return; }
         res.innerHTML = hits.map(function(p) {
-          var esc = (p.name || '').replace(/'/g, '&#39;');
-          var escId = (p.place_id || '').replace(/'/g, '&#39;');
-          return '<div onclick="_selectSpot(\'' + escId + '\',\'' + esc + '\')" style="padding:10px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;">' +
-            '<strong>' + (p.name || '') + '</strong><br><span style="color:#888;font-size:11px;">' + (p.address || '') + '</span></div>';
+          // グローバルのesc()関数を使用してスポット名とIDをエスケープ
+          var escName = esc(p.name || '');
+          var escId = esc(p.place_id || '');
+          return '<div onclick="_selectSpot(\'' + escId + '\',\'' + escName + '\')" style="padding:10px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;">' +
+            '<strong>' + escName + '</strong><br><span style="color:#888;font-size:11px;">' + esc(p.address || '') + '</span></div>';
         }).join('');
         res.style.display = 'block';
       });
@@ -865,8 +873,9 @@
       window._toastTimer = setTimeout(function() { t.style.display = 'none'; }, 2500);
     }
 
+    // HTMLエスケープ（シングルクォート含む全5文字をエスケープ）
     function esc(str) {
-      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
   </script>
 </body>
