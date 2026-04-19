@@ -686,6 +686,50 @@
       background: none; border: none; font-size: 22px; cursor: pointer;
       padding: 4px; line-height: 1;
     }
+
+    /* ===== アカウント昇格モーダル ===== */
+    #upgrade-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 4800;
+      align-items: center; justify-content: center;
+    }
+    #upgrade-overlay.open { display: flex; }
+    #upgrade-modal {
+      background: white; border-radius: 20px;
+      padding: 28px 24px; width: 90%; max-width: 340px;
+      text-align: center;
+    }
+    #upgrade-modal h3 { font-size: 17px; color: #1a1a2e; margin: 0 0 10px; line-height: 1.4; }
+    #upgrade-modal p { font-size: 13px; color: #666; margin: 0 0 20px; line-height: 1.6; }
+    #upgrade-google-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 12px; box-sizing: border-box;
+      background: #fff; border: 2px solid #ddd; border-radius: 12px;
+      font-size: 14px; color: #333; cursor: pointer; margin-bottom: 10px;
+    }
+    #upgrade-google-btn:hover { background: #f5f5f5; }
+    #upgrade-email-toggle-btn {
+      display: block; width: 100%; padding: 10px; box-sizing: border-box;
+      background: #f5f5f5; border: none; border-radius: 12px;
+      font-size: 13px; color: #555; cursor: pointer; margin-bottom: 10px;
+    }
+    #upgrade-email-form { display: none; margin-bottom: 10px; }
+    #upgrade-email-form.open { display: block; }
+    #upgrade-email-input {
+      width: 100%; box-sizing: border-box; padding: 10px 12px;
+      border: 1.5px solid #ddd; border-radius: 10px;
+      font-size: 14px; margin-bottom: 8px; outline: none;
+    }
+    #upgrade-email-send-btn {
+      width: 100%; padding: 10px; box-sizing: border-box;
+      background: #1a1a2e; color: white; border: none; border-radius: 10px;
+      font-size: 14px; cursor: pointer;
+    }
+    #upgrade-later-btn {
+      display: block; width: 100%; padding: 8px;
+      background: none; border: none;
+      font-size: 13px; color: #aaa; cursor: pointer; margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -1028,6 +1072,24 @@
         <h3>獲得バッジ</h3>
         <div id="profile-badge-list"><div style="color:#bbb;font-size:12px;padding:8px 0;">読み込み中...</div></div>
       </div>
+    </div>
+  </div>
+
+  <!-- アカウント昇格モーダル（Phase 7） -->
+  <div id="upgrade-overlay" onclick="if(event.target===this)closeUpgradeModal()">
+    <div id="upgrade-modal">
+      <h3>📱 別の端末でも使えるようにしませんか？</h3>
+      <p>アカウントと紐付けると、機種変更後もお気に入りやバッジが引き継がれます。</p>
+      <button id="upgrade-google-btn" onclick="linkWithGoogle()">
+        🔗 Googleで続ける
+      </button>
+      <button id="upgrade-email-toggle-btn" onclick="showUpgradeEmailInput()">メールアドレスで続ける</button>
+      <div id="upgrade-email-form">
+        <input type="email" id="upgrade-email-input" placeholder="メールアドレスを入力">
+        <button id="upgrade-email-send-btn" onclick="linkWithEmail()">マジックリンクを送る</button>
+        <div id="upgrade-email-feedback" style="font-size:12px;margin-top:6px;display:none;"></div>
+      </div>
+      <button id="upgrade-later-btn" onclick="closeUpgradeModal()">あとで</button>
     </div>
   </div>
 
@@ -2027,6 +2089,7 @@
                   }
                 } else {
                   logEvent('spot_favorite_add', id);
+                  checkAccountUpgradeNeeded(user);
                 }
               });
           }
@@ -2219,6 +2282,7 @@
             document.querySelectorAll('.star-btn').forEach(function(b) { b.classList.remove('active'); });
             logEvent('review_submit', spotId);
             checkAndShowBadges(user.id);
+            checkReviewCountAndUpgrade(user);
           }
         });
       }).catch(function() {
@@ -2656,6 +2720,99 @@
         localStorage.setItem('pwa_prompt_count', '14');
         setTimeout(checkAndShowPwaPrompt, 1000);
       }
+    }
+
+    // ===== Phase 7: アカウント昇格導線 =====
+    var _upgradePromptShown = false;
+    var UPGRADE_DISMISS_KEY = 'jdm-upgrade-dismissed';
+    var UPGRADE_DISMISS_DAYS = 7;
+
+    // 7日以内に「あとで」を押していたらスキップ
+    function _isUpgradeDismissed() {
+      try {
+        var ts = parseInt(localStorage.getItem(UPGRADE_DISMISS_KEY) || '0', 10);
+        return ts > Date.now();
+      } catch(e) { return false; }
+    }
+
+    function _dismissUpgrade() {
+      try {
+        localStorage.setItem(UPGRADE_DISMISS_KEY,
+          String(Date.now() + UPGRADE_DISMISS_DAYS * 86400000));
+      } catch(e) {}
+    }
+
+    // お気に入り20件以上で発動チェック（toggleFavorite成功後に呼ぶ）
+    function checkAccountUpgradeNeeded(user) {
+      if (!user || !user.is_anonymous) return;
+      if (_upgradePromptShown) return;
+      if (_isUpgradeDismissed()) return;
+      if (_favoritesCache.size >= 20) openUpgradeModal();
+    }
+
+    // 口コミ3件以上で発動チェック（submitReview成功後に呼ぶ）
+    function checkReviewCountAndUpgrade(user) {
+      if (!user || !user.is_anonymous) return;
+      if (_upgradePromptShown) return;
+      if (_isUpgradeDismissed()) return;
+      sb.from('spot_reviews').select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .then(function(r) {
+          if ((r.count || 0) >= 3) openUpgradeModal();
+        });
+    }
+
+    function openUpgradeModal() {
+      _upgradePromptShown = true;
+      document.getElementById('upgrade-overlay').classList.add('open');
+    }
+
+    function closeUpgradeModal() {
+      _dismissUpgrade();
+      document.getElementById('upgrade-overlay').classList.remove('open');
+    }
+
+    function showUpgradeEmailInput() {
+      document.getElementById('upgrade-email-form').classList.add('open');
+      document.getElementById('upgrade-email-toggle-btn').style.display = 'none';
+      document.getElementById('upgrade-email-input').focus();
+    }
+
+    // Googleアカウントと連携（linkIdentity）
+    function linkWithGoogle() {
+      var btn = document.getElementById('upgrade-google-btn');
+      btn.disabled = true; btn.textContent = '処理中...';
+      sb.auth.linkIdentity({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+      }).then(function(result) {
+        if (result.error) {
+          btn.disabled = false; btn.textContent = '🔗 Googleで続ける';
+          if (typeof showToast === 'function') showToast('Googleとの連携に失敗しました');
+        }
+        // 成功時はリダイレクトが発生するためここには到達しない
+      });
+    }
+
+    // メールアドレスと連携（マジックリンク送信）
+    function linkWithEmail() {
+      var email = document.getElementById('upgrade-email-input').value.trim();
+      if (!email) return;
+      var btn = document.getElementById('upgrade-email-send-btn');
+      var fb = document.getElementById('upgrade-email-feedback');
+      btn.disabled = true; btn.textContent = '送信中...';
+      fb.style.display = 'none';
+      sb.auth.updateUser({ email: email }).then(function(result) {
+        btn.disabled = false; btn.textContent = 'マジックリンクを送る';
+        fb.style.display = 'block';
+        if (result.error) {
+          fb.style.color = '#e74c3c';
+          fb.textContent = '送信に失敗しました。メールアドレスを確認してください。';
+        } else {
+          fb.style.color = '#27ae60';
+          fb.textContent = 'メールを送りました！リンクをクリックして連携完了です。';
+        }
+      });
     }
 
     // ===== Service Worker =====

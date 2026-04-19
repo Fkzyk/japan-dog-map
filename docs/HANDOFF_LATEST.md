@@ -17,51 +17,66 @@ ___
 
 ## 現在のフェーズ
 
-Phase 1b・1c 完了待ち（えふかず手動作業待ち）
+Phase 1〜5・7c・7d 完了。えふかず手動作業（7a・7b）待ち。
 
 ___
 
 ## 前回までの作業内容
 
-- Phase 1a 完了：`docs/reports/phase-1a-investigation.md` に調査結果出力済み
-- Phase 1d 完了：`auth.js` 作成済み（Supabaseクライアント sb・requireAuth・ensureAuthenticated等）
-- Phase 1e 完了：`turnstile.js` 作成済み（TURNSTILE_SITE_KEYはプレースホルダー）
-- index.html整理：インラインのSUPABASE_URL・sb初期化を削除し auth.js に委譲済み
-- index.htmlに `/turnstile.js` と `/auth.js` の script タグを追加済み
+- Phase 1〜5 全完了（認証基盤・既存機能認証紐付け・ゲーミフィケーション・LocalStorage全廃・運用強化）
+- Phase 7c 完了：「別端末でも使う」アカウント昇格モーダル実装
+- Phase 7d 完了：linkWithGoogle() / linkWithEmail() 実装
+  - 発動条件：お気に入り20件超過（toggleFavorite成功後）または口コミ3件投稿時（submitReview成功後）
+  - 匿名ユーザーのみ対象（user.is_anonymous チェック）
+  - セッション中1回限り表示（_upgradePromptShown フラグ）
+  - 「あとで」で7日間非表示（localStorage: jdm-upgrade-dismissed）
 
 ___
 
 ## 次に Claude Code がやるべきこと
 
-えふかずの手動作業が完了したら以下を実施：
+### えふかずの手動作業完了後
+- Phase 7a（Google OAuth有効化）完了 → linkWithGoogle() が動作可能になる
+- Phase 7b（マジックリンク設定）完了 → linkWithEmail() が動作可能になる
+- 動作確認後に Phase 7a・7b を PROGRESS.md で [x] に更新
 
-### Phase 1c 完了後の作業
-1. えふかずから Cloudflare Turnstile の Site Key を受け取る
-2. `turnstile.js` の `REPLACE_WITH_TURNSTILE_SITE_KEY` を実際のSite Keyに差し替える
-3. PROGRESS.md の Phase 1b・1c を [x] に更新
-4. コミット・プッシュ
-5. Phase 2a（spot_favorites テーブル作成・お気に入りDB化）へ進む
+### Phase 6（広告導入）
+- 独自ドメイン取得後に着手（えふかず手動が先決）
+- 6a: 独自ドメイン取得 → 6b: プライバシーポリシー等 → 6c: Cookie同意バナー → 6d: AdSense申請
 
 ___
 
 ## えふかずへの手動作業依頼
 
-### Phase 1b：Supabase Anonymous Sign-Ins
-- Supabase Dashboard → Authentication → Providers → Anonymous → Enable
+### Phase 7a：Google OAuth設定
+1. Supabase Dashboard → Authentication → Providers → Google → Enable
+2. Google Cloud Console で OAuth 2.0 クライアントID を作成
+3. Supabase に Client ID・Client Secret を登録
+4. 承認済みリダイレクトURIに `https://rfcfilhqkkjmkecxzijw.supabase.co/auth/v1/callback` を追加
 
-### Phase 1c：Cloudflare Turnstile
-1. Cloudflare Dashboard → Turnstile → Add widget
-2. 入力：Site name: Japan Dog Map / Domain: japan-dog-map.vercel.app / Widget mode: Managed
-3. Create → Site Key と Secret Key をコピー
-4. Secret Key を Supabase Dashboard → Authentication → Settings → Captcha に登録
-5. Site Key を Claude Code に渡す
+### Phase 7b：メール（マジックリンク）設定
+1. Supabase Dashboard → Authentication → Providers → Email → Enable
+2. 「Confirm email」を ON にする
+3. メールテンプレートの文言を日本語に調整（任意）
+
+### Phase 5a：GitHubシークレット登録（バックアップ）
+- GitHub リポジトリ → Settings → Secrets → Actions → New repository secret
+- 名前: `SUPABASE_DB_PASSWORD`
+- 値: Supabase Dashboard → Settings → Database → Database password
+
+### Phase 5c：UptimeRobot登録
+- https://uptimerobot.com で監視追加
+- URL: https://japan-dog-map.vercel.app/
+- 種別: HTTP(s)、チェック間隔: 5分
 
 ___
 
 ## 未解決の課題
 
-- TURNSTILE_SITE_KEY がプレースホルダーのまま（Phase 1c完了後に差し替え）
-- Supabase Anonymous Sign-Ins が未設定（Phase 1b待ち）
+- Phase 7a・7b：Supabase側の手動設定が必要（フロントエンドは実装済み）
+- Phase 5a：GitHub Secretsへの DB パスワード登録（バックアップWorkflowが未稼働）
+- Phase 5c：UptimeRobot登録（えふかず手動）
+- Phase 6：独自ドメイン取得待ち
 
 ___
 
