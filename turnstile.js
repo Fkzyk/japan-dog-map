@@ -5,7 +5,7 @@
 
 // Cloudflare Turnstile Site Key
 // Phase 1c完了後に実際のキーに差し替える
-var TURNSTILE_SITE_KEY = 'REPLACE_WITH_TURNSTILE_SITE_KEY';
+var TURNSTILE_SITE_KEY = '0x4AAAAAAC_qmquU1n67PeMc';
 
 // Turnstileスクリプトを動的に読み込む（初回のみ）
 function loadTurnstileScript() {
