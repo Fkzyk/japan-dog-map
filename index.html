@@ -602,6 +602,90 @@
       padding: 10px 32px; background: #1a1a2e; color: white;
       border: none; border-radius: 10px; font-size: 14px; cursor: pointer;
     }
+    /* ===== バッジ獲得モーダル ===== */
+    #badge-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 5000;
+      align-items: center; justify-content: center;
+    }
+    #badge-overlay.open { display: flex; }
+    #badge-modal {
+      background: white; border-radius: 20px;
+      padding: 32px 24px 24px; width: 90%; max-width: 320px;
+      text-align: center; position: relative; overflow: hidden;
+    }
+    #badge-icon { font-size: 56px; margin-bottom: 8px; }
+    #badge-title { font-size: 11px; color: #888; letter-spacing: 1px; margin-bottom: 4px; }
+    #badge-name { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+    #badge-desc { font-size: 13px; color: #555; margin-bottom: 4px; }
+    #badge-provisional { font-size: 11px; color: #e67e22; margin-bottom: 16px; min-height: 16px; }
+    #badge-share-btn {
+      display: inline-block; padding: 8px 20px;
+      background: #000; color: white; border: none; border-radius: 20px;
+      font-size: 13px; cursor: pointer; margin-right: 8px;
+    }
+    #badge-close-btn {
+      display: inline-block; padding: 8px 20px;
+      background: #eee; color: #333; border: none; border-radius: 20px;
+      font-size: 13px; cursor: pointer;
+    }
+    /* 紙吹雪 */
+    .confetti-piece {
+      position: absolute; width: 8px; height: 8px; top: -10px;
+      animation: confetti-fall 2s ease-in forwards;
+      border-radius: 2px;
+    }
+    @keyframes confetti-fall {
+      0%   { transform: translateY(0) rotate(0deg);   opacity: 1; }
+      100% { transform: translateY(400px) rotate(720deg); opacity: 0; }
+    }
+
+    /* ===== プロフィールモーダル ===== */
+    #profile-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 4500;
+      align-items: center; justify-content: center;
+    }
+    #profile-overlay.open { display: flex; }
+    #profile-modal {
+      background: white; border-radius: 20px;
+      padding: 0; width: 92%; max-width: 360px;
+      max-height: 80vh; display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    #profile-header {
+      padding: 16px 20px; border-bottom: 1px solid #eee;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    #profile-header h2 { font-size: 16px; margin: 0; color: #1a1a2e; }
+    #profile-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
+    #profile-stats {
+      display: flex; gap: 0; border-bottom: 1px solid #eee;
+    }
+    .profile-stat {
+      flex: 1; text-align: center; padding: 14px 8px;
+      border-right: 1px solid #eee;
+    }
+    .profile-stat:last-child { border-right: none; }
+    .profile-stat-num { font-size: 22px; font-weight: 700; color: #1a1a2e; }
+    .profile-stat-label { font-size: 10px; color: #888; margin-top: 2px; }
+    #profile-badges { padding: 12px 16px; overflow-y: auto; flex: 1; }
+    #profile-badges h3 { font-size: 12px; color: #888; margin: 0 0 10px; letter-spacing: 1px; }
+    .badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+    .badge-item {
+      text-align: center; padding: 8px 4px; border-radius: 12px;
+      background: #f9f9f9; cursor: default;
+    }
+    .badge-item.earned { background: #fff8e1; }
+    .badge-item.provisional { background: #fff3e0; opacity: 0.8; }
+    .badge-item .bi { font-size: 24px; }
+    .badge-item .bn { font-size: 9px; color: #555; margin-top: 3px; line-height: 1.2; }
+    .badge-item.locked .bi { filter: grayscale(1); opacity: 0.3; }
+    #profile-btn {
+      position: fixed; top: 10px; right: 52px; z-index: 2000;
+      background: none; border: none; font-size: 22px; cursor: pointer;
+      padding: 4px; line-height: 1;
+    }
   </style>
 </head>
 <body>
@@ -614,6 +698,9 @@
       🔔<span id="bell-badge" class="hidden">1</span>
     </button>
   </div>
+
+  <!-- プロフィールボタン（ヘッダー右端） -->
+  <button id="profile-btn" onclick="openProfileModal()" title="プロフィール・バッジ">👤</button>
 
   <!-- 注意喚起モーダル -->
   <div id="caution-overlay">
@@ -901,6 +988,47 @@
     </div>
     <button id="pwa-prompt-add">追加する</button>
     <button id="pwa-prompt-dismiss">×</button>
+  </div>
+
+  <!-- バッジ獲得モーダル -->
+  <div id="badge-overlay">
+    <div id="badge-modal">
+      <div id="badge-icon">🏅</div>
+      <div id="badge-title">バッジ獲得！</div>
+      <div id="badge-name"></div>
+      <div id="badge-desc"></div>
+      <div id="badge-provisional"></div>
+      <button id="badge-share-btn" onclick="shareBadge()">𝕏 シェア</button>
+      <button id="badge-close-btn" onclick="closeBadgeModal()">閉じる</button>
+    </div>
+  </div>
+
+  <!-- プロフィールモーダル -->
+  <div id="profile-overlay" onclick="if(event.target===this)closeProfileModal()">
+    <div id="profile-modal">
+      <div id="profile-header">
+        <h2>👤 マイページ</h2>
+        <button id="profile-close" onclick="closeProfileModal()">✕</button>
+      </div>
+      <div id="profile-stats">
+        <div class="profile-stat">
+          <div class="profile-stat-num" id="ps-submit">-</div>
+          <div class="profile-stat-label">投稿</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num" id="ps-visit">-</div>
+          <div class="profile-stat-label">行ったよ</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num" id="ps-review">-</div>
+          <div class="profile-stat-label">口コミ</div>
+        </div>
+      </div>
+      <div id="profile-badges">
+        <h3>獲得バッジ</h3>
+        <div id="profile-badge-list"><div style="color:#bbb;font-size:12px;padding:8px 0;">読み込み中...</div></div>
+      </div>
+    </div>
   </div>
 
   <!-- iOS用インストール手順モーダル -->
@@ -1753,7 +1881,9 @@
       btn.disabled = true; btn.textContent = '送信中...';
 
       // 認証してから submit_spot_v2 で投稿（user_id付き）
+      var _submitUser = null;
       requireAuth().then(function(user) {
+        _submitUser = user;
         return sb.rpc('submit_spot_v2', {
           p_name: name, p_category: category, p_address: address,
           p_lat: _geocodedLat, p_lng: _geocodedLng,
@@ -1769,6 +1899,7 @@
         closeSubmitModal();
         openSubmitSuccess();
         logEvent('spot_submit', null);
+        if (_submitUser) checkAndShowBadges(_submitUser.id);
       }).catch(function() {
         btn.disabled = false; btn.textContent = '投稿する';
       });
@@ -1926,20 +2057,22 @@
       if (btn) btn.classList.toggle('active', !already);
       // 認証してから toggle_helpful_v2（user_id版）で確定
       requireAuth().then(function(user) {
-        return sb.rpc('toggle_helpful_v2', { p_spot_id: spotId, p_user_id: user.id });
-      }).then(function(result) {
-        if (result.error) {
-          // DB失敗時はLocalStorageとUIをロールバック
-          localStorage.setItem(HELPFUL_KEY, JSON.stringify(prevHelpfuls));
-          if (btn) btn.classList.toggle('active', already);
-          return;
-        }
-        loadHelpfulCount(spotId);
-        if (!already) {
-          logEvent('spot_helpful', spotId);
-          // 初回押下時のみ口コミ誘導プロンプトを表示
-          openHelpfulPrompt(spotId, spotName);
-        }
+        return sb.rpc('toggle_helpful_v2', { p_spot_id: spotId, p_user_id: user.id })
+          .then(function(result) {
+            if (result.error) {
+              // DB失敗時はLocalStorageとUIをロールバック
+              localStorage.setItem(HELPFUL_KEY, JSON.stringify(prevHelpfuls));
+              if (btn) btn.classList.toggle('active', already);
+              return;
+            }
+            loadHelpfulCount(spotId);
+            if (!already) {
+              logEvent('spot_helpful', spotId);
+              checkAndShowBadges(user.id);
+              // 初回押下時のみ口コミ誘導プロンプトを表示
+              openHelpfulPrompt(spotId, spotName);
+            }
+          });
       }).catch(function() {
         // 認証失敗時はロールバック
         localStorage.setItem(HELPFUL_KEY, JSON.stringify(prevHelpfuls));
@@ -2048,20 +2181,21 @@
           device_id: getDeviceId(),
           user_id: user.id,
           status: 'pending'
-        }]);
-      }).then(function(result) {
-        btn.disabled = false; btn.textContent = '投稿する';
-        var fb = document.getElementById('review-feedback');
-        fb.style.display = 'block';
-        if (result.error) {
-          fb.className = 'error'; fb.textContent = '送信に失敗しました。しばらく後に再試行してください。';
-        } else {
-          fb.className = 'success'; fb.textContent = '送信しました！管理者の審査後に反映されます。';
-          document.getElementById('review-comment').value = '';
-          _reviewRating = 0;
-          document.querySelectorAll('.star-btn').forEach(function(b) { b.classList.remove('active'); });
-          logEvent('review_submit', spotId);
-        }
+        }]).then(function(result) {
+          btn.disabled = false; btn.textContent = '投稿する';
+          var fb = document.getElementById('review-feedback');
+          fb.style.display = 'block';
+          if (result.error) {
+            fb.className = 'error'; fb.textContent = '送信に失敗しました。しばらく後に再試行してください。';
+          } else {
+            fb.className = 'success'; fb.textContent = '送信しました！管理者の審査後に反映されます。';
+            document.getElementById('review-comment').value = '';
+            _reviewRating = 0;
+            document.querySelectorAll('.star-btn').forEach(function(b) { b.classList.remove('active'); });
+            logEvent('review_submit', spotId);
+            checkAndShowBadges(user.id);
+          }
+        });
       }).catch(function() {
         btn.disabled = false; btn.textContent = '投稿する';
       });
@@ -2131,6 +2265,128 @@
         spot_id: spotId || null,
         metadata: metadata || null
       }]).then(function() {});
+    }
+
+    // ===== ゲーミフィケーション =====
+
+    // バッジキュー（複数同時獲得時に順番に表示）
+    var _badgeQueue = [];
+    var _badgeSharing = null;
+
+    // 新規獲得バッジをチェックしてキューに追加
+    function checkAndShowBadges(userId) {
+      sb.rpc('check_and_unlock_achievements', { p_user_id: userId })
+        .then(function(result) {
+          if (!result.data || !result.data.length) return;
+          result.data.forEach(function(b) { _badgeQueue.push(b); });
+          if (_badgeQueue.length === result.data.length) showNextBadge();
+        });
+    }
+
+    // キューの先頭バッジを表示
+    function showNextBadge() {
+      if (_badgeQueue.length === 0) return;
+      var badge = _badgeQueue.shift();
+      _badgeSharing = badge;
+      document.getElementById('badge-icon').textContent = badge.icon;
+      document.getElementById('badge-name').textContent = badge.name;
+      document.getElementById('badge-desc').textContent = badge.description;
+      document.getElementById('badge-provisional').textContent =
+        badge.status === 'provisional' ? '（承認後に正式なバッジになります）' : '';
+      document.getElementById('badge-overlay').classList.add('open');
+      spawnConfetti();
+    }
+
+    function closeBadgeModal() {
+      document.getElementById('badge-overlay').classList.remove('open');
+      // 次のバッジがあれば500ms後に表示
+      if (_badgeQueue.length > 0) setTimeout(showNextBadge, 500);
+    }
+
+    // Xシェア
+    function shareBadge() {
+      if (!_badgeSharing) return;
+      var text = encodeURIComponent(
+        'Japan Dog Mapで「' + _badgeSharing.name + '」バッジを獲得しました！' +
+        ' ' + _badgeSharing.icon + ' #JapanDogMap #犬連れ旅行'
+      );
+      window.open('https://twitter.com/intent/tweet?text=' + text, '_blank');
+    }
+
+    // 紙吹雪アニメーション生成
+    function spawnConfetti() {
+      var modal = document.getElementById('badge-modal');
+      var colors = ['#f39c12','#e74c3c','#27ae60','#3498db','#9b59b6','#e67e22'];
+      for (var i = 0; i < 20; i++) {
+        var piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = (Math.random() * 100) + '%';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = (Math.random() * 0.8) + 's';
+        piece.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
+        modal.appendChild(piece);
+        // アニメーション終了後に削除
+        piece.addEventListener('animationend', function() { this.remove(); });
+      }
+    }
+
+    // プロフィールモーダルを開く
+    function openProfileModal() {
+      document.getElementById('profile-overlay').classList.add('open');
+      loadProfileData();
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profile-overlay').classList.remove('open');
+    }
+
+    // プロフィールデータを読み込む（統計 + バッジ）
+    function loadProfileData() {
+      getCurrentUser().then(function(user) {
+        if (!user) {
+          document.getElementById('profile-badge-list').innerHTML =
+            '<div style="color:#bbb;font-size:12px;padding:8px 0;">バッジを獲得するには、いずれかの操作（投稿・行ったよ・口コミ）を行ってください。</div>';
+          return;
+        }
+        // 統計を並行取得
+        Promise.all([
+          sb.from('user_submissions').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          sb.from('spot_helpfuls').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          sb.from('spot_reviews').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+          sb.rpc('get_my_achievements')
+        ]).then(function(results) {
+          document.getElementById('ps-submit').textContent = results[0].count || 0;
+          document.getElementById('ps-visit').textContent  = results[1].count || 0;
+          document.getElementById('ps-review').textContent = results[2].count || 0;
+          renderProfileBadges(results[3].data || []);
+        });
+      });
+    }
+
+    // バッジ一覧を描画（獲得済み + 未獲得グレー表示）
+    function renderProfileBadges(earnedList) {
+      var earnedMap = {};
+      earnedList.forEach(function(b) { earnedMap[b.achievement_id] = b.status; });
+      sb.from('achievements').select('*').order('sort_order').then(function(result) {
+        if (!result.data) return;
+        var categories = { submission: '投稿', visit: '行ったよ', review: '口コミ', combo: 'コンボ' };
+        var html = '';
+        Object.keys(categories).forEach(function(cat) {
+          var items = result.data.filter(function(a) { return a.category === cat; });
+          if (!items.length) return;
+          html += '<h3>' + categories[cat] + '</h3><div class="badge-grid">';
+          items.forEach(function(a) {
+            var status = earnedMap[a.id];
+            var cls = status === 'confirmed' ? 'earned' : status === 'provisional' ? 'provisional' : 'locked';
+            html += '<div class="badge-item ' + cls + '" title="' + esc(a.description) + '">'
+              + '<div class="bi">' + a.icon + '</div>'
+              + '<div class="bn">' + esc(a.name) + '</div>'
+              + '</div>';
+          });
+          html += '</div>';
+        });
+        document.getElementById('profile-badge-list').innerHTML = html || '<div style="color:#bbb;font-size:12px;">まだバッジがありません</div>';
+      });
     }
 
     // ===== チュートリアル（スポットライト型コーチマーク） =====
