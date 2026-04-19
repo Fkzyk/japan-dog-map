@@ -723,7 +723,7 @@
         });
     }
 
-    // スポット名で検索して候補を表示
+    // スポット名で検索して候補を表示（XSS対策：onclickではなくaddEventListenerを使用）
     function _searchSpots(q) {
       var res = document.getElementById('ov-search-results');
       if (!q) { res.style.display = 'none'; return; }
@@ -734,13 +734,21 @@
           return p.name && _normalizeText(p.name).indexOf(qn) >= 0;
         }).slice(0, 10);
         if (!hits.length) { res.style.display = 'none'; return; }
-        res.innerHTML = hits.map(function(p) {
-          // グローバルのesc()関数を使用してスポット名とIDをエスケープ
-          var escName = esc(p.name || '');
-          var escId = esc(p.place_id || '');
-          return '<div onclick="_selectSpot(\'' + escId + '\',\'' + escName + '\')" style="padding:10px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;">' +
-            '<strong>' + escName + '</strong><br><span style="color:#888;font-size:11px;">' + esc(p.address || '') + '</span></div>';
-        }).join('');
+        // innerHTML＋onclick属性方式はXSSリスクがあるためDOM操作方式に変更
+        res.innerHTML = '';
+        hits.forEach(function(p) {
+          var div = document.createElement('div');
+          div.style.cssText = 'padding:10px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;';
+          div.innerHTML = '<strong>' + esc(p.name || '') + '</strong><br>' +
+            '<span style="color:#888;font-size:11px;">' + esc(p.address || '') + '</span>';
+          // data属性でIDと名前を保持（onclick属性インジェクション回避）
+          div.dataset.spotId   = p.place_id || '';
+          div.dataset.spotName = p.name || '';
+          div.addEventListener('click', function() {
+            _selectSpot(this.dataset.spotId, this.dataset.spotName);
+          });
+          res.appendChild(div);
+        });
         res.style.display = 'block';
       });
     }
@@ -790,13 +798,16 @@
       };
 
       sb.rpc('admin_upsert_override_v2', params).then(function(result) {
-        if (result.error) { showToast('保存に失敗しました: ' + result.error.message); return; }
+        if (result.error) { console.error('saveOverride エラー:', result.error); showToast('操作に失敗しました。時間をおいて再度お試しください。'); return; }
         closeOverrideModal();
         showToast('スポット修正を保存しました');
         // overridesタブが開いていれば再読み込み
         if (currentTab === 'overrides') loadAdminOverrides();
       });
     }
+
+    // overrideデータのキャッシュ（XSS対策でインデックス参照に使用）
+    var _overridesCache = [];
 
     function loadAdminOverrides() {
       document.getElementById('overrides-loading').style.display = 'block';
@@ -810,16 +821,17 @@
             return;
           }
           var data = result.data || [];
+          _overridesCache = data; // インデックス参照のためキャッシュ
           if (!data.length) {
             document.getElementById('overrides-admin-list').innerHTML =
               '<div class="empty-state"><div class="empty-icon">📝</div>修正済みスポットはありません</div>';
             return;
           }
-          document.getElementById('overrides-admin-list').innerHTML = data.map(function(ov) {
+          // XSS対策：onclick属性にJSONを埋め込まず、data-indexのみ格納
+          document.getElementById('overrides-admin-list').innerHTML = data.map(function(ov, i) {
             var date = new Date(ov.updated_at).toLocaleString('ja-JP', {
               year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
             });
-            var catLabel = CAT_LABELS[ov.category] || ov.category || '（変更なし）';
             return '<div class="submission-card ' + (ov.is_closed ? 'rejected' : 'approved') + '">' +
               '<div class="card-top">' +
                 '<div class="card-name">' + esc(ov.name || '（名前変更なし）') + '</div>' +
@@ -833,11 +845,19 @@
               (ov.address ? '<div class="card-address">📍 ' + esc(ov.address) + '</div>' : '') +
               (ov.admin_note ? '<div class="card-comment">📝 ' + esc(ov.admin_note) + '</div>' : '') +
               '<div class="card-actions">' +
-                '<button class="action-btn btn-edit" onclick="editOverride(' + JSON.stringify(ov) + ')">✏️ 編集</button>' +
+                '<button class="action-btn btn-edit" data-override-index="' + i + '">✏️ 編集</button>' +
                 '<button class="action-btn btn-delete" onclick="deleteOverride(\'' + esc(ov.spot_id) + '\')">削除</button>' +
               '</div>' +
             '</div>';
           }).join('');
+          // HTML生成後にaddEventListenerを付与（onclick属性インジェクション回避）
+          document.getElementById('overrides-admin-list')
+            .querySelectorAll('[data-override-index]')
+            .forEach(function(btn) {
+              btn.addEventListener('click', function() {
+                editOverride(_overridesCache[parseInt(this.dataset.overrideIndex, 10)]);
+              });
+            });
         });
     }
 

@@ -903,7 +903,12 @@
       xhr.open('GET', 'places.json', true);
       xhr.onload = function() {
         if (xhr.status === 200) {
-          PLACES_DATA = JSON.parse(xhr.responseText);
+          try {
+            PLACES_DATA = JSON.parse(xhr.responseText);
+          } catch (e) {
+            console.error('places.jsonのパースに失敗しました:', e);
+            PLACES_DATA = [];
+          }
           PLACES_DATA.forEach(function(p) { placeById[p.place_id] = p; });
           buildGenreSelect();
           updateFilterLabels();
@@ -1400,20 +1405,23 @@
         .then(function(result) {
           if (result.error || !result.data || !result.data.length) return;
           result.data.forEach(function(ov) {
-            var p = placeById[ov.spot_id];
-            if (!p) return;
+            var idx = PLACES_DATA.findIndex(function(x) { return x.place_id === ov.spot_id; });
+            if (idx < 0) return;
             // 閉店スポットはデータから除外
             if (ov.is_closed) {
-              PLACES_DATA = PLACES_DATA.filter(function(x) { return x.place_id !== ov.spot_id; });
+              PLACES_DATA.splice(idx, 1);
               delete placeById[ov.spot_id];
               return;
             }
-            // 上書きフィールドを適用（nullは元の値を維持）
-            if (ov.name)    p.name    = ov.name;
-            if (ov.address) p.address = ov.address;
-            if (ov.category)p.category= ov.category;
-            if (ov.website) p.website = ov.website;
-            if (ov.phone)   p.phone   = ov.phone;
+            // 元オブジェクトを直接書き換えず、コピーを作成して差し替え（ミューテート防止）
+            var updated = Object.assign({}, PLACES_DATA[idx]);
+            if (ov.name)     updated.name     = ov.name;
+            if (ov.address)  updated.address  = ov.address;
+            if (ov.category) updated.category = ov.category;
+            if (ov.website)  updated.website  = ov.website;
+            if (ov.phone)    updated.phone    = ov.phone;
+            PLACES_DATA[idx] = updated;
+            placeById[ov.spot_id] = updated;
           });
           _rebuildSupercluster();
           refreshList();
@@ -1630,8 +1638,12 @@
 
     // ===== お気に入り機能（LocalStorage） =====
     var FAV_KEY = 'jdm-favorites';
+    // LocalStorageパースのキャッシュ（毎回パースしないよう最適化）
+    var _favoritesCache = null;
     function getFavorites() {
-      try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch(e) { return []; }
+      if (_favoritesCache !== null) return _favoritesCache;
+      try { _favoritesCache = JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch(e) { _favoritesCache = []; }
+      return _favoritesCache;
     }
     function isFavorite(id) { return getFavorites().indexOf(id) >= 0; }
     function toggleFavorite(id) {
@@ -1645,6 +1657,7 @@
         logEvent('spot_favorite_add', id);
       }
       localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+      _favoritesCache = favs; // キャッシュを最新状態に更新
       // infoWindowのボタン表示を更新
       var btn = document.getElementById('iw-fav-' + id);
       if (btn) {
@@ -1683,6 +1696,8 @@
       var pid = esc(spotId);
       var helpfuls = getHelpfuls();
       var already = helpfuls.indexOf(spotId) >= 0;
+      // ロールバック用に更新前の状態を保存
+      var prevHelpfuls = helpfuls.slice();
       // LocalStorageを即時更新（楽観的UI）
       if (already) {
         helpfuls.splice(helpfuls.indexOf(spotId), 1);
@@ -1694,7 +1709,13 @@
       if (btn) btn.classList.toggle('active', !already);
       // DB確定（toggle_helpful RPC）
       sb.rpc('toggle_helpful', { p_spot_id: spotId, p_device_id: getDeviceId() })
-        .then(function() {
+        .then(function(result) {
+          if (result.error) {
+            // DB失敗時はLocalStorageとUIをロールバック
+            localStorage.setItem(HELPFUL_KEY, JSON.stringify(prevHelpfuls));
+            if (btn) btn.classList.toggle('active', already);
+            return;
+          }
           loadHelpfulCount(spotId);
           if (!already) {
             logEvent('spot_helpful', spotId);
