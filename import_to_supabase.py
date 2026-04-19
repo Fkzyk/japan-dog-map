@@ -3,11 +3,15 @@
 places.json を Supabase の places テーブルにインポートするスクリプト
 """
 import json
+import os
 import requests
 import time
 
-SUPABASE_URL = "https://rfcfilhqkkjmkecxzijw.supabase.co"
-SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmY2ZpbGhxa2tqbWtlY3h6aWp3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTg0MjgyNCwiZXhwIjoyMDg3NDE4ODI0fQ.1dTs-UKBN0yzApWozYITvSGYJF1eZ59IkWzxQsTlQ74"
+# キーは環境変数から読み込む（.envファイルに設定するか export SUPABASE_SERVICE_KEY=... を実行）
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://rfcfilhqkkjmkecxzijw.supabase.co")
+SERVICE_KEY  = os.environ.get("SUPABASE_SERVICE_KEY")
+if not SERVICE_KEY:
+    raise RuntimeError("環境変数 SUPABASE_SERVICE_KEY が設定されていません。.env ファイルを確認してください。")
 
 HEADERS = {
     "apikey": SERVICE_KEY,

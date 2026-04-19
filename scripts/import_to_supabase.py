@@ -6,8 +6,10 @@ from supabase import create_client, Client
 
 def import_to_supabase(file_path: str):
     """指定されたJSONファイルをSupabaseにインポートする"""
-    url: str = "https://rfcfilhqkkjmkecxzijw.supabase.co"
-    key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmY2ZpbGhxa2tqbWtlY3h6aWp3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcxODU5MDQ5MSwiZXhwIjoyMDM0MTY2NDkxfQ.6s5G239LYDSyLw9iK3e_Fz_L-b95xVAnbqD8cCwB2_8"
+    url: str = os.environ.get("SUPABASE_URL", "https://rfcfilhqkkjmkecxzijw.supabase.co")
+    key: str = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    if not key:
+        raise RuntimeError("環境変数 SUPABASE_SERVICE_KEY が設定されていません。.env ファイルを確認してください。")
     supabase: Client = create_client(url, key)
 
     try:
