@@ -10,8 +10,8 @@ ___
 ## Phase 1: 認証基盤
 
 - [x] Phase 1a: 事前調査（既存コード・DB・インフラ）✅ 2026-04-19
-- [ ] Phase 1b: Supabase Dashboard設定（Anonymous Sign-Ins ON・えふかず手動対応待ち）
-- [ ] Phase 1c: Cloudflare Turnstile設定（Add widget完了後にSite Keyを turnstile.js に設定・えふかず手動対応待ち）
+- [x] Phase 1b: Supabase Dashboard設定（Anonymous Sign-Ins ON）✅ 2026-04-19
+- [x] Phase 1c: Cloudflare Turnstile設定（Managed mode・Site Key設定・Supabase Secret Key登録完了）✅ 2026-04-19
 - [x] Phase 1d: auth.js 実装 ✅ 2026-04-19
 - [x] Phase 1e: turnstile.js 実装 ✅ 2026-04-19（TURNSTILE_SITE_KEYはプレースホルダー・1c完了後に差し替え）
 
